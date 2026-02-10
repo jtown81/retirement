@@ -1,0 +1,17 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@models/*": ["src/models/*"],
+      "@modules/*": ["src/modules/*"],
+      "@utils/*": ["src/utils/*"],
+      "@storage/*": ["src/storage/*"],
+      "@registry/*": ["src/registry/*"],
+      "@components/*": ["src/components/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@data/*": ["src/data/*"]
+    }
+  },
+  "include": ["src", "tests"]
+}

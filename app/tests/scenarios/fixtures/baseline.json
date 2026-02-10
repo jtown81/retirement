@@ -1,0 +1,22 @@
+{
+  "_comment": "Canonical expected values extracted from Retire-original.xlsx. Populate during Phase 3–7.",
+  "schemaVersion": 1,
+  "scenarios": {
+    "gs-straight-through": {
+      "status": "pending",
+      "expectedValues": {}
+    },
+    "leo-early-retirement": {
+      "status": "pending",
+      "expectedValues": {}
+    },
+    "military-buyback": {
+      "status": "pending",
+      "expectedValues": {}
+    },
+    "tsp-roth-vs-traditional": {
+      "status": "pending",
+      "expectedValues": {}
+    }
+  }
+}

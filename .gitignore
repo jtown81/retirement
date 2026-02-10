@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Build artifacts
+dist/
+build/
+.astro/
+.next/
+out/
+
+# Development
+.DS_Store
+*.log
+*.swp
+*.swo
+*~
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+.vim/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# OS
+Thumbs.db
+.DS_Store
+*.pem
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Local testing
+.test-cache/
+test-results/
+
+# Editor backup files
+*~
+*.swp
+*.swo
