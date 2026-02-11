@@ -26,6 +26,8 @@ export {
   GSGradeSchema,
   GSStepSchema,
   PaySystemSchema,
+  // Personal info
+  PersonalInfoSchema,
   // Career
   CareerEventSchema,
   CareerProfileSchema,
@@ -45,6 +47,7 @@ export {
   ExpenseProfileSchema,
   // Simulation
   RetirementAssumptionsSchema,
+  RetirementAssumptionsFullSchema,
   RetirementScenarioStoredSchema,
   ScenariosSchema,
   // Envelope

@@ -155,6 +155,17 @@ export const ExpenseProfileSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Personal info (new — form input section)
+// ---------------------------------------------------------------------------
+
+export const PersonalInfoSchema = z.object({
+  birthDate: ISODateSchema,
+  scdLeave: ISODateSchema,
+  scdRetirement: ISODateSchema,
+  paySystem: PaySystemSchema,
+});
+
+// ---------------------------------------------------------------------------
 // Simulation assumptions
 // ---------------------------------------------------------------------------
 
@@ -163,6 +174,12 @@ export const RetirementAssumptionsSchema = z.object({
   tspGrowthRate: RateSchema.min(0).max(1),
   colaRate: RateSchema.min(0).max(0.1),
   retirementHorizonYears: z.number().int().min(1).max(60),
+});
+
+/** Extended assumptions schema for form storage (includes optional fields) */
+export const RetirementAssumptionsFullSchema = RetirementAssumptionsSchema.extend({
+  tspWithdrawalRate: RateSchema.min(0).max(1).optional(),
+  estimatedSSMonthlyAt62: USDSchema.optional(),
 });
 
 // ---------------------------------------------------------------------------

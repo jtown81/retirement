@@ -2,26 +2,30 @@ import { useState, useCallback } from 'react';
 import { z } from 'zod';
 import { save, load } from '@storage/index';
 
+const isBrowser = typeof window !== 'undefined';
+
 /**
  * React hook wrapping the typed localStorage persistence layer.
- * Reads on mount, writes on set.
+ * Reads on mount, writes on set. SSR-safe (returns null on server).
  */
 export function useLocalStorage<T>(
   key: string,
   schema: z.ZodType<T>,
 ): [T | null, (value: T) => void, () => void] {
-  const [stored, setStored] = useState<T | null>(() => load(key, schema));
+  const [stored, setStored] = useState<T | null>(() =>
+    isBrowser ? load(key, schema) : null,
+  );
 
   const set = useCallback(
     (value: T) => {
-      save(key, value);
+      if (isBrowser) save(key, value);
       setStored(value);
     },
     [key],
   );
 
   const remove = useCallback(() => {
-    localStorage.removeItem(key);
+    if (isBrowser) localStorage.removeItem(key);
     setStored(null);
   }, [key]);
 

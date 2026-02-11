@@ -18,11 +18,13 @@ export interface StoredRecord<T> {
 
 /** Storage keys — all app data lives under these keys */
 export const STORAGE_KEYS = {
+  PERSONAL_INFO: 'retire:personal',
   CAREER_PROFILE: 'retire:career',
   LEAVE_BALANCE: 'retire:leave',
   TSP_BALANCES: 'retire:tsp',
   TSP_CONTRIBUTIONS: 'retire:tsp:contributions',
   MILITARY_SERVICE: 'retire:military',
   EXPENSE_PROFILE: 'retire:expenses',
+  ASSUMPTIONS: 'retire:assumptions',
   SCENARIOS: 'retire:scenarios',
 } as const;
