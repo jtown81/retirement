@@ -7,6 +7,9 @@ export default defineConfig({
   integrations: [
     react(),
   ],
+  server: {
+    port: 2222,
+  },
   vite: {
     plugins: [tailwindcss()],
   },
