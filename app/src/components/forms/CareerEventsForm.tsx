@@ -139,6 +139,11 @@ export function CareerEventsForm() {
       {errors.events && <p className="text-sm text-red-600 mb-2">{errors.events}</p>}
 
       <div className="space-y-4">
+        {form.events.length === 0 && (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center text-sm text-gray-500">
+            No career events yet. Click &ldquo;+ Add Career Event&rdquo; below to record your hire, promotions, and step increases.
+          </div>
+        )}
         {form.events.map((ev, idx) => (
           <div key={ev.id} className="border border-gray-200 rounded-md p-3 bg-gray-50">
             <div className="flex items-center justify-between mb-3">

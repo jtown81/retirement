@@ -1,100 +1,187 @@
-import { useState } from 'react';
-import { useLocalStorage } from '@hooks/useLocalStorage';
-import { STORAGE_KEYS, LeaveBalanceSchema } from '@storage/index';
-import { FieldGroup } from './FieldGroup';
-import { FormSection } from './FormSection';
-import type { LeaveBalance } from '@models/leave';
+/**
+ * LeaveBalanceForm — Root orchestrator for the leave calendar system.
+ *
+ * Composes the toolbar, summary panel, calendar grid, and entry modal
+ * into a single form section. Replaces the original 4-field balance form.
+ */
 
-const DEFAULTS: LeaveBalance = {
-  asOf: '',
-  annualLeaveHours: 0,
-  sickLeaveHours: 0,
-  familyCareUsedCurrentYear: 0,
-};
+import { useState, useCallback, useRef } from 'react';
+import { useLeaveCalendar } from './leave-calendar/useLeaveCalendar';
+import { LeaveCalendarToolbar } from './leave-calendar/LeaveCalendarToolbar';
+import { LeaveBalanceSummaryPanel } from './leave-calendar/LeaveBalanceSummaryPanel';
+import { LeaveCalendarGrid } from './leave-calendar/LeaveCalendarGrid';
+import { LeaveEntryModal } from './leave-calendar/LeaveEntryModal';
+import { weekdaysInRange, parseDate } from '@modules/leave/calendar-utils';
+import type { CalendarLeaveType, SickLeaveCode, CalendarLeaveEntry } from '@models/leave-calendar';
+
+function generateId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
 
 export function LeaveBalanceForm() {
-  const [stored, save, remove] = useLocalStorage(STORAGE_KEYS.LEAVE_BALANCE, LeaveBalanceSchema);
-  const [form, setForm] = useState<LeaveBalance>(stored ?? DEFAULTS);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const cal = useLeaveCalendar();
+  const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
+  const [showModal, setShowModal] = useState(false);
+  const lastClickedRef = useRef<string | null>(null);
 
-  const set = <K extends keyof LeaveBalance>(key: K, value: LeaveBalance[K]) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
+  // Find existing entry when editing a single selected date
+  const selectedArr = Array.from(selectedDates);
+  const existingEntry =
+    selectedArr.length === 1
+      ? cal.activeYearData.entries.find((e) => e.date === selectedArr[0])
+      : undefined;
 
-  const handleSave = () => {
-    const result = LeaveBalanceSchema.safeParse(form);
-    if (!result.success) {
-      const flat = result.error.flatten().fieldErrors;
-      setErrors(
-        Object.fromEntries(Object.entries(flat).map(([k, v]) => [k, v?.[0] ?? ''])),
-      );
-      return;
+  const handleDayClick = useCallback(
+    (dateStr: string, shiftKey: boolean) => {
+      if (shiftKey && lastClickedRef.current) {
+        // Range selection: all weekdays between last click and this click
+        const start = parseDate(
+          lastClickedRef.current < dateStr ? lastClickedRef.current : dateStr,
+        );
+        const end = parseDate(
+          lastClickedRef.current < dateStr ? dateStr : lastClickedRef.current,
+        );
+        const range = weekdaysInRange(start, end);
+        setSelectedDates(new Set(range));
+      } else {
+        // Toggle single date or start new selection
+        setSelectedDates((prev) => {
+          const next = new Set<string>();
+          if (!prev.has(dateStr)) {
+            next.add(dateStr);
+          }
+          return next;
+        });
+      }
+      lastClickedRef.current = dateStr;
+
+      // Auto-open modal
+      setShowModal(true);
+    },
+    [],
+  );
+
+  const handleSave = useCallback(
+    (
+      leaveType: CalendarLeaveType,
+      hours: number,
+      sickCode?: SickLeaveCode,
+      notes?: string,
+    ) => {
+      if (existingEntry && selectedArr.length === 1) {
+        // Update existing entry
+        cal.updateEntry(existingEntry.id, { leaveType, hours, sickCode, notes });
+      } else {
+        // Create new entries for all selected dates
+        // First remove any existing entries for these dates
+        const existingIds = cal.activeYearData.entries
+          .filter((e) => selectedDates.has(e.date))
+          .map((e) => e.id);
+        if (existingIds.length > 0) {
+          cal.removeEntries(existingIds);
+        }
+
+        const newEntries: CalendarLeaveEntry[] = selectedArr.map((date) => ({
+          id: generateId(),
+          date,
+          leaveType,
+          hours,
+          sickCode,
+          notes,
+        }));
+        cal.addEntries(newEntries);
+      }
+      setShowModal(false);
+      setSelectedDates(new Set());
+    },
+    [cal, existingEntry, selectedArr, selectedDates],
+  );
+
+  const handleDelete = useCallback(() => {
+    if (selectedArr.length === 1 && existingEntry) {
+      cal.removeEntry(existingEntry.id);
+    } else {
+      const ids = cal.activeYearData.entries
+        .filter((e) => selectedDates.has(e.date))
+        .map((e) => e.id);
+      if (ids.length > 0) cal.removeEntries(ids);
     }
-    setErrors({});
-    save(result.data);
-  };
+    setShowModal(false);
+    setSelectedDates(new Set());
+  }, [cal, selectedArr, existingEntry, selectedDates]);
 
-  const handleClear = () => {
-    if (window.confirm('Clear leave balance data? This cannot be undone.')) {
-      remove();
-      setForm(DEFAULTS);
-      setErrors({});
-    }
-  };
+  const handleCloseModal = useCallback(() => {
+    setShowModal(false);
+    setSelectedDates(new Set());
+  }, []);
+
+  // Legend
+  const legendItems = [
+    { color: 'bg-blue-400', label: 'Planned Annual' },
+    { color: 'bg-green-500', label: 'Actual Annual' },
+    { color: 'bg-orange-400', label: 'Planned Sick' },
+    { color: 'bg-red-500', label: 'Actual Sick' },
+    { color: 'bg-amber-400', label: 'Federal Holiday' },
+  ];
 
   return (
-    <FormSection
-      title="Leave Balances"
-      description="Current leave balances as reported on your last Leave & Earnings Statement."
-      onSave={handleSave}
-      onClear={handleClear}
-    >
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FieldGroup label="As-Of Date" htmlFor="leaveAsOf" error={errors.asOf}>
-          <input
-            id="leaveAsOf"
-            type="date"
-            value={form.asOf}
-            onChange={(e) => set('asOf', e.target.value)}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          />
-        </FieldGroup>
-
-        <FieldGroup label="Annual Leave (hours)" htmlFor="annualLeave" error={errors.annualLeaveHours}>
-          <input
-            id="annualLeave"
-            type="number"
-            min="0"
-            step="1"
-            value={form.annualLeaveHours}
-            onChange={(e) => set('annualLeaveHours', Number(e.target.value))}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          />
-        </FieldGroup>
-
-        <FieldGroup label="Sick Leave (hours)" htmlFor="sickLeave" error={errors.sickLeaveHours}>
-          <input
-            id="sickLeave"
-            type="number"
-            min="0"
-            step="1"
-            value={form.sickLeaveHours}
-            onChange={(e) => set('sickLeaveHours', Number(e.target.value))}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          />
-        </FieldGroup>
-
-        <FieldGroup label="Family Care Used This Year (hours)" htmlFor="familyCare" error={errors.familyCareUsedCurrentYear}>
-          <input
-            id="familyCare"
-            type="number"
-            min="0"
-            step="1"
-            value={form.familyCareUsedCurrentYear}
-            onChange={(e) => set('familyCareUsedCurrentYear', Number(e.target.value))}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          />
-        </FieldGroup>
+    <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
+      <div className="mb-4">
+        <h3 className="text-base font-medium text-gray-900">Leave Calendar</h3>
+        <p className="text-sm text-gray-600 mt-1">
+          Plan and track your leave day-by-day. Click a day to add leave; Shift+click to select a range.
+        </p>
       </div>
-    </FormSection>
+
+      <div className="space-y-4">
+        {/* Toolbar */}
+        <LeaveCalendarToolbar
+          year={cal.data.activeYear}
+          accrualRate={cal.activeYearData.accrualRatePerPP}
+          carryOver={cal.activeYearData.carryOver}
+          onYearChange={cal.setActiveYear}
+          onAccrualRateChange={cal.setAccrualRate}
+          onCarryOverChange={cal.setCarryOver}
+          onClearYear={cal.clearYear}
+        />
+
+        {/* Summary Panel */}
+        <LeaveBalanceSummaryPanel summary={cal.summary} />
+
+        {/* Legend */}
+        <div className="flex flex-wrap gap-3">
+          {legendItems.map((item) => (
+            <div key={item.label} className="flex items-center gap-1">
+              <span className={`w-2.5 h-2.5 rounded-full ${item.color}`} />
+              <span className="text-[10px] text-gray-600">{item.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar Grid */}
+        <LeaveCalendarGrid
+          year={cal.data.activeYear}
+          entries={cal.activeYearData.entries}
+          selectedDates={selectedDates}
+          onDayClick={handleDayClick}
+        />
+      </div>
+
+      {/* Modal */}
+      {showModal && selectedArr.length > 0 && (
+        <LeaveEntryModal
+          selectedDates={selectedArr}
+          existingEntry={existingEntry}
+          onSave={handleSave}
+          onDelete={
+            existingEntry ||
+            cal.activeYearData.entries.some((e) => selectedDates.has(e.date))
+              ? handleDelete
+              : undefined
+          }
+          onClose={handleCloseModal}
+        />
+      )}
+    </div>
   );
 }

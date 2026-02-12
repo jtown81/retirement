@@ -24,3 +24,5 @@ export { computeAgencyMatch } from './agency-match';
 export { projectTraditionalBalance, projectTraditionalDetailed } from './traditional';
 export { projectRothBalance, projectRothDetailed } from './roth';
 export { getTSPLimits, clampToContributionLimit } from '../../data/tsp-limits';
+export type { TSPDepletionResult } from './future-value';
+export { computeTSPFutureValue, projectTSPDepletion } from './future-value';

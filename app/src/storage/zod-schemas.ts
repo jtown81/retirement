@@ -83,6 +83,47 @@ export const LeaveEventSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Leave Calendar
+// ---------------------------------------------------------------------------
+
+export const CalendarLeaveTypeSchema = z.enum([
+  'planned-annual',
+  'planned-sick',
+  'actual-annual',
+  'actual-sick',
+]);
+
+export const SickLeaveCodeSchema = z.enum(['LS', 'DE']);
+
+export const CalendarLeaveEntrySchema = z.object({
+  id: z.string().min(1),
+  date: ISODateSchema,
+  leaveType: CalendarLeaveTypeSchema,
+  hours: z.number().finite().min(0.25).max(8),
+  sickCode: SickLeaveCodeSchema.optional(),
+  notes: z.string().optional(),
+});
+
+export const LeaveCarryOverSchema = z.object({
+  annualLeaveHours: z.number().finite().nonnegative(),
+  sickLeaveHours: z.number().finite().nonnegative(),
+});
+
+export const AccrualRateSchema = z.union([z.literal(4), z.literal(6), z.literal(8)]);
+
+export const LeaveCalendarYearSchema = z.object({
+  year: z.number().int().min(2000).max(2100),
+  accrualRatePerPP: AccrualRateSchema,
+  carryOver: LeaveCarryOverSchema,
+  entries: z.array(CalendarLeaveEntrySchema),
+});
+
+export const LeaveCalendarDataSchema = z.object({
+  years: z.record(z.coerce.number().int(), LeaveCalendarYearSchema),
+  activeYear: z.number().int().min(2000).max(2100),
+});
+
+// ---------------------------------------------------------------------------
 // TSP
 // ---------------------------------------------------------------------------
 
@@ -150,6 +191,7 @@ export const ExpenseProfileSchema = z.object({
   baseYear: z.number().int().min(2000).max(2100),
   categories: z.array(ExpenseCategorySchema),
   inflationRate: RateSchema.min(0).max(0.2),
+  healthcareInflationRate: RateSchema.min(0).max(0.2).optional(),
   smileCurveEnabled: z.boolean(),
   smileCurveParams: SmileCurveParamsSchema.optional(),
 });
@@ -180,6 +222,75 @@ export const RetirementAssumptionsSchema = z.object({
 export const RetirementAssumptionsFullSchema = RetirementAssumptionsSchema.extend({
   tspWithdrawalRate: RateSchema.min(0).max(1).optional(),
   estimatedSSMonthlyAt62: USDSchema.optional(),
+});
+
+// ---------------------------------------------------------------------------
+// FERS Estimate (Basic Calculator inputs)
+// ---------------------------------------------------------------------------
+
+export const FERSEstimateSchema = z.object({
+  // Service & salary
+  retirementAgeOption: z.enum(['MRA', '60', '62', 'custom']).optional(),
+  retirementDate: ISODateSchema,
+  gsGrade: GSGradeSchema.optional(),
+  gsStep: GSStepSchema.optional(),
+  localityCode: z.string().min(1).optional(),
+  annualRaiseRate: RateSchema.min(0).max(0.1).optional(),
+  high3Override: USDSchema.optional(),
+  sickLeaveHours: z.number().finite().nonnegative(),
+  // Annuity
+  annuityReductionPct: RateSchema.min(0).max(1),
+  // Social Security
+  ssaBenefitAt62: USDSchema.optional(),
+  annualEarnings: USDSchema.optional(),
+  // TSP projection
+  currentTspBalance: USDSchema,
+  traditionalTspBalance: USDSchema.optional(),
+  rothTspBalance: USDSchema.optional(),
+  biweeklyTspContribution: USDSchema,
+  isRothContribution: z.boolean().optional(),
+  catchUpEligible: z.boolean().optional(),
+  tspGrowthRate: RateSchema.min(0).max(1),
+  // TSP withdrawals
+  withdrawalRate: RateSchema.min(0).max(1),
+  withdrawalStartAge: z.number().int().min(50).max(90),
+  oneTimeWithdrawalAmount: USDSchema.optional(),
+  oneTimeWithdrawalAge: z.number().int().min(50).max(90).optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Simulation Config (post-retirement projection)
+// ---------------------------------------------------------------------------
+
+export const TimeStepYearsSchema = z.union([z.literal(1), z.literal(2), z.literal(3)]);
+
+export const SimulationConfigSchema = z.object({
+  // Core
+  retirementAge: z.number().int().min(50).max(90),
+  endAge: z.number().int().min(70).max(104),
+  fersAnnuity: USDSchema,
+  fersSupplement: USDSchema,
+  ssMonthlyAt62: USDSchema,
+  // TSP
+  tspBalanceAtRetirement: USDSchema,
+  traditionalPct: RateSchema.min(0).max(1),
+  highRiskPct: RateSchema.min(0).max(1),
+  highRiskROI: RateSchema.min(-0.5).max(0.5),
+  lowRiskROI: RateSchema.min(-0.5).max(0.5),
+  withdrawalRate: RateSchema.min(0).max(1),
+  timeStepYears: TimeStepYearsSchema,
+  // Expenses
+  baseAnnualExpenses: USDSchema,
+  goGoEndAge: z.number().int().min(50).max(104),
+  goGoRate: RateSchema.min(0).max(2),
+  goSlowEndAge: z.number().int().min(50).max(104),
+  goSlowRate: RateSchema.min(0).max(2),
+  noGoRate: RateSchema.min(0).max(2),
+  // Rates
+  colaRate: RateSchema.min(0).max(0.1),
+  inflationRate: RateSchema.min(0).max(0.2),
+  healthcareInflationRate: RateSchema.min(0).max(0.2).optional(),
+  healthcareAnnualExpenses: USDSchema.optional(),
 });
 
 // ---------------------------------------------------------------------------

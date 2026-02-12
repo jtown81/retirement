@@ -30,8 +30,9 @@ describe('accrueAnnualLeave', () => {
     expect(accrueAnnualLeave(0, 26)).toBe(104);
   });
 
-  it('accrues 6 hrs/pp for mid-career employee over 26 pay periods', () => {
-    expect(accrueAnnualLeave(5, 26)).toBe(156);
+  it('accrues 6 hrs/pp for mid-career employee over 26 pay periods (160 hrs)', () => {
+    // 25 PP × 6 + 1 PP × 10 = 160 per 5 U.S.C. § 6303(a)
+    expect(accrueAnnualLeave(5, 26)).toBe(160);
   });
 
   it('accrues 8 hrs/pp for senior employee over 26 pay periods', () => {

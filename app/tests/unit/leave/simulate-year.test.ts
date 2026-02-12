@@ -11,9 +11,9 @@ const BASE_INPUT: LeaveYearInput = {
 };
 
 describe('simulateLeaveYear — no usage events', () => {
-  it('accrues annual leave at 6 hrs/pp for 5-year employee', () => {
+  it('accrues annual leave at 6 hrs/pp for 5-year employee (160 hrs/year)', () => {
     const result = simulateLeaveYear(BASE_INPUT);
-    expect(result.annualLeaveAccrued).toBe(6 * 26); // 156
+    expect(result.annualLeaveAccrued).toBe(160); // 25 PP × 6 + 1 PP × 10 per 5 U.S.C. § 6303
   });
 
   it('accrues sick leave at 4 hrs/pp', () => {
@@ -23,9 +23,9 @@ describe('simulateLeaveYear — no usage events', () => {
 
   it('applies rollover cap and reports forfeit', () => {
     const result = simulateLeaveYear(BASE_INPUT);
-    // carry-in 240 + accrued 156 = 396, capped at 240 → forfeit 156
+    // carry-in 240 + accrued 160 = 400, capped at 240 → forfeit 160
     expect(result.annualLeaveEndOfYear).toBe(240);
-    expect(result.annualLeaveForfeit).toBe(156);
+    expect(result.annualLeaveForfeit).toBe(160);
   });
 
   it('sick leave has no cap', () => {
@@ -51,9 +51,9 @@ describe('simulateLeaveYear — with usage events', () => {
       ],
     };
     const result = simulateLeaveYear(input);
-    // accrued 156, used 40, pre-cap balance = 116
+    // accrued 160, used 40, pre-cap balance = 120
     expect(result.annualLeaveUsed).toBe(40);
-    expect(result.annualLeaveEndOfYear).toBe(116);
+    expect(result.annualLeaveEndOfYear).toBe(120);
     expect(result.annualLeaveForfeit).toBe(0);
   });
 

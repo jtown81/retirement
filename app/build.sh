@@ -25,8 +25,9 @@ show_menu() {
     echo "  6) Type Check"
     echo "  7) Clean Build (delete dist/ and rebuild)"
     echo "  8) Full Build Pipeline (test + typecheck + build)"
+    echo "  9) Full Build Pipeline + Start Server"
     echo ""
-    read -p "Enter your choice (1-8): " choice
+    read -p "Enter your choice (1-9): " choice
 }
 
 # Function to run dev server
@@ -128,6 +129,16 @@ run_full_pipeline() {
     echo "Output directory: dist/"
 }
 
+# Function to run full pipeline and start server
+run_full_pipeline_and_serve() {
+    run_full_pipeline
+    echo ""
+    echo "Starting preview server on port 2222..."
+    echo "Visit: http://localhost:2222"
+    echo ""
+    pnpm preview
+}
+
 # Main logic
 show_menu
 
@@ -156,8 +167,11 @@ case $choice in
     8)
         run_full_pipeline
         ;;
+    9)
+        run_full_pipeline_and_serve
+        ;;
     *)
-        echo "Invalid choice. Please enter a number between 1-8."
+        echo "Invalid choice. Please enter a number between 1-9."
         exit 1
         ;;
 esac

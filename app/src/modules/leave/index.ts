@@ -16,7 +16,7 @@
 export type { LeaveBalance, LeaveEvent } from '../../models/leave';
 export type { LeaveYearInput, LeaveYearResult } from './simulate-year';
 
-export { annualLeaveAccrualRate, accrueAnnualLeave, applyRolloverCap, useAnnualLeave } from './annual-leave';
+export { annualLeaveAccrualRate, accrueAnnualLeave, fullYearAnnualLeave, applyRolloverCap, useAnnualLeave } from './annual-leave';
 export {
   HOURS_PER_WORK_YEAR,
   FAMILY_CARE_ANNUAL_LIMIT_HOURS,
@@ -26,3 +26,19 @@ export {
 } from './sick-leave';
 export { computeLeaveRetirementCredit } from './retirement-credit';
 export { simulateLeaveYear } from './simulate-year';
+
+// Calendar utilities & bridge
+export {
+  isWeekend,
+  weekdaysInRange,
+  weekdaysInMonth,
+  weekdaysInYear,
+  formatDate,
+  parseDate,
+} from './calendar-utils';
+export type { CalendarYearSummary } from './calendar-bridge';
+export {
+  computeCalendarYearSummary,
+  calendarEntriesToLeaveEvents,
+  calendarToLeaveBalance,
+} from './calendar-bridge';

@@ -5,10 +5,11 @@ interface FormSectionProps {
   description?: string;
   onSave: () => void;
   onClear: () => void;
+  onLoadDefaults?: () => void;
   children: ReactNode;
 }
 
-export function FormSection({ title, description, onSave, onClear, children }: FormSectionProps) {
+export function FormSection({ title, description, onSave, onClear, onLoadDefaults, children }: FormSectionProps) {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
       <div className="mb-4">
@@ -33,6 +34,15 @@ export function FormSection({ title, description, onSave, onClear, children }: F
         >
           Clear Section
         </button>
+        {onLoadDefaults && (
+          <button
+            type="button"
+            onClick={onLoadDefaults}
+            className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50"
+          >
+            Load Defaults
+          </button>
+        )}
       </div>
     </div>
   );

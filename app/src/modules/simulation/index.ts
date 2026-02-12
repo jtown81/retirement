@@ -22,4 +22,6 @@ export type { ScenarioSummary, ScenarioComparisonResult } from './scenario';
 export { getMRA, checkFERSEligibility, mra10ReductionFactor } from './eligibility';
 export { computeHigh3, computeFERSAnnuity, computeFERSSupplement } from './annuity';
 export { projectRetirementIncome } from './income-projection';
+export { projectRetirementSimulation } from './retirement-simulation';
+export type { SimulationConfig, SimulationYearResult, FullSimulationResult } from '../../models/simulation';
 export { runScenario, compareScenarios } from './scenario';

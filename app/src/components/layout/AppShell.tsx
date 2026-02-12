@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-type View = 'input' | 'dashboard';
+export type View = 'input' | 'leave' | 'dashboard';
 
 interface AppShellProps {
   children: ReactNode;
@@ -8,6 +8,12 @@ interface AppShellProps {
   onViewChange: (view: View) => void;
   mode: 'demo' | 'user';
 }
+
+const NAV_ITEMS: { id: View; label: string }[] = [
+  { id: 'input', label: 'My Plan' },
+  { id: 'leave', label: 'Leave' },
+  { id: 'dashboard', label: 'Dashboard' },
+];
 
 export function AppShell({ children, view, onViewChange, mode }: AppShellProps) {
   return (
@@ -20,28 +26,20 @@ export function AppShell({ children, view, onViewChange, mode }: AppShellProps) 
             </h1>
           </div>
           <nav className="flex space-x-6 mt-3 -mb-px" aria-label="Main navigation">
-            <button
-              type="button"
-              onClick={() => onViewChange('input')}
-              className={`pb-2 text-sm font-medium border-b-2 ${
-                view === 'input'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              My Plan
-            </button>
-            <button
-              type="button"
-              onClick={() => onViewChange('dashboard')}
-              className={`pb-2 text-sm font-medium border-b-2 ${
-                view === 'dashboard'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Dashboard
-            </button>
+            {NAV_ITEMS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onViewChange(item.id)}
+                className={`pb-2 text-sm font-medium border-b-2 ${
+                  view === item.id
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </nav>
         </div>
       </header>

@@ -28,6 +28,7 @@ export interface ExpenseProfile {
   baseYear: number;
   categories: ExpenseCategory[];
   inflationRate: Rate;
+  healthcareInflationRate?: Rate;
   smileCurveEnabled: boolean;
   smileCurveParams?: import('../modules/expenses/smile-curve').SmileCurveParams;
 }

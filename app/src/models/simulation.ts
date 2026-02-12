@@ -82,3 +82,113 @@ export interface RetirementScenario {
   input: SimulationInput;
   result?: SimulationResult;
 }
+
+// ---------------------------------------------------------------------------
+// Retirement Simulation (post-retirement year-by-year projection)
+// ---------------------------------------------------------------------------
+
+/**
+ * Configuration for the full retirement simulation engine.
+ * Drives the year-by-year post-retirement projection with dual-pot TSP,
+ * RMD compliance, and expense smile curve (GoGo/GoSlow/NoGo).
+ */
+export interface SimulationConfig {
+  // ── Core (drawn from FERS Estimate results) ──
+  /** Age at retirement (integer) */
+  retirementAge: number;
+  /** End age for projection (default: 95, max: 104) */
+  endAge: number;
+  /** Net annual FERS annuity (after survivor benefit reduction) */
+  fersAnnuity: USD;
+  /** Annual FERS Supplement (0 if not eligible; paid until age 62) */
+  fersSupplement: USD;
+  /** Monthly Social Security benefit at age 62 (0 if unknown) */
+  ssMonthlyAt62: USD;
+
+  // ── TSP ──
+  /** Total TSP balance at retirement */
+  tspBalanceAtRetirement: USD;
+  /** Fraction of TSP that is Traditional (e.g. 0.70 = 70% Trad, 30% Roth) */
+  traditionalPct: Rate;
+  /** Fraction of total TSP in high-risk funds (C/S/I). Remainder is low-risk (G/F). */
+  highRiskPct: Rate;
+  /** Annual ROI for high-risk pot (e.g. 0.08 = 8%) */
+  highRiskROI: Rate;
+  /** Annual ROI for low-risk pot (e.g. 0.03 = 3%) */
+  lowRiskROI: Rate;
+  /** Annual withdrawal rate as fraction of initial balance (e.g. 0.04 = 4%) */
+  withdrawalRate: Rate;
+  /**
+   * Number of years of withdrawals to keep in the low-risk pot as a buffer.
+   * At end of each year, high-risk transfers to low-risk to maintain this buffer.
+   */
+  timeStepYears: 1 | 2 | 3;
+
+  // ── Expenses (GoGo / GoSlow / NoGo smile curve) ──
+  /** Base annual expenses in today's dollars */
+  baseAnnualExpenses: USD;
+  /** Age at which GoGo phase ends and GoSlow begins */
+  goGoEndAge: number;
+  /** Spending multiplier during GoGo phase (e.g. 1.0) */
+  goGoRate: Rate;
+  /** Age at which GoSlow phase ends and NoGo begins */
+  goSlowEndAge: number;
+  /** Spending multiplier during GoSlow phase (e.g. 0.85) */
+  goSlowRate: Rate;
+  /** Spending multiplier during NoGo phase (e.g. 0.75) */
+  noGoRate: Rate;
+
+  // ── Rates ──
+  /** Annual COLA rate for annuity and FERS supplement */
+  colaRate: Rate;
+  /** Annual inflation rate for general expense adjustment */
+  inflationRate: Rate;
+  /** Annual inflation rate for healthcare expenses (typically higher than general) */
+  healthcareInflationRate?: Rate;
+  /** Annual healthcare expense amount (split from baseAnnualExpenses for separate inflation) */
+  healthcareAnnualExpenses?: USD;
+}
+
+/**
+ * Per-year result row from the retirement simulation.
+ */
+export interface SimulationYearResult {
+  year: number;
+  age: number;
+  // Income
+  annuity: USD;
+  fersSupplement: USD;
+  socialSecurity: USD;
+  tspWithdrawal: USD;
+  totalIncome: USD;
+  // Expenses
+  smileMultiplier: number;
+  totalExpenses: USD;
+  // TSP Balances (end of year)
+  highRiskBalance: USD;
+  lowRiskBalance: USD;
+  traditionalBalance: USD;
+  rothBalance: USD;
+  totalTSPBalance: USD;
+  // RMD
+  rmdRequired: USD;
+  rmdSatisfied: boolean;
+  // Net
+  surplus: USD;
+}
+
+/**
+ * Full output of the retirement simulation.
+ */
+export interface FullSimulationResult {
+  config: SimulationConfig;
+  years: SimulationYearResult[];
+  /** Age at which total TSP hits 0, or null if it survives */
+  depletionAge: number | null;
+  /** TSP balance at age 85 */
+  balanceAt85: USD;
+  /** Total lifetime income across all projected years */
+  totalLifetimeIncome: USD;
+  /** Total lifetime expenses across all projected years */
+  totalLifetimeExpenses: USD;
+}

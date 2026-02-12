@@ -26,5 +26,9 @@ export const STORAGE_KEYS = {
   MILITARY_SERVICE: 'retire:military',
   EXPENSE_PROFILE: 'retire:expenses',
   ASSUMPTIONS: 'retire:assumptions',
+  FERS_ESTIMATE: 'retire:fers-estimate',
+  FERS_FORM_DRAFT: 'retire:fers-form-draft',
   SCENARIOS: 'retire:scenarios',
+  LEAVE_CALENDAR: 'retire:leave-calendar',
+  SIMULATION_CONFIG: 'retire:simulation-config',
 } as const;

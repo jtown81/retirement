@@ -3,9 +3,14 @@
  * Formulas: leave/annual-accrual-rate, leave/rollover-cap
  *
  * Accrual tiers (biweekly pay periods):
- *   < 3 years service  → 4 hrs/pp  (4 days/month)
- *   3–15 years service → 6 hrs/pp  (6 days/month)
- *   15+ years service  → 8 hrs/pp  (8 days/month)
+ *   < 3 years service  → 4 hrs/pp  → 104 hrs/year (13 days)
+ *   3–15 years service → 6 hrs/pp  → 160 hrs/year (20 days)*
+ *   15+ years service  → 8 hrs/pp  → 208 hrs/year (26 days)
+ *
+ * *Per 5 U.S.C. § 6303(a), the 6 hrs/pp tier is entitled to 20 days
+ * (160 hours) per year. Since 6 × 26 = 156, OPM awards 10 hours in
+ * the final pay period of the leave year (instead of the usual 6) to
+ * reach the statutory 160-hour entitlement.
  *
  * Rollover cap: 240 hrs for general schedule (overseas: 360 hrs).
  * Unused hours above cap are forfeited at the end of the leave year.
@@ -28,7 +33,22 @@ export function annualLeaveAccrualRate(yearsOfService: number): 4 | 6 | 8 {
 }
 
 /**
+ * Returns the total annual leave hours for a full leave year (26 pay periods)
+ * at a given accrual rate. Accounts for the 6 hrs/pp tier's final-PP adjustment.
+ *
+ * @param ratePerPP - Biweekly accrual rate: 4, 6, or 8
+ * @returns Total hours for a full year
+ */
+export function fullYearAnnualLeave(ratePerPP: 4 | 6 | 8): number {
+  if (ratePerPP === 6) return 160; // 25 PP × 6 + 1 PP × 10 per 5 U.S.C. § 6303(a)
+  return ratePerPP * 26;
+}
+
+/**
  * Accrues annual leave for a given number of pay periods at the correct rate.
+ *
+ * For a full year (26 PP) at the 6 hrs/pp tier, returns 160 hours (not 156)
+ * per 5 U.S.C. § 6303(a) — the final pay period earns 10 hours.
  *
  * Formula ID: leave/annual-accrual-rate (application)
  *
@@ -42,6 +62,7 @@ export function accrueAnnualLeave(
 ): number {
   if (payPeriodsWorked < 0) throw new RangeError('payPeriodsWorked must be >= 0');
   const rate = annualLeaveAccrualRate(yearsOfService);
+  if (rate === 6 && payPeriodsWorked === 26) return 160;
   return rate * payPeriodsWorked;
 }
 

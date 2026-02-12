@@ -35,6 +35,14 @@ export {
   LeaveTypeSchema,
   LeaveBalanceSchema,
   LeaveEventSchema,
+  // Leave Calendar
+  CalendarLeaveTypeSchema,
+  SickLeaveCodeSchema,
+  CalendarLeaveEntrySchema,
+  LeaveCarryOverSchema,
+  AccrualRateSchema,
+  LeaveCalendarYearSchema,
+  LeaveCalendarDataSchema,
   // TSP
   TSPBalancesSchema,
   TSPContributionEventSchema,
@@ -45,7 +53,12 @@ export {
   SmileCurveParamsSchema,
   ExpenseCategorySchema,
   ExpenseProfileSchema,
-  // Simulation
+  // FERS Estimate
+  FERSEstimateSchema,
+  // Simulation Config
+  SimulationConfigSchema,
+  TimeStepYearsSchema,
+  // Simulation (legacy)
   RetirementAssumptionsSchema,
   RetirementAssumptionsFullSchema,
   RetirementScenarioStoredSchema,
