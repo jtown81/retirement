@@ -3,6 +3,7 @@ import { useLocalStorage } from '@hooks/useLocalStorage';
 import { STORAGE_KEYS, RetirementAssumptionsFullSchema } from '@storage/index';
 import { FieldGroup } from './FieldGroup';
 import { FormSection } from './FormSection';
+import { Input } from '@components/ui/input';
 import type { z } from 'zod';
 
 type AssumptionsFull = z.infer<typeof RetirementAssumptionsFullSchema>;
@@ -54,17 +55,16 @@ export function AssumptionsForm() {
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FieldGroup label="Proposed Retirement Date" htmlFor="retireDate" error={errors.proposedRetirementDate}>
-          <input
+          <Input
             id="retireDate"
             type="date"
             value={form.proposedRetirementDate}
             onChange={(e) => set('proposedRetirementDate', e.target.value)}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
         </FieldGroup>
 
         <FieldGroup label="TSP Growth Rate (%)" htmlFor="tspGrowth" error={errors.tspGrowthRate} hint="e.g. 7 for 7%">
-          <input
+          <Input
             id="tspGrowth"
             type="number"
             min="0"
@@ -72,12 +72,11 @@ export function AssumptionsForm() {
             step="0.5"
             value={(form.tspGrowthRate * 100).toFixed(1)}
             onChange={(e) => set('tspGrowthRate', Number(e.target.value) / 100)}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
         </FieldGroup>
 
         <FieldGroup label="COLA Rate (%)" htmlFor="cola" error={errors.colaRate} hint="Annual cost-of-living adjustment">
-          <input
+          <Input
             id="cola"
             type="number"
             min="0"
@@ -85,12 +84,11 @@ export function AssumptionsForm() {
             step="0.1"
             value={(form.colaRate * 100).toFixed(1)}
             onChange={(e) => set('colaRate', Number(e.target.value) / 100)}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
         </FieldGroup>
 
         <FieldGroup label="Retirement Horizon (years)" htmlFor="horizon" error={errors.retirementHorizonYears}>
-          <input
+          <Input
             id="horizon"
             type="number"
             min="1"
@@ -98,12 +96,11 @@ export function AssumptionsForm() {
             step="1"
             value={form.retirementHorizonYears}
             onChange={(e) => set('retirementHorizonYears', Number(e.target.value))}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
         </FieldGroup>
 
         <FieldGroup label="TSP Withdrawal Rate (%, optional)" htmlFor="withdrawal" error={errors.tspWithdrawalRate} hint="4% rule is the default">
-          <input
+          <Input
             id="withdrawal"
             type="number"
             min="0"
@@ -111,19 +108,17 @@ export function AssumptionsForm() {
             step="0.5"
             value={form.tspWithdrawalRate != null ? (form.tspWithdrawalRate * 100).toFixed(1) : ''}
             onChange={(e) => set('tspWithdrawalRate', e.target.value ? Number(e.target.value) / 100 : undefined)}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
         </FieldGroup>
 
         <FieldGroup label="Estimated SS Monthly at 62 ($, optional)" htmlFor="ssEstimate" error={errors.estimatedSSMonthlyAt62} hint="From your Social Security statement">
-          <input
+          <Input
             id="ssEstimate"
             type="number"
             min="0"
             step="50"
             value={form.estimatedSSMonthlyAt62 ?? ''}
             onChange={(e) => set('estimatedSSMonthlyAt62', e.target.value ? Number(e.target.value) : undefined)}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
         </FieldGroup>
       </div>

@@ -136,7 +136,7 @@ function ServiceSummary({ result }: { result: FERSEstimateResult }) {
           {result.ageAtRetirement.toFixed(1)}
         </span>
       </span>
-      <span className={`font-medium ${result.eligibility.eligible ? 'text-green-600' : 'text-amber-600'}`}>
+      <span className={`font-medium ${result.eligibility.eligible ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
         {eligLabel}
       </span>
     </div>

@@ -4,6 +4,10 @@ import { STORAGE_KEYS, TSPBalancesSchema, TSPContributionEventSchema } from '@st
 import { z } from 'zod';
 import { FieldGroup } from './FieldGroup';
 import { FormSection } from './FormSection';
+import { Input } from '@components/ui/input';
+import { Checkbox } from '@components/ui/checkbox';
+import { Button } from '@components/ui/button';
+import { Label } from '@components/ui/label';
 import type { TSPBalances, TSPContributionEvent } from '@models/tsp';
 
 const TSPContributionListSchema = z.array(TSPContributionEventSchema);
@@ -90,71 +94,67 @@ export function TSPForm() {
       onClear={handleClear}
     >
       {/* Balances sub-section */}
-      <h4 className="text-sm font-medium text-gray-700">Current Balances</h4>
+      <h4 className="text-sm font-medium text-foreground">Current Balances</h4>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <FieldGroup label="As-Of Date" htmlFor="tspAsOf" error={errors.asOf}>
-          <input
+          <Input
             id="tspAsOf"
             type="date"
             value={balances.asOf}
             onChange={(e) => setBal('asOf', e.target.value)}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
         </FieldGroup>
         <FieldGroup label="Traditional Balance ($)" htmlFor="tspTrad" error={errors.traditionalBalance}>
-          <input
+          <Input
             id="tspTrad"
             type="number"
             min="0"
             step="1000"
             value={balances.traditionalBalance}
             onChange={(e) => setBal('traditionalBalance', Number(e.target.value))}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
         </FieldGroup>
         <FieldGroup label="Roth Balance ($)" htmlFor="tspRoth" error={errors.rothBalance}>
-          <input
+          <Input
             id="tspRoth"
             type="number"
             min="0"
             step="1000"
             value={balances.rothBalance}
             onChange={(e) => setBal('rothBalance', Number(e.target.value))}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
         </FieldGroup>
       </div>
 
       {/* Contribution events */}
-      <h4 className="text-sm font-medium text-gray-700 mt-6">Contribution Events</h4>
-      {errors.contributions && <p className="text-sm text-red-600">{errors.contributions}</p>}
+      <h4 className="text-sm font-medium text-foreground mt-6">Contribution Events</h4>
+      {errors.contributions && <p className="text-sm text-destructive">{errors.contributions}</p>}
 
       <div className="space-y-3">
         {contributions.map((c, idx) => (
-          <div key={c.id} className="border border-gray-200 rounded-md p-3 bg-gray-50">
+          <div key={c.id} className="border border-border rounded-md p-3 bg-muted">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-gray-700">Contribution {idx + 1}</span>
+              <span className="text-sm font-medium text-foreground">Contribution {idx + 1}</span>
               <button
                 type="button"
                 onClick={() => removeContribution(c.id)}
-                className="text-sm text-red-600 hover:text-red-700"
+                className="text-sm text-destructive hover:text-destructive/80"
               >
                 Remove
               </button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <FieldGroup label="Effective Date" htmlFor={`tc-date-${c.id}`}>
-                <input
+                <Input
                   id={`tc-date-${c.id}`}
                   type="date"
                   value={c.effectiveDate}
                   onChange={(e) => updateContribution(c.id, { effectiveDate: e.target.value })}
-                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </FieldGroup>
 
               <FieldGroup label="Contribution (%)" htmlFor={`tc-pct-${c.id}`}>
-                <input
+                <Input
                   id={`tc-pct-${c.id}`}
                   type="number"
                   min="0"
@@ -162,42 +162,38 @@ export function TSPForm() {
                   step="1"
                   value={Math.round(c.employeeContributionPct * 100)}
                   onChange={(e) => updateContribution(c.id, { employeeContributionPct: Number(e.target.value) / 100 })}
-                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </FieldGroup>
 
               <div className="flex items-end gap-4 col-span-2 sm:col-span-2">
-                <label className="inline-flex items-center gap-2 text-sm text-gray-700 pb-2">
-                  <input
-                    type="checkbox"
+                <Label className="inline-flex items-center gap-2 pb-2">
+                  <Checkbox
                     checked={c.isRoth}
-                    onChange={(e) => updateContribution(c.id, { isRoth: e.target.checked })}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    onCheckedChange={(checked) => updateContribution(c.id, { isRoth: !!checked })}
                   />
                   Roth
-                </label>
-                <label className="inline-flex items-center gap-2 text-sm text-gray-700 pb-2">
-                  <input
-                    type="checkbox"
+                </Label>
+                <Label className="inline-flex items-center gap-2 pb-2">
+                  <Checkbox
                     checked={c.catchUpEnabled}
-                    onChange={(e) => updateContribution(c.id, { catchUpEnabled: e.target.checked })}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    onCheckedChange={(checked) => updateContribution(c.id, { catchUpEnabled: !!checked })}
                   />
                   Catch-Up (50+)
-                </label>
+                </Label>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <button
+      <Button
         type="button"
+        variant="outline"
         onClick={addContribution}
-        className="mt-3 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50"
+        className="mt-3"
       >
         + Add Contribution Event
-      </button>
+      </Button>
     </FormSection>
   );
 }

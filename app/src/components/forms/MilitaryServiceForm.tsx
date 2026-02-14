@@ -4,6 +4,11 @@ import { STORAGE_KEYS, MilitaryServiceSchema } from '@storage/index';
 import { z } from 'zod';
 import { FieldGroup } from './FieldGroup';
 import { FormSection } from './FormSection';
+import { Input } from '@components/ui/input';
+import { Checkbox } from '@components/ui/checkbox';
+import { Button } from '@components/ui/button';
+import { Label } from '@components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@components/ui/select';
 import type { MilitaryService } from '@models/military';
 
 const MilitaryServiceListSchema = z.array(MilitaryServiceSchema);
@@ -128,17 +133,17 @@ export function MilitaryServiceForm() {
       onSave={handleSave}
       onClear={handleClear}
     >
-      {errors.services && <p className="text-sm text-red-600 mb-2">{errors.services}</p>}
+      {errors.services && <p className="text-sm text-destructive mb-2">{errors.services}</p>}
 
       <div className="space-y-4">
         {services.map((svc, idx) => (
-          <div key={svc.id} className="border border-gray-200 rounded-md p-3 bg-gray-50">
+          <div key={svc.id} className="border border-border rounded-md p-3 bg-muted">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-gray-700">Service Period {idx + 1}</span>
+              <span className="text-sm font-medium text-foreground">Service Period {idx + 1}</span>
               <button
                 type="button"
                 onClick={() => removeService(svc.id)}
-                className="text-sm text-red-600 hover:text-red-700"
+                className="text-sm text-destructive hover:text-destructive/80"
               >
                 Remove
               </button>
@@ -146,101 +151,96 @@ export function MilitaryServiceForm() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <FieldGroup label="Start Date" htmlFor={`ms-start-${svc.id}`}>
-                <input
+                <Input
                   id={`ms-start-${svc.id}`}
                   type="date"
                   value={svc.startDate}
                   onChange={(e) => updateService(svc.id, { startDate: e.target.value })}
-                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </FieldGroup>
               <FieldGroup label="End Date" htmlFor={`ms-end-${svc.id}`}>
-                <input
+                <Input
                   id={`ms-end-${svc.id}`}
                   type="date"
                   value={svc.endDate}
                   onChange={(e) => updateService(svc.id, { endDate: e.target.value })}
-                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </FieldGroup>
               <FieldGroup label="Branch" htmlFor={`ms-branch-${svc.id}`}>
-                <select
-                  id={`ms-branch-${svc.id}`}
-                  value={svc.branch}
-                  onChange={(e) => updateService(svc.id, { branch: e.target.value })}
-                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                >
-                  {BRANCHES.map((b) => (
-                    <option key={b} value={b}>{b}</option>
-                  ))}
-                </select>
+                <Select value={svc.branch} onValueChange={(v) => updateService(svc.id, { branch: v })}>
+                  <SelectTrigger id={`ms-branch-${svc.id}`} className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BRANCHES.map((b) => (
+                      <SelectItem key={b} value={b}>{b}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FieldGroup>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
               <FieldGroup label="Buyback Deposit Paid ($)" htmlFor={`ms-deposit-${svc.id}`}>
-                <input
+                <Input
                   id={`ms-deposit-${svc.id}`}
                   type="number"
                   min="0"
                   step="100"
                   value={svc.buybackDepositPaid}
                   onChange={(e) => updateService(svc.id, { buybackDepositPaid: Number(e.target.value) })}
-                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </FieldGroup>
               <div className="flex items-end pb-2">
-                <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-                  <input
-                    type="checkbox"
+                <Label className="inline-flex items-center gap-2">
+                  <Checkbox
                     checked={svc.militaryRetirementWaived}
-                    onChange={(e) => updateService(svc.id, { militaryRetirementWaived: e.target.checked })}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    onCheckedChange={(checked) => updateService(svc.id, { militaryRetirementWaived: !!checked })}
                   />
                   Military retirement waived
-                </label>
+                </Label>
               </div>
             </div>
 
             {/* Pay by year */}
             <div className="mt-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Annual Basic Pay by Year</span>
+                <span className="text-sm font-medium text-foreground">Annual Basic Pay by Year</span>
                 <button
                   type="button"
                   onClick={() => addPayYear(svc.id)}
-                  className="text-sm text-blue-600 hover:text-blue-700"
+                  className="text-sm text-primary hover:text-primary/80"
                 >
                   + Add Year
                 </button>
               </div>
               {svc.payEntries.length === 0 && (
-                <p className="text-sm text-gray-500 italic">No pay entries. Add years to record annual basic pay.</p>
+                <p className="text-sm text-muted-foreground italic">No pay entries. Add years to record annual basic pay.</p>
               )}
               <div className="space-y-2">
                 {svc.payEntries.map((entry) => (
                   <div key={entry.year} className="flex items-center gap-2">
-                    <input
+                    <Input
                       type="number"
                       value={entry.year}
                       readOnly
-                      className="w-20 rounded-md border border-gray-200 bg-gray-100 px-2 py-1 text-sm text-gray-600"
+                      className="w-20"
                     />
                     <div className="relative flex-1">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
-                      <input
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                      <Input
                         type="number"
                         min="0"
                         step="1000"
                         value={entry.pay}
                         onChange={(e) => updatePayYear(svc.id, entry.year, Number(e.target.value))}
-                        className="block w-full rounded-md border border-gray-300 pl-7 pr-3 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        className="pl-7"
                       />
                     </div>
                     <button
                       type="button"
                       onClick={() => removePayYear(svc.id, entry.year)}
-                      className="text-sm text-red-600 hover:text-red-700"
+                      className="text-sm text-destructive hover:text-destructive/80"
                     >
                       x
                     </button>
@@ -252,13 +252,14 @@ export function MilitaryServiceForm() {
         ))}
       </div>
 
-      <button
+      <Button
         type="button"
+        variant="outline"
         onClick={addService}
-        className="mt-3 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50"
+        className="mt-3"
       >
         + Add Service Period
-      </button>
+      </Button>
     </FormSection>
   );
 }
