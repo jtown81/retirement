@@ -24,13 +24,13 @@ describe('MetricCard', () => {
   it('applies neutral variant styling', () => {
     render(<MetricCard label="Status" value="Pending" variant="neutral" />);
     const value = screen.getByText('Pending');
-    expect(value.className).toContain('text-gray-700');
+    expect(value.className).toContain('text-muted-foreground');
   });
 
   it('defaults to default variant', () => {
     render(<MetricCard label="Test" value="123" />);
     const value = screen.getByText('123');
-    expect(value.className).toContain('text-gray-900');
+    expect(value.className).toContain('text-foreground');
   });
 
   it('has metric-card test id', () => {

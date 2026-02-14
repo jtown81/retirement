@@ -3,6 +3,11 @@ import { useLocalStorage } from '@hooks/useLocalStorage';
 import { STORAGE_KEYS, ExpenseProfileSchema } from '@storage/index';
 import { FieldGroup } from './FieldGroup';
 import { FormSection } from './FormSection';
+import { Input } from '@components/ui/input';
+import { Checkbox } from '@components/ui/checkbox';
+import { Card, CardContent, CardHeader } from '@components/ui/card';
+import { Badge } from '@components/ui/badge';
+import { Alert, AlertDescription } from '@components/ui/alert';
 import type { ExpenseProfile, ExpenseCategoryName } from '@models/expenses';
 
 const CATEGORY_LABELS: Record<ExpenseCategoryName, string> = {
@@ -22,8 +27,6 @@ const ALL_CATEGORIES: ExpenseCategoryName[] = [
   'housing', 'transportation', 'food', 'healthcare', 'insurance',
   'travel-leisure', 'utilities', 'personal-care', 'gifts-charitable', 'other',
 ];
-
-const INPUT_CLS = 'block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500';
 
 const DEFAULT_AMOUNTS: Record<ExpenseCategoryName, number> = {
   'housing': 18000,
@@ -110,42 +113,44 @@ export function ExpensesForm() {
       onLoadDefaults={handleResetDefaults}
     >
       {/* ── Totals banner ─────────────────────────────────────────────── */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex flex-wrap gap-6 items-center">
-        <div>
-          <div className="text-xs text-gray-500 uppercase tracking-wide">Annual Total</div>
-          <div className={`text-2xl font-bold ${totalAnnual > 0 ? 'text-gray-900' : 'text-gray-400'}`}>
-            {formatUSD(totalAnnual)}
+      <Card className="bg-muted/50">
+        <CardContent className="pt-6">
+          <div className="flex flex-wrap gap-6 items-center">
+            <div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wide">Annual Total</div>
+              <div className={`text-2xl font-bold ${totalAnnual > 0 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                {formatUSD(totalAnnual)}
+              </div>
+            </div>
+            <Badge variant={totalMonthly > 0 ? 'default' : 'secondary'}>
+              Monthly: {formatUSD(totalMonthly)}
+            </Badge>
+            {totalAnnual === 0 && (
+              <Alert className="flex-1">
+                <AlertDescription>
+                  Enter your expected retirement expenses below. These drive the income-vs-expense projection.
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
-        </div>
-        <div>
-          <div className="text-xs text-gray-500 uppercase tracking-wide">Monthly</div>
-          <div className={`text-lg font-semibold ${totalMonthly > 0 ? 'text-gray-700' : 'text-gray-400'}`}>
-            {formatUSD(totalMonthly)}
-          </div>
-        </div>
-        {totalAnnual === 0 && (
-          <p className="text-sm text-amber-700">
-            Enter your expected retirement expenses below. These drive the income-vs-expense projection.
-          </p>
-        )}
-      </div>
+        </CardContent>
+      </Card>
 
       {/* ── Settings ──────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FieldGroup label="Base Year" htmlFor="expBaseYear" error={errors.baseYear}>
-          <input
+          <Input
             id="expBaseYear"
             type="number"
             min="2000"
             max="2100"
             value={form.baseYear}
             onChange={(e) => setForm((prev) => ({ ...prev, baseYear: Number(e.target.value) }))}
-            className={INPUT_CLS}
           />
         </FieldGroup>
 
         <FieldGroup label="Inflation Rate (%)" htmlFor="inflRate" error={errors.inflationRate} hint="Annual inflation for general expenses">
-          <input
+          <Input
             id="inflRate"
             type="number"
             min="0"
@@ -153,12 +158,11 @@ export function ExpensesForm() {
             step="0.1"
             value={(form.inflationRate * 100).toFixed(1)}
             onChange={(e) => setForm((prev) => ({ ...prev, inflationRate: Number(e.target.value) / 100 }))}
-            className={INPUT_CLS}
           />
         </FieldGroup>
         <FieldGroup label="Healthcare Inflation (%)" htmlFor="hcInflRate" error={errors.healthcareInflationRate}
           hint="Healthcare costs typically rise faster (~5.5%)">
-          <input
+          <Input
             id="hcInflRate"
             type="number"
             min="0"
@@ -166,23 +170,23 @@ export function ExpensesForm() {
             step="0.1"
             value={((form.healthcareInflationRate ?? 0.055) * 100).toFixed(1)}
             onChange={(e) => setForm((prev) => ({ ...prev, healthcareInflationRate: Number(e.target.value) / 100 }))}
-            className={INPUT_CLS}
           />
         </FieldGroup>
       </div>
 
       <div>
-        <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-          <input
-            type="checkbox"
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="smile-curve"
             checked={form.smileCurveEnabled}
-            onChange={(e) => setForm((prev) => ({ ...prev, smileCurveEnabled: e.target.checked }))}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            onCheckedChange={(checked) => setForm((prev) => ({ ...prev, smileCurveEnabled: !!checked }))}
           />
-          Enable expense smile curve (Blanchett 2014)
-        </label>
+          <label htmlFor="smile-curve" className="text-sm cursor-pointer">
+            Enable expense smile curve (Blanchett 2014)
+          </label>
+        </div>
         {form.smileCurveEnabled && (
-          <p className="text-xs text-gray-500 mt-1 ml-6">
+          <p className="text-xs text-muted-foreground mt-2 ml-6">
             Spending typically starts high (travel/activities), dips mid-retirement, then rises again (healthcare).
           </p>
         )}
@@ -190,7 +194,7 @@ export function ExpensesForm() {
 
       {/* ── Category amounts ──────────────────────────────────────────── */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Category Amounts ($/year)</h4>
+        <h4 className="text-sm font-medium text-foreground mb-3">Category Amounts ($/year)</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {ALL_CATEGORIES.map((name) => {
             const cat = form.categories.find((c) => c.name === name);
@@ -198,27 +202,26 @@ export function ExpensesForm() {
             return (
               <div
                 key={name}
-                className={`flex items-center gap-2 rounded-md px-2 py-1.5 ${
-                  amount > 0 ? 'bg-blue-50' : ''
+                className={`flex items-center gap-2 rounded-md px-2 py-2 ${
+                  amount > 0 ? 'bg-primary/5' : ''
                 }`}
               >
-                <label htmlFor={`exp-${name}`} className="text-sm text-gray-600 w-36 shrink-0">
+                <label htmlFor={`exp-${name}`} className="text-sm text-muted-foreground w-36 shrink-0">
                   {CATEGORY_LABELS[name]}
                 </label>
-                <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
-                  <input
+                <div className="flex-1">
+                  <Input
                     id={`exp-${name}`}
                     type="number"
                     min="0"
                     step="100"
                     value={amount}
                     onChange={(e) => setCategoryAmount(name, Number(e.target.value))}
-                    className="block w-full rounded-md border border-gray-300 pl-7 pr-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="h-8"
                   />
                 </div>
                 {amount > 0 && (
-                  <span className="text-xs text-gray-500 w-16 text-right shrink-0">
+                  <span className="text-xs text-muted-foreground w-16 text-right shrink-0">
                     {formatUSD(amount / 12)}/mo
                   </span>
                 )}
@@ -228,7 +231,7 @@ export function ExpensesForm() {
         </div>
       </div>
 
-      {errors.categories && <p className="text-sm text-red-600 mt-1">{errors.categories}</p>}
+      {errors.categories && <Alert variant="destructive"><AlertDescription>{errors.categories}</AlertDescription></Alert>}
     </FormSection>
   );
 }

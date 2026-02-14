@@ -4,6 +4,11 @@ import { STORAGE_KEYS, CareerProfileSchema } from '@storage/index';
 import { gradeStepToSalary, applyLocality, getLocalityRate, getAvailableLocalityCodes } from '@modules/career';
 import { FieldGroup } from './FieldGroup';
 import { FormSection } from './FormSection';
+import { Input } from '@components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@components/ui/select';
+import { Button } from '@components/ui/button';
+import { Plus, Trash2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@components/ui/alert';
 import type { CareerProfile, CareerEvent } from '@models/career';
 import type { GSGrade, GSStep } from '@models/common';
 
@@ -105,73 +110,76 @@ export function CareerEventsForm() {
     >
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
         <FieldGroup label="SCD — Leave" htmlFor="careerScdLeave" error={errors.scdLeave}>
-          <input
+          <Input
             id="careerScdLeave"
             type="date"
             value={form.scdLeave}
             onChange={(e) => setField('scdLeave', e.target.value)}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
         </FieldGroup>
         <FieldGroup label="SCD — Retirement" htmlFor="careerScdRetire" error={errors.scdRetirement}>
-          <input
+          <Input
             id="careerScdRetire"
             type="date"
             value={form.scdRetirement}
             onChange={(e) => setField('scdRetirement', e.target.value)}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
         </FieldGroup>
         <FieldGroup label="Pay System" htmlFor="careerPaySystem" error={errors.paySystem}>
-          <select
-            id="careerPaySystem"
-            value={form.paySystem}
-            onChange={(e) => setField('paySystem', e.target.value as CareerProfile['paySystem'])}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="GS">GS</option>
-            <option value="LEO">LEO</option>
-            <option value="Title38">Title 38</option>
-          </select>
+          <Select value={form.paySystem} onValueChange={(value) => setField('paySystem', value as CareerProfile['paySystem'])}>
+            <SelectTrigger id="careerPaySystem">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="GS">GS</SelectItem>
+              <SelectItem value="LEO">LEO</SelectItem>
+              <SelectItem value="Title38">Title 38</SelectItem>
+            </SelectContent>
+          </Select>
         </FieldGroup>
       </div>
 
-      {errors.events && <p className="text-sm text-red-600 mb-2">{errors.events}</p>}
+      {errors.events && <Alert variant="destructive" className="mb-4"><AlertDescription>{errors.events}</AlertDescription></Alert>}
 
       <div className="space-y-4">
         {form.events.length === 0 && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center text-sm text-gray-500">
-            No career events yet. Click &ldquo;+ Add Career Event&rdquo; below to record your hire, promotions, and step increases.
-          </div>
+          <Alert className="bg-muted">
+            <AlertDescription className="text-center">
+              No career events yet. Click &ldquo;+ Add Career Event&rdquo; below to record your hire, promotions, and step increases.
+            </AlertDescription>
+          </Alert>
         )}
         {form.events.map((ev, idx) => (
-          <div key={ev.id} className="border border-gray-200 rounded-md p-3 bg-gray-50">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-gray-700">Event {idx + 1}</span>
-              <button
+          <div key={ev.id} className="border border-border rounded-lg p-4 bg-muted/50 transition-colors hover:border-primary/50">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-medium">Event {idx + 1}</span>
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => removeEvent(ev.id)}
-                className="text-sm text-red-600 hover:text-red-700"
+                className="text-destructive hover:text-destructive"
               >
+                <Trash2 className="w-4 h-4 mr-1" />
                 Remove
-              </button>
+              </Button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <FieldGroup label="Type" htmlFor={`ev-type-${ev.id}`}>
-                <select
-                  id={`ev-type-${ev.id}`}
-                  value={ev.type}
-                  onChange={(e) => updateEvent(ev.id, { type: e.target.value as CareerEvent['type'] })}
-                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                >
-                  {EVENT_TYPES.map((t) => (
-                    <option key={t} value={t}>{EVENT_TYPE_LABELS[t]}</option>
-                  ))}
-                </select>
+                <Select value={ev.type} onValueChange={(value) => updateEvent(ev.id, { type: value as CareerEvent['type'] })}>
+                  <SelectTrigger id={`ev-type-${ev.id}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EVENT_TYPES.map((t) => (
+                      <SelectItem key={t} value={t}>{EVENT_TYPE_LABELS[t]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FieldGroup>
 
               <FieldGroup label="Effective Date" htmlFor={`ev-date-${ev.id}`}>
-                <input
+                <Input
                   id={`ev-date-${ev.id}`}
                   type="date"
                   value={ev.effectiveDate}
@@ -181,58 +189,56 @@ export function CareerEventsForm() {
                     const salary = computeSalary(ev.grade, ev.step, ev.localityCode, year);
                     updateEvent(ev.id, { effectiveDate: date, annualSalary: salary });
                   }}
-                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </FieldGroup>
 
               <FieldGroup label="Grade" htmlFor={`ev-grade-${ev.id}`}>
-                <select
-                  id={`ev-grade-${ev.id}`}
-                  value={ev.grade}
-                  onChange={(e) => updateEvent(ev.id, { grade: Number(e.target.value) as CareerEvent['grade'] })}
-                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                >
-                  {Array.from({ length: 15 }, (_, i) => i + 1).map((g) => (
-                    <option key={g} value={g}>GS-{g}</option>
-                  ))}
-                </select>
+                <Select value={String(ev.grade)} onValueChange={(value) => updateEvent(ev.id, { grade: Number(value) as CareerEvent['grade'] })}>
+                  <SelectTrigger id={`ev-grade-${ev.id}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 15 }, (_, i) => i + 1).map((g) => (
+                      <SelectItem key={g} value={String(g)}>GS-{g}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FieldGroup>
 
               <FieldGroup label="Step" htmlFor={`ev-step-${ev.id}`}>
-                <select
-                  id={`ev-step-${ev.id}`}
-                  value={ev.step}
-                  onChange={(e) => updateEvent(ev.id, { step: Number(e.target.value) as CareerEvent['step'] })}
-                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                >
-                  {Array.from({ length: 10 }, (_, i) => i + 1).map((s) => (
-                    <option key={s} value={s}>Step {s}</option>
-                  ))}
-                </select>
+                <Select value={String(ev.step)} onValueChange={(value) => updateEvent(ev.id, { step: Number(value) as CareerEvent['step'] })}>
+                  <SelectTrigger id={`ev-step-${ev.id}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map((s) => (
+                      <SelectItem key={s} value={String(s)}>Step {s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FieldGroup>
 
               <FieldGroup label="Locality" htmlFor={`ev-loc-${ev.id}`}>
-                <select
-                  id={`ev-loc-${ev.id}`}
-                  value={ev.localityCode}
-                  onChange={(e) => updateEvent(ev.id, { localityCode: e.target.value })}
-                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                >
-                  {LOCALITY_CODES.map((code) => (
-                    <option key={code} value={code}>{code}</option>
-                  ))}
-                </select>
+                <Select value={ev.localityCode} onValueChange={(value) => updateEvent(ev.id, { localityCode: value })}>
+                  <SelectTrigger id={`ev-loc-${ev.id}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LOCALITY_CODES.map((code) => (
+                      <SelectItem key={code} value={code}>{code}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FieldGroup>
 
               <FieldGroup label="Annual Salary ($)" htmlFor={`ev-sal-${ev.id}`} hint="Auto-filled; override if needed">
-                <input
+                <Input
                   id={`ev-sal-${ev.id}`}
                   type="number"
                   min="0"
                   step="100"
                   value={ev.annualSalary}
                   onChange={(e) => updateEvent(ev.id, { annualSalary: Number(e.target.value) })}
-                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </FieldGroup>
             </div>
@@ -240,13 +246,16 @@ export function CareerEventsForm() {
         ))}
       </div>
 
-      <button
+      <Button
         type="button"
+        variant="outline"
+        size="sm"
         onClick={addEvent}
-        className="mt-3 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50"
+        className="mt-3"
       >
-        + Add Career Event
-      </button>
+        <Plus className="w-4 h-4 mr-1" />
+        Add Career Event
+      </Button>
     </FormSection>
   );
 }

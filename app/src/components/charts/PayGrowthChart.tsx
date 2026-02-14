@@ -7,7 +7,9 @@ import {
   Tooltip,
   ReferenceLine,
 } from 'recharts';
+import { useChartTheme } from '@hooks/useChartTheme';
 import { ChartContainer } from './ChartContainer';
+import { ChartTooltip } from './ChartTooltip';
 import type { PayGrowthChartProps } from './chart-types';
 
 const USD_FORMAT = new Intl.NumberFormat('en-US', {
@@ -16,45 +18,49 @@ const USD_FORMAT = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 0,
 });
 
-function PayTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: { year: number; salary: number; grade: number; step: number } }> }) {
+function PayTooltip({ active, payload, theme }: { active?: boolean; payload?: Array<{ payload: { year: number; salary: number; grade: number; step: number } }>; theme: ReturnType<typeof useChartTheme> }) {
   if (!active || !payload?.[0]) return null;
   const d = payload[0].payload;
   return (
-    <div className="bg-white border border-gray-200 rounded px-3 py-2 shadow-sm text-sm">
+    <ChartTooltip>
       <p className="font-medium">{d.year}</p>
-      <p className="text-blue-600">{USD_FORMAT.format(d.salary)}</p>
-      <p className="text-gray-500">GS-{d.grade} Step {d.step}</p>
-    </div>
+      <p style={{ color: theme.salary }}>
+        {USD_FORMAT.format(d.salary)}
+      </p>
+      <p className="text-muted-foreground">GS-{d.grade} Step {d.step}</p>
+    </ChartTooltip>
   );
 }
 
 export function PayGrowthChart({ data, retirementYear }: PayGrowthChartProps) {
+  const theme = useChartTheme();
+
   return (
     <ChartContainer
       title="Pay Growth Over Career"
       subtitle="Annual salary progression by grade and step"
     >
       <LineChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 20 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-        <XAxis dataKey="year" tick={{ fontSize: 12 }} />
+        <CartesianGrid strokeDasharray="3 3" stroke={theme.gridColor} />
+        <XAxis dataKey="year" tick={{ fontSize: 12, fill: theme.textColor }} />
         <YAxis
           tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 12, fill: theme.textColor }}
         />
-        <Tooltip content={<PayTooltip />} />
+        <Tooltip content={<PayTooltip theme={theme} />} />
         <Line
           type="stepAfter"
           dataKey="salary"
-          stroke="#2563eb"
+          stroke={theme.salary}
           strokeWidth={2}
           dot={false}
         />
         {retirementYear && (
           <ReferenceLine
             x={retirementYear}
-            stroke="#dc2626"
+            stroke={theme.expenses}
             strokeDasharray="4 4"
-            label={{ value: 'Retire', position: 'top', fontSize: 12 }}
+            label={{ value: 'Retire', position: 'top', fontSize: 12, fill: theme.textColor }}
           />
         )}
       </LineChart>

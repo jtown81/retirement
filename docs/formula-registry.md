@@ -238,9 +238,13 @@ annualAnnuity = high3Salary × multiplier × yearsOfService
 
 **Formula:**
 ```
-yearsOfService < 3  → 4 hrs/pp
-yearsOfService < 15 → 6 hrs/pp
-yearsOfService >= 15 → 8 hrs/pp
+yearsOfService < 3  → 4 hrs/pp  (4 × 26 = 104 hrs/year)
+yearsOfService < 15 → 6 hrs/pp  (25 PP × 6 + 1 PP × 10 = 160 hrs/year)
+yearsOfService >= 15 → 8 hrs/pp  (8 × 26 = 208 hrs/year)
+
+Note: The 6 hrs/pp tier earns 160 hrs/year (not 156) per 5 U.S.C. § 6303(a).
+OPM awards 10 hours in the final pay period of the leave year to reach the
+statutory 20-day (160-hour) entitlement. See fullYearAnnualLeave() in annual-leave.ts.
 ```
 
 ---
@@ -455,6 +459,34 @@ closingBalance = openingBalance × (1 + r) + employeeContributions × (1 + r/2)
 ```
 maxAllowed = electiveDeferralLimit + (isCatchUpEligible ? catchUpLimit : 0)
 cappedContribution = min(intendedContribution, maxAllowed)
+```
+
+---
+
+### FORMULA_ID: tsp/rmd
+
+| Field         | Value                                                                 |
+|---------------|-----------------------------------------------------------------------|
+| Name          | Required Minimum Distribution (RMD)                                   |
+| Module        | tsp                                                                   |
+| Purpose       | Computes IRS-required minimum annual distribution from Traditional TSP |
+| Inputs        | `traditionalBalance: USD`, `age: number`                              |
+| Outputs       | `rmdAmount: USD`                                                      |
+| Dependencies  | none                                                                  |
+| Source        | IRC § 401(a)(9); IRS Publication 590-B; SECURE 2.0 Act § 107        |
+| Classification| Hard regulatory requirement                                           |
+| Version       | 1.0.0                                                                 |
+| Changelog     | 2026-02-11 — Implementation (rmd.ts)                                 |
+
+**Formula:**
+```
+isRMDRequired = age >= 73  (SECURE 2.0 Act threshold)
+rmdAmount = traditionalBalance / distributionPeriod(age)
+  distributionPeriod = IRS Uniform Lifetime Table III lookup (ages 72–115+)
+  e.g., age 73 → 26.5, age 80 → 20.2, age 90 → 12.2
+
+Only applies to Traditional TSP; Roth TSP is exempt from RMDs during owner's lifetime.
+If planned withdrawal < RMD, the Traditional withdrawal is increased to satisfy the RMD.
 ```
 
 ---
@@ -754,6 +786,7 @@ deltaLifetimeSurplus = Σ scenario[1].surplus[yr] − Σ scenario[0].surplus[yr]
 | TBD              | tsp/contribution-limit            | Cell mapping TBD — Phase 5 complete |
 | TBD              | military/buyback-deposit          | Cell mapping TBD — Phase 5 complete |
 | TBD              | military/service-credit           | Cell mapping TBD — Phase 5 complete |
+| TBD              | tsp/rmd                           | RMD per IRS Uniform Lifetime Table  |
 | TBD              | expenses/annual-total             | Cell mapping TBD — Phase 6 complete |
 | TBD              | expenses/smile-curve              | Cell mapping TBD — Phase 6 complete |
 | TBD              | expenses/inflation-adjustment     | Cell mapping TBD — Phase 6 complete |
@@ -777,3 +810,4 @@ deltaLifetimeSurplus = Σ scenario[1].surplus[yr] − Σ scenario[0].surplus[yr]
 | 0.5.0   | 2026-02-10 |        | Phase 6 — expense modeling formulas implemented (3 formulas: annual-total, smile-curve, inflation-adjustment) |
 | 0.6.0   | 2026-02-10 |        | Phase 7 — simulation engine formulas implemented (6 formulas: fers-eligibility, high-3-salary, fers-basic-annuity, fers-supplement, income-projection, scenario-comparison) |
 | 0.7.0   | 2026-02-10 |        | Phase 8 — Visualization & UX layer (no new formulas; 5 chart components, summary cards, demo fixture, Dashboard orchestrator, Astro layout, 32 component tests) |
+| 0.8.0   | 2026-02-11 |        | Added tsp/rmd formula entry; updated leave/annual-accrual-rate with 6 hrs/PP → 160 hrs/year note per 5 U.S.C. § 6303(a) |

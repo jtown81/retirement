@@ -5,11 +5,14 @@ import { FormShell, type TabDef } from './forms/FormShell';
 import { useFormSections, useLeaveComplete } from './forms/useFormSections';
 import { useAssembleInput } from './forms/useAssembleInput';
 import { useSimulation, type SimulationData } from '@hooks/useSimulation';
+import { useTheme } from '@hooks/useTheme';
 import { FERSEstimateForm } from './forms/FERSEstimateForm';
 import { CareerEventsForm } from './forms/CareerEventsForm';
 import { LeaveBalanceForm } from './forms/LeaveBalanceForm';
 import { ExpensesForm } from './forms/ExpensesForm';
 import { SimulationForm } from './forms/SimulationForm';
+import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 class TabErrorBoundary extends Component<{ children: ReactNode; tabId: string }, { error: Error | null }> {
   state: { error: Error | null } = { error: null };
@@ -20,12 +23,20 @@ class TabErrorBoundary extends Component<{ children: ReactNode; tabId: string },
   render() {
     if (this.state.error) {
       return (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-sm text-red-700">
-          <p className="font-semibold mb-1">Something went wrong loading this tab.</p>
-          <p className="text-xs text-red-500">{this.state.error.message}</p>
-          <button type="button" onClick={() => this.setState({ error: null })}
-            className="mt-3 text-xs text-blue-700 underline">Try again</button>
-        </div>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Something went wrong loading this tab</AlertTitle>
+          <AlertDescription className="mt-2 text-xs">
+            {this.state.error.message}
+            <button
+              type="button"
+              onClick={() => this.setState({ error: null })}
+              className="mt-2 text-xs underline hover:no-underline"
+            >
+              Try again
+            </button>
+          </AlertDescription>
+        </Alert>
       );
     }
     return this.props.children;
@@ -61,6 +72,7 @@ function FormContent({ activeTabId }: { activeTabId: string }) {
 
 export function PlannerApp() {
   const [view, setView] = useState<View>('input');
+  const { theme, setTheme } = useTheme();
   const sections = useFormSections();
   const leaveComplete = useLeaveComplete();
   const assembledInput = useAssembleInput();
@@ -78,13 +90,23 @@ export function PlannerApp() {
   }));
 
   return (
-    <AppShell view={view} onViewChange={setView} mode={mode}>
+    <AppShell
+      view={view}
+      onViewChange={setView}
+      mode={mode}
+      theme={theme}
+      onThemeChange={setTheme}
+    >
       {view === 'input' ? (
         <div>
           {!requiredComplete && (
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-6 text-sm text-blue-800">
-              Complete all required sections (marked with dots) and the Leave tab, then switch to the Dashboard to see your personalized projections.
-            </div>
+            <Alert className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Complete your plan details</AlertTitle>
+              <AlertDescription>
+                Complete all required sections (marked with dots) and the Leave tab, then switch to the Dashboard to see your personalized projections.
+              </AlertDescription>
+            </Alert>
           )}
           <FormShell tabs={tabs}>
             {(activeTabId) => (

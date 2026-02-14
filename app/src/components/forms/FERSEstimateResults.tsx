@@ -1,3 +1,6 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card';
+import { Separator } from '@components/ui/separator';
+import { Alert, AlertDescription } from '@components/ui/alert';
 import type { FERSEstimateResult } from './useFERSEstimate';
 
 const fmt = (n: number) =>
@@ -7,18 +10,22 @@ const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
 
 function ResultCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white border border-blue-200 rounded-lg p-4">
-      <h4 className="text-sm font-semibold text-blue-900 mb-3">{title}</h4>
-      <dl className="space-y-2">{children}</dl>
-    </div>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <dl className="space-y-2">{children}</dl>
+      </CardContent>
+    </Card>
   );
 }
 
 function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
     <div className="flex justify-between text-sm">
-      <dt className="text-gray-600">{label}</dt>
-      <dd className={bold ? 'font-semibold text-gray-900' : 'text-gray-900'}>{value}</dd>
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className={bold ? 'font-semibold text-foreground' : 'text-foreground'}>{value}</dd>
     </div>
   );
 }
@@ -26,27 +33,31 @@ function Row({ label, value, bold }: { label: string; value: string; bold?: bool
 export function FERSEstimateResults({ result }: { result: FERSEstimateResult | null }) {
   if (!result) {
     return (
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center text-sm text-gray-500">
-        Enter birth date, SCD &mdash; Retirement, and planned retirement date to see your FERS estimate.
-      </div>
+      <Alert className="bg-muted">
+        <AlertDescription className="text-center">
+          Enter birth date, SCD &mdash; Retirement, and planned retirement date to see your FERS estimate.
+        </AlertDescription>
+      </Alert>
     );
   }
 
   if (!result.canCompute) {
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="mb-3">
-          <ServiceSummary result={result} />
-        </div>
-        <p className="text-sm text-blue-700">
-          Select a GS grade and step, or enter a High-3 override, to see full annuity calculations.
-        </p>
-      </div>
+      <Alert>
+        <AlertDescription className="space-y-3">
+          <div>
+            <ServiceSummary result={result} />
+          </div>
+          <p className="text-sm">
+            Select a GS grade and step, or enter a High-3 override, to see full annuity calculations.
+          </p>
+        </AlertDescription>
+      </Alert>
     );
   }
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
+    <div className="space-y-4">
       <ServiceSummary result={result} />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -55,7 +66,7 @@ export function FERSEstimateResults({ result }: { result: FERSEstimateResult | n
           {result.high3Source === 'override' && result.computedHigh3 > 0 && (
             <Row label="Computed High-3" value={fmt(result.computedHigh3)} />
           )}
-          <div className="text-[10px] text-gray-400 mb-1">
+          <div className="text-[10px] text-muted-foreground mb-1">
             {result.high3Source === 'override' ? 'User override' : 'Computed from salary projection'}
           </div>
           <Row label="Gross annual" value={fmt(result.grossAnnuity)} />
@@ -72,7 +83,7 @@ export function FERSEstimateResults({ result }: { result: FERSEstimateResult | n
               <Row label="Ends at" value="Age 62" />
             </>
           ) : (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               {result.ageAtRetirement >= 62
                 ? 'Not applicable — retiring at or after age 62.'
                 : 'Not eligible under current retirement type.'}
@@ -103,29 +114,29 @@ function ServiceSummary({ result }: { result: FERSEstimateResult }) {
 
   return (
     <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-      <span className="text-gray-700">
-        <span className="font-medium text-gray-900">
+      <span className="text-muted-foreground">
+        <span className="font-medium text-foreground">
           {result.serviceYears}y {result.serviceMonths}m
         </span>{' '}
         civilian service
       </span>
-      <span className="text-gray-700">
+      <span className="text-muted-foreground">
         Annuity rate:{' '}
-        <span className="font-medium text-gray-900">{result.annuityPct}%</span>
+        <span className="font-medium text-foreground">{result.annuityPct}%</span>
       </span>
-      <span className="text-gray-700">
+      <span className="text-muted-foreground">
         Creditable:{' '}
-        <span className="font-medium text-gray-900">
+        <span className="font-medium text-foreground">
           {result.totalCreditableService.toFixed(1)} years
         </span>
       </span>
-      <span className="text-gray-700">
+      <span className="text-muted-foreground">
         Age at retirement:{' '}
-        <span className="font-medium text-gray-900">
+        <span className="font-medium text-foreground">
           {result.ageAtRetirement.toFixed(1)}
         </span>
       </span>
-      <span className={`font-medium ${result.eligibility.eligible ? 'text-green-700' : 'text-amber-700'}`}>
+      <span className={`font-medium ${result.eligibility.eligible ? 'text-green-600' : 'text-amber-600'}`}>
         {eligLabel}
       </span>
     </div>

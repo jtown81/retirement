@@ -24,6 +24,16 @@ Source: [OPM FERS Handbook](https://www.opm.gov/retirement-services/publications
 | Ch. 70  | Survivor Benefits                   | —            | Future phase         |
 | Ch. 75  | FEHB in Retirement                  | simulation   | Phase 7              |
 
+## Additional Regulatory Sources (non-OPM)
+
+| Source                    | Topic                                    | App Module | Notes                           |
+|---------------------------|------------------------------------------|------------|----------------------------------|
+| 5 U.S.C. 6303(a)         | Annual leave accrual (6 hrs/pp = 160/yr) | leave      | Final PP adjustment for mid-tier |
+| IRC 401(a)(9)             | Required Minimum Distribution (RMD)      | tsp        | Traditional TSP withdrawals      |
+| SECURE 2.0 Act 107        | RMD starting age (73)                    | tsp        | Effective 2023                   |
+| IRS Pub 590-B             | Uniform Lifetime Table                   | tsp        | Distribution period by age       |
+| IRC 402(g), 414(v)        | TSP contribution & catch-up limits       | tsp        | Updated annually by IRS          |
+
 ## Key Formulas by Chapter
 
 ### Chapter 40 — Retirement Eligibility

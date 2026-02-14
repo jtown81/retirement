@@ -7,6 +7,11 @@ import { FieldGroup } from './FieldGroup';
 import { FormSection } from './FormSection';
 import { FERSEstimateResults } from './FERSEstimateResults';
 import { useFERSEstimate, type FERSEstimateInput } from './useFERSEstimate';
+import { Input } from '@components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@components/ui/select';
+import { Checkbox } from '@components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@components/ui/collapsible';
+import { ChevronDown, User, DollarSign, Shield, Building2, PiggyBank, ArrowDownToLine } from 'lucide-react';
 import type { z } from 'zod';
 import defaultInputs from '@data/default-inputs.json';
 
@@ -187,11 +192,17 @@ function toEstimateInput(form: FormState): FERSEstimateInput {
   };
 }
 
-const INPUT_CLS = 'block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500';
-
 export function FERSEstimateForm() {
   const [storedPersonal, savePersonal, removePersonal] = useLocalStorage(STORAGE_KEYS.PERSONAL_INFO, PersonalInfoSchema);
   const [storedFERS, saveFERS, removeFERS] = useLocalStorage(STORAGE_KEYS.FERS_ESTIMATE, FERSEstimateSchema);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    personal: true,
+    salary: true,
+    annuity: false,
+    social: false,
+    tspBalances: false,
+    tspWithdrawals: false,
+  });
 
   const [form, setForm] = useState<FormState>(() => {
     // Priority: draft (partial data survives refresh) > validated storage > JSON defaults
@@ -336,206 +347,404 @@ export function FERSEstimateForm() {
       onLoadDefaults={handleLoadDefaults}
     >
       {/* Section 1: Personal & Service */}
-      <fieldset>
-        <legend className="text-sm font-semibold text-gray-800 mb-2">Personal & Service</legend>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FieldGroup label="Date of Birth" htmlFor="fe-birthDate" error={errors.birthDate}>
-            <input id="fe-birthDate" type="date" value={form.birthDate}
-              onChange={(e) => handleBirthDateChange(e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="SCD — Retirement" htmlFor="fe-scdRetirement" error={errors.scdRetirement}
-            hint="Service Computation Date for retirement">
-            <input id="fe-scdRetirement" type="date" value={form.scdRetirement}
-              onChange={(e) => handleScdRetirementChange(e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="SCD — Leave" htmlFor="fe-scdLeave" error={errors.scdLeave}
-            hint="Defaults to SCD Retirement">
-            <input id="fe-scdLeave" type="date" value={form.scdLeave}
-              onChange={(e) => set('scdLeave', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="Pay System" htmlFor="fe-paySystem" error={errors.paySystem}>
-            <select id="fe-paySystem" value={form.paySystem}
-              onChange={(e) => set('paySystem', e.target.value)} className={INPUT_CLS}>
-              <option value="GS">GS — General Schedule</option>
-              <option value="LEO">LEO — Law Enforcement Officer</option>
-              <option value="Title38">Title 38 — VA Health</option>
-            </select>
-          </FieldGroup>
-          <FieldGroup label="Retire At" htmlFor="fe-retireAge" error={errors.retirementAgeOption}
-            hint="Select age or choose custom date">
-            <select id="fe-retireAge" value={form.retirementAgeOption}
-              onChange={(e) => handleRetirementAgeChange(e.target.value)} className={INPUT_CLS}>
-              <option value="MRA">MRA (Minimum Retirement Age)</option>
-              <option value="60">Age 60</option>
-              <option value="62">Age 62</option>
-              <option value="custom">Custom date</option>
-            </select>
-          </FieldGroup>
-          <FieldGroup label="Planned Retirement Date" htmlFor="fe-retirementDate" error={errors.retirementDate}
-            hint={form.retirementAgeOption !== 'custom' ? 'Computed from DOB + age' : undefined}>
-            <input id="fe-retirementDate" type="date" value={form.retirementDate}
-              onChange={(e) => set('retirementDate', e.target.value)}
-              readOnly={form.retirementAgeOption !== 'custom'}
-              className={`${INPUT_CLS}${form.retirementAgeOption !== 'custom' ? ' bg-gray-50' : ''}`} />
-          </FieldGroup>
-        </div>
-      </fieldset>
+      <Collapsible
+        open={openSections.personal}
+        onOpenChange={(open) => setOpenSections((prev) => ({ ...prev, personal: open }))}
+      >
+        <CollapsibleTrigger className="flex items-center gap-2 text-sm font-semibold hover:text-primary">
+          <ChevronDown className={`w-4 h-4 transition-transform ${openSections.personal ? 'rotate-180' : ''}`} />
+          <User className="w-4 h-4" />
+          Personal & Service
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FieldGroup label="Date of Birth" htmlFor="fe-birthDate" error={errors.birthDate}>
+              <Input
+                id="fe-birthDate"
+                type="date"
+                value={form.birthDate}
+                onChange={(e) => handleBirthDateChange(e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="SCD — Retirement" htmlFor="fe-scdRetirement" error={errors.scdRetirement}
+              hint="Service Computation Date for retirement">
+              <Input
+                id="fe-scdRetirement"
+                type="date"
+                value={form.scdRetirement}
+                onChange={(e) => handleScdRetirementChange(e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="SCD — Leave" htmlFor="fe-scdLeave" error={errors.scdLeave}
+              hint="Defaults to SCD Retirement">
+              <Input
+                id="fe-scdLeave"
+                type="date"
+                value={form.scdLeave}
+                onChange={(e) => set('scdLeave', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="Pay System" htmlFor="fe-paySystem" error={errors.paySystem}>
+              <Select value={form.paySystem} onValueChange={(value) => set('paySystem', value)}>
+                <SelectTrigger id="fe-paySystem">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="GS">GS — General Schedule</SelectItem>
+                  <SelectItem value="LEO">LEO — Law Enforcement Officer</SelectItem>
+                  <SelectItem value="Title38">Title 38 — VA Health</SelectItem>
+                </SelectContent>
+              </Select>
+            </FieldGroup>
+            <FieldGroup label="Retire At" htmlFor="fe-retireAge" error={errors.retirementAgeOption}
+              hint="Select age or choose custom date">
+              <Select value={form.retirementAgeOption} onValueChange={(value) => handleRetirementAgeChange(value)}>
+                <SelectTrigger id="fe-retireAge">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="MRA">MRA (Minimum Retirement Age)</SelectItem>
+                  <SelectItem value="60">Age 60</SelectItem>
+                  <SelectItem value="62">Age 62</SelectItem>
+                  <SelectItem value="custom">Custom date</SelectItem>
+                </SelectContent>
+              </Select>
+            </FieldGroup>
+            <FieldGroup label="Planned Retirement Date" htmlFor="fe-retirementDate" error={errors.retirementDate}
+              hint={form.retirementAgeOption !== 'custom' ? 'Computed from DOB + age' : undefined}>
+              <Input
+                id="fe-retirementDate"
+                type="date"
+                value={form.retirementDate}
+                onChange={(e) => set('retirementDate', e.target.value)}
+                disabled={form.retirementAgeOption !== 'custom'}
+              />
+            </FieldGroup>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Section 2: Salary */}
-      <fieldset>
-        <legend className="text-sm font-semibold text-gray-800 mb-2">Salary</legend>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <FieldGroup label="GS Grade" htmlFor="fe-gsGrade" error={errors.gsGrade}>
-            <select id="fe-gsGrade" value={form.gsGrade}
-              onChange={(e) => set('gsGrade', e.target.value)} className={INPUT_CLS}>
-              <option value="">Select grade</option>
-              {GS_GRADES.map((g) => (
-                <option key={g} value={String(g)}>GS-{g}</option>
-              ))}
-            </select>
-          </FieldGroup>
-          <FieldGroup label="GS Step" htmlFor="fe-gsStep" error={errors.gsStep}>
-            <select id="fe-gsStep" value={form.gsStep}
-              onChange={(e) => set('gsStep', e.target.value)} className={INPUT_CLS}>
-              <option value="">Select step</option>
-              {GS_STEPS.map((s) => (
-                <option key={s} value={String(s)}>Step {s}</option>
-              ))}
-            </select>
-          </FieldGroup>
-          <FieldGroup label="Locality Area" htmlFor="fe-locality" error={errors.localityCode}>
-            <select id="fe-locality" value={form.localityCode}
-              onChange={(e) => set('localityCode', e.target.value)} className={INPUT_CLS}>
-              {LOCALITY_CODES.map((code) => (
-                <option key={code} value={code}>{code}</option>
-              ))}
-            </select>
-          </FieldGroup>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-          <FieldGroup label="Annual Raise (%)" htmlFor="fe-raiseRate" error={errors.annualRaiseRate}
-            hint="0 = no raises assumed">
-            <input id="fe-raiseRate" type="number" min="0" max="10" step="0.1"
-              value={form.annualRaiseRate} onChange={(e) => set('annualRaiseRate', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-          <FieldGroup label="High-3 Override ($)" htmlFor="fe-high3" error={errors.high3Override}
-            hint="Leave blank to calculate from grade/step">
-            <input id="fe-high3" type="number" min="0" step="1" placeholder="Auto from grade/step"
-              value={form.high3Override} onChange={(e) => set('high3Override', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="Sick Leave Hours" htmlFor="fe-sickHours" error={errors.sickLeaveHours}>
-            <input id="fe-sickHours" type="number" min="0" step="1"
-              value={form.sickLeaveHours} onChange={(e) => set('sickLeaveHours', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-        </div>
-      </fieldset>
+      <Collapsible
+        open={openSections.salary}
+        onOpenChange={(open) => setOpenSections((prev) => ({ ...prev, salary: open }))}
+      >
+        <CollapsibleTrigger className="flex items-center gap-2 text-sm font-semibold hover:text-primary">
+          <ChevronDown className={`w-4 h-4 transition-transform ${openSections.salary ? 'rotate-180' : ''}`} />
+          <DollarSign className="w-4 h-4" />
+          Salary
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <FieldGroup label="GS Grade" htmlFor="fe-gsGrade" error={errors.gsGrade}>
+              <Select value={form.gsGrade} onValueChange={(value) => set('gsGrade', value)}>
+                <SelectTrigger id="fe-gsGrade">
+                  <SelectValue placeholder="Select grade" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GS_GRADES.map((g) => (
+                    <SelectItem key={g} value={String(g)}>GS-{g}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FieldGroup>
+            <FieldGroup label="GS Step" htmlFor="fe-gsStep" error={errors.gsStep}>
+              <Select value={form.gsStep} onValueChange={(value) => set('gsStep', value)}>
+                <SelectTrigger id="fe-gsStep">
+                  <SelectValue placeholder="Select step" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GS_STEPS.map((s) => (
+                    <SelectItem key={s} value={String(s)}>Step {s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FieldGroup>
+            <FieldGroup label="Locality Area" htmlFor="fe-locality" error={errors.localityCode}>
+              <Select value={form.localityCode} onValueChange={(value) => set('localityCode', value)}>
+                <SelectTrigger id="fe-locality">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LOCALITY_CODES.map((code) => (
+                    <SelectItem key={code} value={code}>{code}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FieldGroup>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <FieldGroup label="Annual Raise (%)" htmlFor="fe-raiseRate" error={errors.annualRaiseRate}
+              hint="0 = no raises assumed">
+              <Input
+                id="fe-raiseRate"
+                type="number"
+                min="0"
+                max="10"
+                step="0.1"
+                value={form.annualRaiseRate}
+                onChange={(e) => set('annualRaiseRate', e.target.value)}
+              />
+            </FieldGroup>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FieldGroup label="High-3 Override ($)" htmlFor="fe-high3" error={errors.high3Override}
+              hint="Leave blank to calculate from grade/step">
+              <Input
+                id="fe-high3"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Auto from grade/step"
+                value={form.high3Override}
+                onChange={(e) => set('high3Override', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="Sick Leave Hours" htmlFor="fe-sickHours" error={errors.sickLeaveHours}>
+              <Input
+                id="fe-sickHours"
+                type="number"
+                min="0"
+                step="1"
+                value={form.sickLeaveHours}
+                onChange={(e) => set('sickLeaveHours', e.target.value)}
+              />
+            </FieldGroup>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Section 3: Annuity Options */}
-      <fieldset>
-        <legend className="text-sm font-semibold text-gray-800 mb-2">Annuity Options</legend>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FieldGroup label="Survivor Benefit Reduction (%)" htmlFor="fe-reduction" error={errors.annuityReductionPct}
-            hint="Typical: 0%, 5%, or 10%">
-            <input id="fe-reduction" type="number" min="0" max="100" step="0.1"
-              value={form.annuityReductionPct} onChange={(e) => set('annuityReductionPct', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-        </div>
-      </fieldset>
+      <Collapsible
+        open={openSections.annuity}
+        onOpenChange={(open) => setOpenSections((prev) => ({ ...prev, annuity: open }))}
+      >
+        <CollapsibleTrigger className="flex items-center gap-2 text-sm font-semibold hover:text-primary">
+          <ChevronDown className={`w-4 h-4 transition-transform ${openSections.annuity ? 'rotate-180' : ''}`} />
+          <Shield className="w-4 h-4" />
+          Annuity Options
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FieldGroup label="Survivor Benefit Reduction (%)" htmlFor="fe-reduction" error={errors.annuityReductionPct}
+              hint="Typical: 0%, 5%, or 10%">
+              <Input
+                id="fe-reduction"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={form.annuityReductionPct}
+                onChange={(e) => set('annuityReductionPct', e.target.value)}
+              />
+            </FieldGroup>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Section 4: Social Security */}
-      <fieldset>
-        <legend className="text-sm font-semibold text-gray-800 mb-2">Social Security</legend>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FieldGroup label="SSA Monthly Benefit at 62 ($)" htmlFor="fe-ssAt62" error={errors.ssaBenefitAt62}
-            hint="From your Social Security statement">
-            <input id="fe-ssAt62" type="number" min="0" step="1" placeholder="e.g. 1800"
-              value={form.ssaBenefitAt62} onChange={(e) => set('ssaBenefitAt62', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="Annual Earnings ($)" htmlFor="fe-earnings" error={errors.annualEarnings}
-            hint="0 if fully retired (for earnings test)">
-            <input id="fe-earnings" type="number" min="0" step="1" placeholder="0"
-              value={form.annualEarnings} onChange={(e) => set('annualEarnings', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-        </div>
-      </fieldset>
+      <Collapsible
+        open={openSections.social}
+        onOpenChange={(open) => setOpenSections((prev) => ({ ...prev, social: open }))}
+      >
+        <CollapsibleTrigger className="flex items-center gap-2 text-sm font-semibold hover:text-primary">
+          <ChevronDown className={`w-4 h-4 transition-transform ${openSections.social ? 'rotate-180' : ''}`} />
+          <Building2 className="w-4 h-4" />
+          Social Security
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FieldGroup label="SSA Monthly Benefit at 62 ($)" htmlFor="fe-ssAt62" error={errors.ssaBenefitAt62}
+              hint="From your Social Security statement">
+              <Input
+                id="fe-ssAt62"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="e.g. 1800"
+                value={form.ssaBenefitAt62}
+                onChange={(e) => set('ssaBenefitAt62', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="Annual Earnings ($)" htmlFor="fe-earnings" error={errors.annualEarnings}
+              hint="0 if fully retired (for earnings test)">
+              <Input
+                id="fe-earnings"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="0"
+                value={form.annualEarnings}
+                onChange={(e) => set('annualEarnings', e.target.value)}
+              />
+            </FieldGroup>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Section 5: TSP — Balances & Contributions */}
-      <fieldset>
-        <legend className="text-sm font-semibold text-gray-800 mb-2">TSP — Balances & Contributions</legend>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <FieldGroup label="Total TSP Balance ($)" htmlFor="fe-tspBalance" error={errors.currentTspBalance}
-            hint="Combined Traditional + Roth">
-            <input id="fe-tspBalance" type="number" min="0" step="1"
-              value={form.currentTspBalance} onChange={(e) => set('currentTspBalance', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="Traditional Balance ($)" htmlFor="fe-tspTrad" error={errors.traditionalTspBalance}
-            hint="Optional breakdown">
-            <input id="fe-tspTrad" type="number" min="0" step="1" placeholder="Optional"
-              value={form.traditionalTspBalance} onChange={(e) => set('traditionalTspBalance', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="Roth Balance ($)" htmlFor="fe-tspRoth" error={errors.rothTspBalance}
-            hint="Optional breakdown">
-            <input id="fe-tspRoth" type="number" min="0" step="1" placeholder="Optional"
-              value={form.rothTspBalance} onChange={(e) => set('rothTspBalance', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-          <FieldGroup label="Bi-weekly Contribution ($)" htmlFor="fe-tspContrib" error={errors.biweeklyTspContribution}>
-            <input id="fe-tspContrib" type="number" min="0" step="0.01"
-              value={form.biweeklyTspContribution} onChange={(e) => set('biweeklyTspContribution', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="Growth Rate (%)" htmlFor="fe-tspGrowth" error={errors.tspGrowthRate}
-            hint="Annual rate, e.g. 7">
-            <input id="fe-tspGrowth" type="number" min="0" max="100" step="0.1"
-              value={form.tspGrowthRate} onChange={(e) => set('tspGrowthRate', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-        </div>
-        <div className="flex gap-6 mt-3">
-          <label className="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-            <input type="checkbox" checked={form.isRothContribution}
-              onChange={(e) => set('isRothContribution', e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-            Contributing to Roth TSP
-          </label>
-          <label className="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-            <input type="checkbox" checked={form.catchUpEligible}
-              onChange={(e) => set('catchUpEligible', e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-            Catch-up eligible (age 50+)
-          </label>
-        </div>
-      </fieldset>
+      <Collapsible
+        open={openSections.tspBalances}
+        onOpenChange={(open) => setOpenSections((prev) => ({ ...prev, tspBalances: open }))}
+      >
+        <CollapsibleTrigger className="flex items-center gap-2 text-sm font-semibold hover:text-primary">
+          <ChevronDown className={`w-4 h-4 transition-transform ${openSections.tspBalances ? 'rotate-180' : ''}`} />
+          <PiggyBank className="w-4 h-4" />
+          TSP — Balances & Contributions
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <FieldGroup label="Total TSP Balance ($)" htmlFor="fe-tspBalance" error={errors.currentTspBalance}
+              hint="Combined Traditional + Roth">
+              <Input
+                id="fe-tspBalance"
+                type="number"
+                min="0"
+                step="1"
+                value={form.currentTspBalance}
+                onChange={(e) => set('currentTspBalance', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="Traditional Balance ($)" htmlFor="fe-tspTrad" error={errors.traditionalTspBalance}
+              hint="Optional breakdown">
+              <Input
+                id="fe-tspTrad"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Optional"
+                value={form.traditionalTspBalance}
+                onChange={(e) => set('traditionalTspBalance', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="Roth Balance ($)" htmlFor="fe-tspRoth" error={errors.rothTspBalance}
+              hint="Optional breakdown">
+              <Input
+                id="fe-tspRoth"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Optional"
+                value={form.rothTspBalance}
+                onChange={(e) => set('rothTspBalance', e.target.value)}
+              />
+            </FieldGroup>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <FieldGroup label="Bi-weekly Contribution ($)" htmlFor="fe-tspContrib" error={errors.biweeklyTspContribution}>
+              <Input
+                id="fe-tspContrib"
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.biweeklyTspContribution}
+                onChange={(e) => set('biweeklyTspContribution', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="Growth Rate (%)" htmlFor="fe-tspGrowth" error={errors.tspGrowthRate}
+              hint="Annual rate, e.g. 7">
+              <Input
+                id="fe-tspGrowth"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={form.tspGrowthRate}
+                onChange={(e) => set('tspGrowthRate', e.target.value)}
+              />
+            </FieldGroup>
+          </div>
+          <div className="flex gap-6">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="fe-roth"
+                checked={form.isRothContribution}
+                onCheckedChange={(checked) => set('isRothContribution', !!checked)}
+              />
+              <label htmlFor="fe-roth" className="text-sm cursor-pointer">
+                Contributing to Roth TSP
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="fe-catchup"
+                checked={form.catchUpEligible}
+                onCheckedChange={(checked) => set('catchUpEligible', !!checked)}
+              />
+              <label htmlFor="fe-catchup" className="text-sm cursor-pointer">
+                Catch-up eligible (age 50+)
+              </label>
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Section 6: TSP — Withdrawals */}
-      <fieldset>
-        <legend className="text-sm font-semibold text-gray-800 mb-2">TSP — Withdrawals</legend>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FieldGroup label="Withdrawal Rate (%)" htmlFor="fe-withdrawRate" error={errors.withdrawalRate}
-            hint="Annual rate, e.g. 4">
-            <input id="fe-withdrawRate" type="number" min="0" max="100" step="0.1"
-              value={form.withdrawalRate} onChange={(e) => set('withdrawalRate', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="Start Age" htmlFor="fe-withdrawAge" error={errors.withdrawalStartAge}>
-            <input id="fe-withdrawAge" type="number" min="50" max="90" step="1"
-              value={form.withdrawalStartAge} onChange={(e) => set('withdrawalStartAge', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="One-Time Withdrawal ($)" htmlFor="fe-oneTimeAmt" error={errors.oneTimeWithdrawalAmount}
-            hint="Optional lump sum">
-            <input id="fe-oneTimeAmt" type="number" min="0" step="1" placeholder=""
-              value={form.oneTimeWithdrawalAmount} onChange={(e) => set('oneTimeWithdrawalAmount', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="One-Time Withdrawal Age" htmlFor="fe-oneTimeAge" error={errors.oneTimeWithdrawalAge}>
-            <input id="fe-oneTimeAge" type="number" min="50" max="90" step="1" placeholder=""
-              value={form.oneTimeWithdrawalAge} onChange={(e) => set('oneTimeWithdrawalAge', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-        </div>
-      </fieldset>
+      <Collapsible
+        open={openSections.tspWithdrawals}
+        onOpenChange={(open) => setOpenSections((prev) => ({ ...prev, tspWithdrawals: open }))}
+      >
+        <CollapsibleTrigger className="flex items-center gap-2 text-sm font-semibold hover:text-primary">
+          <ChevronDown className={`w-4 h-4 transition-transform ${openSections.tspWithdrawals ? 'rotate-180' : ''}`} />
+          <ArrowDownToLine className="w-4 h-4" />
+          TSP — Withdrawals
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FieldGroup label="Withdrawal Rate (%)" htmlFor="fe-withdrawRate" error={errors.withdrawalRate}
+              hint="Annual rate, e.g. 4">
+              <Input
+                id="fe-withdrawRate"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={form.withdrawalRate}
+                onChange={(e) => set('withdrawalRate', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="Start Age" htmlFor="fe-withdrawAge" error={errors.withdrawalStartAge}>
+              <Input
+                id="fe-withdrawAge"
+                type="number"
+                min="50"
+                max="90"
+                step="1"
+                value={form.withdrawalStartAge}
+                onChange={(e) => set('withdrawalStartAge', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="One-Time Withdrawal ($)" htmlFor="fe-oneTimeAmt" error={errors.oneTimeWithdrawalAmount}
+              hint="Optional lump sum">
+              <Input
+                id="fe-oneTimeAmt"
+                type="number"
+                min="0"
+                step="1"
+                placeholder=""
+                value={form.oneTimeWithdrawalAmount}
+                onChange={(e) => set('oneTimeWithdrawalAmount', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="One-Time Withdrawal Age" htmlFor="fe-oneTimeAge" error={errors.oneTimeWithdrawalAge}>
+              <Input
+                id="fe-oneTimeAge"
+                type="number"
+                min="50"
+                max="90"
+                step="1"
+                placeholder=""
+                value={form.oneTimeWithdrawalAge}
+                onChange={(e) => set('oneTimeWithdrawalAge', e.target.value)}
+              />
+            </FieldGroup>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Live Results */}
       <div className="mt-2">
-        <h3 className="text-sm font-semibold text-gray-800 mb-2">Estimate Results</h3>
+        <h3 className="text-sm font-semibold text-foreground mb-2">Estimate Results</h3>
         <FERSEstimateResults result={estimate} />
       </div>
     </FormSection>

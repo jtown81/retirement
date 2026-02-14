@@ -1,4 +1,6 @@
 import { useState, type ReactNode } from 'react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@components/ui/tabs';
+import { Calculator, Briefcase, Receipt, LineChart, CheckCircle2, Circle } from 'lucide-react';
 
 export interface TabDef {
   id: string;
@@ -11,41 +13,37 @@ interface FormShellProps {
   children: (activeTabId: string) => ReactNode;
 }
 
+const TAB_ICONS: Record<string, React.ReactNode> = {
+  personal: <Calculator className="w-4 h-4" />,
+  career: <Briefcase className="w-4 h-4" />,
+  expenses: <Receipt className="w-4 h-4" />,
+  simulation: <LineChart className="w-4 h-4" />,
+};
+
 export function FormShell({ tabs, children }: FormShellProps) {
   const [activeTab, setActiveTab] = useState(tabs[0]?.id ?? '');
 
   return (
-    <div>
-      {/* Tab bar */}
-      <div className="border-b border-gray-200 mb-6 overflow-x-auto">
-        <nav className="flex -mb-px space-x-4 sm:space-x-6 min-w-max" aria-label="Form sections">
-          {tabs.map((tab) => {
-            const isActive = tab.id === activeTab;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  flex items-center gap-2 px-1 py-3 text-sm font-medium border-b-2 whitespace-nowrap
-                  ${isActive
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
-                `}
-              >
-                <span
-                  className={`inline-block w-2 h-2 rounded-full ${tab.complete ? 'bg-green-500' : 'bg-gray-300'}`}
-                  aria-label={tab.complete ? 'Complete' : 'Incomplete'}
-                />
-                {tab.label}
-              </button>
-            );
-          })}
-        </nav>
-      </div>
+    <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-6">
+        {tabs.map((tab) => (
+          <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
+            {TAB_ICONS[tab.id] || <Circle className="w-4 h-4" />}
+            <span className="hidden sm:inline">{tab.label}</span>
+            {tab.complete ? (
+              <CheckCircle2 className="w-3 h-3 ml-1 text-green-600" />
+            ) : (
+              <Circle className="w-3 h-3 ml-1 text-muted-foreground" />
+            )}
+          </TabsTrigger>
+        ))}
+      </TabsList>
 
-      {/* Active tab content */}
-      {children(activeTab)}
-    </div>
+      {tabs.map((tab) => (
+        <TabsContent key={tab.id} value={tab.id} className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+          {children(tab.id)}
+        </TabsContent>
+      ))}
+    </Tabs>
   );
 }

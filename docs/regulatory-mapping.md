@@ -35,6 +35,7 @@ Maps every formula, eligibility rule, and assumption to its governing authority.
 | Agency matching (up to 4%)            | tsp          | ◆    | 5 U.S.C. § 8432(c)(2)                              | Always to Traditional TSP             |
 | Military buyback deposit formula      | military     | ◆    | OPM FERS Handbook, Ch. 23; 5 U.S.C. § 8411(b)     | 3% of military basic pay + interest   |
 | Military service credit (FERS)        | military     | ◆    | OPM FERS Handbook, Ch. 23                          | Requires waiver of military retirement|
+| Required Minimum Distribution (RMD)  | tsp          | ◆    | IRC § 401(a)(9); IRS Pub 590-B; SECURE 2.0 § 107  | Age 73+ threshold; Traditional TSP only |
 | Expense smile curve shape             | expenses     | ◇    | Blanchett (2014); various retirement research      | Parametric; user must acknowledge     |
 | Inflation rate assumption             | expenses     | ◇    | Historical CPI average                             | Default 2.5%; user-configurable       |
 | SRS / FERS supplement eligibility     | simulation   | ◆    | OPM FERS Handbook, Ch. 51                          | MRA+30 or 60+20; pre-SSA FRA         |
@@ -66,3 +67,4 @@ When the app relies on an assumption (◇) rather than a hard rule, the user mus
 | Version | Date       | Author | Description                            |
 |---------|------------|--------|----------------------------------------|
 | 0.1.0   | 2026-02-10 |        | Initial regulatory mapping scaffold    |
+| 0.2.0   | 2026-02-11 |        | Added RMD (Required Minimum Distribution) per SECURE 2.0 Act |

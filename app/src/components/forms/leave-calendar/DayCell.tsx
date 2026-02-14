@@ -6,6 +6,7 @@
  *         orange = planned-sick, red = actual-sick.
  */
 
+import { cn } from '@lib/utils';
 import type { CalendarLeaveEntry, CalendarLeaveType } from '@models/leave-calendar';
 
 interface DayCellProps {
@@ -57,19 +58,29 @@ export function DayCell({
       disabled={isOff}
       onClick={(e) => onClick(dateStr, e.shiftKey)}
       title={holidayName}
-      className={`
-        h-10 sm:h-12 relative flex flex-col items-center justify-center rounded text-xs
-        transition-colors
-        ${isOff ? 'cursor-default' : 'hover:bg-gray-50 cursor-pointer'}
-        ${isWeekend ? 'bg-gray-100 text-gray-400' : ''}
-        ${holidayName && !isWeekend ? 'bg-amber-50 text-amber-800' : ''}
-        ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''}
-        ${isToday && !isSelected ? 'ring-1 ring-gray-400' : ''}
-      `}
+      className={cn(
+        'h-10 sm:h-12 relative flex flex-col items-center justify-center rounded text-xs transition-colors',
+        isOff ? 'cursor-default' : 'hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer',
+        isWeekend && 'bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground',
+        holidayName && !isWeekend && 'bg-amber-50 dark:bg-amber-950 text-amber-800 dark:text-amber-200',
+        isSelected && 'ring-2 ring-primary bg-primary/10',
+        isToday && !isSelected && 'ring-1 ring-gray-400 dark:ring-gray-500',
+      )}
     >
-      <span className={`text-xs ${holidayName && !isWeekend ? 'text-amber-800' : 'text-gray-800'} ${isWeekend ? 'text-gray-400' : ''} ${isToday ? 'font-bold' : ''}`}>{day}</span>
+      <span
+        className={cn(
+          'text-xs',
+          holidayName && !isWeekend ? 'text-amber-800 dark:text-amber-200' : 'text-gray-800 dark:text-gray-200',
+          isWeekend && 'text-gray-400 dark:text-gray-600',
+          isToday && 'font-bold',
+        )}
+      >
+        {day}
+      </span>
       {holidayName && !isWeekend && (
-        <span className="w-2 h-2 text-amber-600 leading-none text-[8px]" title={holidayName}>&#9670;</span>
+        <span className="w-2 h-2 text-amber-600 dark:text-amber-400 leading-none text-[8px]" title={holidayName}>
+          &#9670;
+        </span>
       )}
       {primaryEntry && !holidayName && (
         <span
@@ -78,7 +89,7 @@ export function DayCell({
         />
       )}
       {totalHours > 0 && totalHours < 8 && (
-        <span className="absolute bottom-0.5 right-0.5 text-[9px] text-gray-500 leading-none">
+        <span className="absolute bottom-0.5 right-0.5 text-[9px] text-muted-foreground leading-none">
           {totalHours}h
         </span>
       )}

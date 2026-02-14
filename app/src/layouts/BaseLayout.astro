@@ -7,7 +7,7 @@ const { title = 'Federal Retirement Planner' } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class="">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,6 +15,13 @@ const { title = 'Federal Retirement Planner' } = Astro.props;
     <style>
       @import "../styles/global.css";
     </style>
+    <script is:inline>
+      // Apply saved theme before first paint to prevent flash
+      const theme = localStorage.getItem('retire:theme');
+      if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    </script>
   </head>
   <body>
     <slot />

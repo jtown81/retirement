@@ -12,6 +12,14 @@ import type { SimulationConfig, FullSimulationResult } from '@models/simulation'
 import { useFERSEstimate, type FERSEstimateInput } from './useFERSEstimate';
 import { FieldGroup } from './FieldGroup';
 import { FormSection } from './FormSection';
+import { Input } from '@components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@components/ui/select';
+import { Button } from '@components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@components/ui/collapsible';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@components/ui/table';
+import { Alert, AlertDescription } from '@components/ui/alert';
+import { ChevronDown, TrendingUp, Target, DollarSign, Percent } from 'lucide-react';
+import { cn } from '@lib/utils';
 import type { z } from 'zod';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -24,8 +32,6 @@ const fmtK = (n: number) => {
   if (Math.abs(n) >= 1_000) return `$${(n / 1_000).toFixed(0)}k`;
   return fmt(n);
 };
-
-const INPUT_CLS = 'block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500';
 
 // ── Form state (all strings for controlled inputs) ───────────────────────────
 
@@ -288,6 +294,12 @@ export function SimulationForm() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    core: true,
+    tsp: true,
+    expenses: false,
+    rates: false,
+  });
   const isFirstRender = useRef(true);
 
   // Auto-save draft on change
@@ -355,154 +367,337 @@ export function SimulationForm() {
       onClear={handleClear}
     >
       {/* Pull from other tabs */}
-      <div className="flex gap-3 mb-2 items-center">
-        <button
+      <div className="flex gap-3 mb-4 items-center flex-wrap">
+        <Button
           type="button"
+          variant="link"
+          size="sm"
           onClick={handlePullFromEstimate}
-          className="text-xs text-blue-700 hover:text-blue-900 underline"
+          className="p-0"
         >
           Pull values from FERS Estimate &amp; Expenses
-        </button>
+        </Button>
         {fersDefaults.sourceFields.size > 0 && (
-          <span className="text-[10px] text-green-700 bg-green-50 px-2 py-0.5 rounded">
-            {fersDefaults.sourceFields.size} fields available from FERS Estimate
+          <span className="text-xs bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-200 px-2 py-1 rounded">
+            {fersDefaults.sourceFields.size} fields available
           </span>
         )}
       </div>
 
       {/* ── Core Parameters ─────────────────────────────── */}
-      <fieldset>
-        <legend className="text-sm font-semibold text-gray-800 mb-2">Core Parameters</legend>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <FieldGroup label="Retirement Age" htmlFor="sim-retAge" error={errors.retirementAge}>
-            <input id="sim-retAge" type="number" min="50" max="90" step="1"
-              value={form.retirementAge} onChange={(e) => set('retirementAge', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="End Age" htmlFor="sim-endAge" error={errors.endAge} hint="Projection endpoint (max 104)">
-            <input id="sim-endAge" type="number" min="70" max="104" step="1"
-              value={form.endAge} onChange={(e) => set('endAge', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="FERS Annuity ($/yr)" htmlFor="sim-annuity" error={errors.fersAnnuity}>
-            <input id="sim-annuity" type="number" min="0" step="100"
-              value={form.fersAnnuity} onChange={(e) => set('fersAnnuity', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="FERS Supplement ($/yr)" htmlFor="sim-supplement" error={errors.fersSupplement}
-            hint="Paid until age 62; 0 if not eligible">
-            <input id="sim-supplement" type="number" min="0" step="100"
-              value={form.fersSupplement} onChange={(e) => set('fersSupplement', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="SS Monthly at 62 ($)" htmlFor="sim-ss" error={errors.ssMonthlyAt62}>
-            <input id="sim-ss" type="number" min="0" step="50"
-              value={form.ssMonthlyAt62} onChange={(e) => set('ssMonthlyAt62', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-        </div>
-      </fieldset>
+      <Collapsible
+        open={openSections.core}
+        onOpenChange={(open) => setOpenSections((prev) => ({ ...prev, core: open }))}
+      >
+        <CollapsibleTrigger className="flex items-center gap-2 text-sm font-semibold hover:text-primary">
+          <ChevronDown className={`w-4 h-4 transition-transform ${openSections.core ? 'rotate-180' : ''}`} />
+          <Target className="w-4 h-4" />
+          Core Parameters
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <FieldGroup label="Retirement Age" htmlFor="sim-retAge" error={errors.retirementAge}>
+              <Input
+                id="sim-retAge"
+                type="number"
+                min="50"
+                max="90"
+                step="1"
+                value={form.retirementAge}
+                onChange={(e) => set('retirementAge', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="End Age" htmlFor="sim-endAge" error={errors.endAge} hint="Projection endpoint (max 104)">
+              <Input
+                id="sim-endAge"
+                type="number"
+                min="70"
+                max="104"
+                step="1"
+                value={form.endAge}
+                onChange={(e) => set('endAge', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="FERS Annuity ($/yr)" htmlFor="sim-annuity" error={errors.fersAnnuity}>
+              <Input
+                id="sim-annuity"
+                type="number"
+                min="0"
+                step="100"
+                value={form.fersAnnuity}
+                onChange={(e) => set('fersAnnuity', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="FERS Supplement ($/yr)" htmlFor="sim-supplement" error={errors.fersSupplement}
+              hint="Paid until age 62; 0 if not eligible">
+              <Input
+                id="sim-supplement"
+                type="number"
+                min="0"
+                step="100"
+                value={form.fersSupplement}
+                onChange={(e) => set('fersSupplement', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="SS Monthly at 62 ($)" htmlFor="sim-ss" error={errors.ssMonthlyAt62}>
+              <Input
+                id="sim-ss"
+                type="number"
+                min="0"
+                step="50"
+                value={form.ssMonthlyAt62}
+                onChange={(e) => set('ssMonthlyAt62', e.target.value)}
+              />
+            </FieldGroup>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* ── TSP ──────────────────────────────────────────── */}
-      <fieldset>
-        <legend className="text-sm font-semibold text-gray-800 mb-2">TSP — Balances &amp; Allocation</legend>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <FieldGroup label="TSP Balance at Retirement ($)" htmlFor="sim-tspBal" error={errors.tspBalanceAtRetirement}>
-            <input id="sim-tspBal" type="number" min="0" step="1000"
-              value={form.tspBalanceAtRetirement} onChange={(e) => set('tspBalanceAtRetirement', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="Traditional %" htmlFor="sim-tradPct" error={errors.traditionalPct}
-            hint="Remainder is Roth">
-            <input id="sim-tradPct" type="number" min="0" max="100" step="1"
-              value={form.traditionalPct} onChange={(e) => set('traditionalPct', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="High-Risk %" htmlFor="sim-hrPct" error={errors.highRiskPct}
-            hint="C/S/I funds; remainder in G/F">
-            <input id="sim-hrPct" type="number" min="0" max="100" step="1"
-              value={form.highRiskPct} onChange={(e) => set('highRiskPct', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="High-Risk ROI (%)" htmlFor="sim-hrROI" error={errors.highRiskROI}>
-            <input id="sim-hrROI" type="number" min="-50" max="50" step="0.5"
-              value={form.highRiskROI} onChange={(e) => set('highRiskROI', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="Low-Risk ROI (%)" htmlFor="sim-lrROI" error={errors.lowRiskROI}>
-            <input id="sim-lrROI" type="number" min="-50" max="50" step="0.5"
-              value={form.lowRiskROI} onChange={(e) => set('lowRiskROI', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="Withdrawal Rate (%)" htmlFor="sim-wr" error={errors.withdrawalRate}
-            hint="% of initial balance per year">
-            <input id="sim-wr" type="number" min="0" max="100" step="0.5"
-              value={form.withdrawalRate} onChange={(e) => set('withdrawalRate', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="Time-Step Buffer (years)" htmlFor="sim-ts" error={errors.timeStepYears}
-            hint="Low-risk pot holds this many years of withdrawals">
-            <select id="sim-ts" value={form.timeStepYears}
-              onChange={(e) => set('timeStepYears', e.target.value)} className={INPUT_CLS}>
-              <option value="1">1 year</option>
-              <option value="2">2 years</option>
-              <option value="3">3 years</option>
-            </select>
-          </FieldGroup>
-        </div>
-      </fieldset>
+      <Collapsible
+        open={openSections.tsp}
+        onOpenChange={(open) => setOpenSections((prev) => ({ ...prev, tsp: open }))}
+      >
+        <CollapsibleTrigger className="flex items-center gap-2 text-sm font-semibold hover:text-primary">
+          <ChevronDown className={`w-4 h-4 transition-transform ${openSections.tsp ? 'rotate-180' : ''}`} />
+          <DollarSign className="w-4 h-4" />
+          TSP — Balances &amp; Allocation
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <FieldGroup label="TSP Balance at Retirement ($)" htmlFor="sim-tspBal" error={errors.tspBalanceAtRetirement}>
+              <Input
+                id="sim-tspBal"
+                type="number"
+                min="0"
+                step="1000"
+                value={form.tspBalanceAtRetirement}
+                onChange={(e) => set('tspBalanceAtRetirement', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="Traditional %" htmlFor="sim-tradPct" error={errors.traditionalPct}
+              hint="Remainder is Roth">
+              <Input
+                id="sim-tradPct"
+                type="number"
+                min="0"
+                max="100"
+                step="1"
+                value={form.traditionalPct}
+                onChange={(e) => set('traditionalPct', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="High-Risk %" htmlFor="sim-hrPct" error={errors.highRiskPct}
+              hint="C/S/I funds; remainder in G/F">
+              <Input
+                id="sim-hrPct"
+                type="number"
+                min="0"
+                max="100"
+                step="1"
+                value={form.highRiskPct}
+                onChange={(e) => set('highRiskPct', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="High-Risk ROI (%)" htmlFor="sim-hrROI" error={errors.highRiskROI}>
+              <Input
+                id="sim-hrROI"
+                type="number"
+                min="-50"
+                max="50"
+                step="0.5"
+                value={form.highRiskROI}
+                onChange={(e) => set('highRiskROI', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="Low-Risk ROI (%)" htmlFor="sim-lrROI" error={errors.lowRiskROI}>
+              <Input
+                id="sim-lrROI"
+                type="number"
+                min="-50"
+                max="50"
+                step="0.5"
+                value={form.lowRiskROI}
+                onChange={(e) => set('lowRiskROI', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="Withdrawal Rate (%)" htmlFor="sim-wr" error={errors.withdrawalRate}
+              hint="% of initial balance per year">
+              <Input
+                id="sim-wr"
+                type="number"
+                min="0"
+                max="100"
+                step="0.5"
+                value={form.withdrawalRate}
+                onChange={(e) => set('withdrawalRate', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="Time-Step Buffer (years)" htmlFor="sim-ts" error={errors.timeStepYears}
+              hint="Low-risk pot holds this many years of withdrawals">
+              <Select value={form.timeStepYears} onValueChange={(value) => set('timeStepYears', value)}>
+                <SelectTrigger id="sim-ts">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 year</SelectItem>
+                  <SelectItem value="2">2 years</SelectItem>
+                  <SelectItem value="3">3 years</SelectItem>
+                </SelectContent>
+              </Select>
+            </FieldGroup>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* ── Expenses (Smile Curve) ────────────────────────── */}
-      <fieldset>
-        <legend className="text-sm font-semibold text-gray-800 mb-2">Expenses — GoGo / GoSlow / NoGo</legend>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <FieldGroup label="Base Annual Expenses ($)" htmlFor="sim-expenses" error={errors.baseAnnualExpenses}>
-            <input id="sim-expenses" type="number" min="0" step="1000"
-              value={form.baseAnnualExpenses} onChange={(e) => set('baseAnnualExpenses', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="GoGo Ends At Age" htmlFor="sim-gogoEnd" error={errors.goGoEndAge}>
-            <input id="sim-gogoEnd" type="number" min="50" max="104" step="1"
-              value={form.goGoEndAge} onChange={(e) => set('goGoEndAge', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="GoGo Rate (%)" htmlFor="sim-gogoRate" error={errors.goGoRate}
-            hint="Spending multiplier (100 = full)">
-            <input id="sim-gogoRate" type="number" min="0" max="200" step="1"
-              value={form.goGoRate} onChange={(e) => set('goGoRate', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="GoSlow Ends At Age" htmlFor="sim-goslowEnd" error={errors.goSlowEndAge}>
-            <input id="sim-goslowEnd" type="number" min="50" max="104" step="1"
-              value={form.goSlowEndAge} onChange={(e) => set('goSlowEndAge', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="GoSlow Rate (%)" htmlFor="sim-goslowRate" error={errors.goSlowRate}>
-            <input id="sim-goslowRate" type="number" min="0" max="200" step="1"
-              value={form.goSlowRate} onChange={(e) => set('goSlowRate', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="NoGo Rate (%)" htmlFor="sim-nogoRate" error={errors.noGoRate}>
-            <input id="sim-nogoRate" type="number" min="0" max="200" step="1"
-              value={form.noGoRate} onChange={(e) => set('noGoRate', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-        </div>
-      </fieldset>
+      <Collapsible
+        open={openSections.expenses}
+        onOpenChange={(open) => setOpenSections((prev) => ({ ...prev, expenses: open }))}
+      >
+        <CollapsibleTrigger className="flex items-center gap-2 text-sm font-semibold hover:text-primary">
+          <ChevronDown className={`w-4 h-4 transition-transform ${openSections.expenses ? 'rotate-180' : ''}`} />
+          <TrendingUp className="w-4 h-4" />
+          Expenses — GoGo / GoSlow / NoGo
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <FieldGroup label="Base Annual Expenses ($)" htmlFor="sim-expenses" error={errors.baseAnnualExpenses}>
+              <Input
+                id="sim-expenses"
+                type="number"
+                min="0"
+                step="1000"
+                value={form.baseAnnualExpenses}
+                onChange={(e) => set('baseAnnualExpenses', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="GoGo Ends At Age" htmlFor="sim-gogoEnd" error={errors.goGoEndAge}>
+              <Input
+                id="sim-gogoEnd"
+                type="number"
+                min="50"
+                max="104"
+                step="1"
+                value={form.goGoEndAge}
+                onChange={(e) => set('goGoEndAge', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="GoGo Rate (%)" htmlFor="sim-gogoRate" error={errors.goGoRate}
+              hint="Spending multiplier (100 = full)">
+              <Input
+                id="sim-gogoRate"
+                type="number"
+                min="0"
+                max="200"
+                step="1"
+                value={form.goGoRate}
+                onChange={(e) => set('goGoRate', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="GoSlow Ends At Age" htmlFor="sim-goslowEnd" error={errors.goSlowEndAge}>
+              <Input
+                id="sim-goslowEnd"
+                type="number"
+                min="50"
+                max="104"
+                step="1"
+                value={form.goSlowEndAge}
+                onChange={(e) => set('goSlowEndAge', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="GoSlow Rate (%)" htmlFor="sim-goslowRate" error={errors.goSlowRate}>
+              <Input
+                id="sim-goslowRate"
+                type="number"
+                min="0"
+                max="200"
+                step="1"
+                value={form.goSlowRate}
+                onChange={(e) => set('goSlowRate', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="NoGo Rate (%)" htmlFor="sim-nogoRate" error={errors.noGoRate}>
+              <Input
+                id="sim-nogoRate"
+                type="number"
+                min="0"
+                max="200"
+                step="1"
+                value={form.noGoRate}
+                onChange={(e) => set('noGoRate', e.target.value)}
+              />
+            </FieldGroup>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* ── Rates ──────────────────────────────────────────── */}
-      <fieldset>
-        <legend className="text-sm font-semibold text-gray-800 mb-2">Rates</legend>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FieldGroup label="COLA Rate (%)" htmlFor="sim-cola" error={errors.colaRate}
-            hint="Annual cost-of-living adjustment for annuity">
-            <input id="sim-cola" type="number" min="0" max="10" step="0.1"
-              value={form.colaRate} onChange={(e) => set('colaRate', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="General Inflation (%)" htmlFor="sim-inflation" error={errors.inflationRate}
-            hint="Annual inflation for non-healthcare expenses">
-            <input id="sim-inflation" type="number" min="0" max="20" step="0.1"
-              value={form.inflationRate} onChange={(e) => set('inflationRate', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="Healthcare Inflation (%)" htmlFor="sim-hcInflation" error={errors.healthcareInflationRate}
-            hint="Healthcare costs typically rise ~5.5%/yr">
-            <input id="sim-hcInflation" type="number" min="0" max="20" step="0.1"
-              value={form.healthcareInflationRate} onChange={(e) => set('healthcareInflationRate', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-          <FieldGroup label="Healthcare Expense ($/yr)" htmlFor="sim-hcExpense" error={errors.healthcareAnnualExpenses}
-            hint="Portion of base expenses that is healthcare">
-            <input id="sim-hcExpense" type="number" min="0" step="100"
-              value={form.healthcareAnnualExpenses} onChange={(e) => set('healthcareAnnualExpenses', e.target.value)} className={INPUT_CLS} />
-          </FieldGroup>
-        </div>
-      </fieldset>
+      <Collapsible
+        open={openSections.rates}
+        onOpenChange={(open) => setOpenSections((prev) => ({ ...prev, rates: open }))}
+      >
+        <CollapsibleTrigger className="flex items-center gap-2 text-sm font-semibold hover:text-primary">
+          <ChevronDown className={`w-4 h-4 transition-transform ${openSections.rates ? 'rotate-180' : ''}`} />
+          <Percent className="w-4 h-4" />
+          Rates
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FieldGroup label="COLA Rate (%)" htmlFor="sim-cola" error={errors.colaRate}
+              hint="Annual cost-of-living adjustment for annuity">
+              <Input
+                id="sim-cola"
+                type="number"
+                min="0"
+                max="10"
+                step="0.1"
+                value={form.colaRate}
+                onChange={(e) => set('colaRate', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="General Inflation (%)" htmlFor="sim-inflation" error={errors.inflationRate}
+              hint="Annual inflation for non-healthcare expenses">
+              <Input
+                id="sim-inflation"
+                type="number"
+                min="0"
+                max="20"
+                step="0.1"
+                value={form.inflationRate}
+                onChange={(e) => set('inflationRate', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="Healthcare Inflation (%)" htmlFor="sim-hcInflation" error={errors.healthcareInflationRate}
+              hint="Healthcare costs typically rise ~5.5%/yr">
+              <Input
+                id="sim-hcInflation"
+                type="number"
+                min="0"
+                max="20"
+                step="0.1"
+                value={form.healthcareInflationRate}
+                onChange={(e) => set('healthcareInflationRate', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="Healthcare Expense ($/yr)" htmlFor="sim-hcExpense" error={errors.healthcareAnnualExpenses}
+              hint="Portion of base expenses that is healthcare">
+              <Input
+                id="sim-hcExpense"
+                type="number"
+                min="0"
+                step="100"
+                value={form.healthcareAnnualExpenses}
+                onChange={(e) => set('healthcareAnnualExpenses', e.target.value)}
+              />
+            </FieldGroup>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* ── Live Results ───────────────────────────────────── */}
       <div className="mt-2">
-        <h3 className="text-sm font-semibold text-gray-800 mb-2">Simulation Results</h3>
+        <h3 className="text-sm font-semibold text-foreground mb-2">Simulation Results</h3>
         <SimulationResults result={simulation} />
       </div>
     </FormSection>
@@ -514,63 +709,63 @@ export function SimulationForm() {
 function SimulationResults({ result }: { result: FullSimulationResult | null }) {
   if (!result) {
     return (
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center text-sm text-gray-500">
-        Enter valid parameters above to see the year-by-year retirement projection.
-      </div>
+      <Alert className="bg-muted">
+        <AlertDescription className="text-center">
+          Enter valid parameters above to see the year-by-year retirement projection.
+        </AlertDescription>
+      </Alert>
     );
   }
 
   return (
     <div className="space-y-4">
       {/* Key Metrics Banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-          <MetricBox
-            label="TSP Depletes"
-            value={result.depletionAge === null ? 'NEVER' : `Age ${result.depletionAge}`}
-            good={result.depletionAge === null}
-          />
-          <MetricBox
-            label="Balance at 85"
-            value={fmtK(result.balanceAt85)}
-            good={result.balanceAt85 > 0}
-          />
-          <MetricBox
-            label="Lifetime Income"
-            value={fmtK(result.totalLifetimeIncome)}
-          />
-          <MetricBox
-            label="Lifetime Expenses"
-            value={fmtK(result.totalLifetimeExpenses)}
-          />
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-muted rounded-lg">
+        <MetricBox
+          label="TSP Depletes"
+          value={result.depletionAge === null ? 'NEVER' : `Age ${result.depletionAge}`}
+          good={result.depletionAge === null}
+        />
+        <MetricBox
+          label="Balance at 85"
+          value={fmtK(result.balanceAt85)}
+          good={result.balanceAt85 > 0}
+        />
+        <MetricBox
+          label="Lifetime Income"
+          value={fmtK(result.totalLifetimeIncome)}
+        />
+        <MetricBox
+          label="Lifetime Expenses"
+          value={fmtK(result.totalLifetimeExpenses)}
+        />
       </div>
 
       {/* Year-by-Year Table */}
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
+      <div className="border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
-          <table className="min-w-full text-xs">
-            <thead className="bg-gray-50 sticky top-0">
-              <tr>
-                <th className="px-2 py-2 text-left font-medium text-gray-600">Age</th>
-                <th className="px-2 py-2 text-left font-medium text-gray-600">Year</th>
-                <th className="px-2 py-2 text-right font-medium text-gray-600">Annuity</th>
-                <th className="px-2 py-2 text-right font-medium text-gray-600">Suppl.</th>
-                <th className="px-2 py-2 text-right font-medium text-gray-600">SS</th>
-                <th className="px-2 py-2 text-right font-medium text-gray-600">TSP Draw</th>
-                <th className="px-2 py-2 text-right font-medium text-gray-600">Income</th>
-                <th className="px-2 py-2 text-right font-medium text-gray-600">Expenses</th>
-                <th className="px-2 py-2 text-right font-medium text-gray-600">Surplus</th>
-                <th className="px-2 py-2 text-right font-medium text-gray-600">TSP Bal.</th>
-                <th className="px-2 py-2 text-right font-medium text-gray-600">Trad.</th>
-                <th className="px-2 py-2 text-right font-medium text-gray-600">Roth</th>
-                <th className="px-2 py-2 text-right font-medium text-gray-600">Hi-Risk</th>
-                <th className="px-2 py-2 text-right font-medium text-gray-600">Lo-Risk</th>
-                <th className="px-2 py-2 text-center font-medium text-gray-600">Phase</th>
-                <th className="px-2 py-2 text-right font-medium text-gray-600">RMD</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
+          <Table>
+            <TableHeader className="sticky top-0">
+              <TableRow className="bg-muted hover:bg-muted">
+                <TableHead className="text-xs w-8">Age</TableHead>
+                <TableHead className="text-xs w-10">Year</TableHead>
+                <TableHead className="text-xs text-right">Annuity</TableHead>
+                <TableHead className="text-xs text-right">Suppl.</TableHead>
+                <TableHead className="text-xs text-right">SS</TableHead>
+                <TableHead className="text-xs text-right">TSP Draw</TableHead>
+                <TableHead className="text-xs text-right">Income</TableHead>
+                <TableHead className="text-xs text-right">Expenses</TableHead>
+                <TableHead className="text-xs text-right">Surplus</TableHead>
+                <TableHead className="text-xs text-right">TSP Bal.</TableHead>
+                <TableHead className="text-xs text-right">Trad.</TableHead>
+                <TableHead className="text-xs text-right">Roth</TableHead>
+                <TableHead className="text-xs text-right">Hi-Risk</TableHead>
+                <TableHead className="text-xs text-right">Lo-Risk</TableHead>
+                <TableHead className="text-xs text-center">Phase</TableHead>
+                <TableHead className="text-xs text-right">RMD</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {result.years.map((yr) => {
                 const phase = yr.smileMultiplier >= 1.0
                   ? 'GoGo'
@@ -578,54 +773,54 @@ function SimulationResults({ result }: { result: FullSimulationResult | null }) 
                     ? 'GoSlow'
                     : 'NoGo';
                 const phaseColor = phase === 'GoGo'
-                  ? 'text-green-700 bg-green-50'
+                  ? 'text-green-700 dark:text-green-400'
                   : phase === 'GoSlow'
-                    ? 'text-amber-700 bg-amber-50'
-                    : 'text-gray-600 bg-gray-100';
+                    ? 'text-amber-700 dark:text-amber-400'
+                    : 'text-muted-foreground';
                 const depleted = yr.totalTSPBalance <= 0;
                 const rowBg = depleted
-                  ? 'bg-red-50'
+                  ? 'bg-destructive/10 hover:bg-destructive/20'
                   : yr.age === 85
-                    ? 'bg-blue-50'
+                    ? 'bg-primary/5 hover:bg-primary/10'
                     : '';
 
                 return (
-                  <tr key={yr.age} className={rowBg}>
-                    <td className="px-2 py-1 font-medium text-gray-900">{yr.age}</td>
-                    <td className="px-2 py-1 text-gray-500">{yr.year}</td>
-                    <td className="px-2 py-1 text-right">{fmtK(yr.annuity)}</td>
-                    <td className="px-2 py-1 text-right">{yr.fersSupplement > 0 ? fmtK(yr.fersSupplement) : '-'}</td>
-                    <td className="px-2 py-1 text-right">{yr.socialSecurity > 0 ? fmtK(yr.socialSecurity) : '-'}</td>
-                    <td className="px-2 py-1 text-right">{fmtK(yr.tspWithdrawal)}</td>
-                    <td className="px-2 py-1 text-right font-medium">{fmtK(yr.totalIncome)}</td>
-                    <td className="px-2 py-1 text-right">{fmtK(yr.totalExpenses)}</td>
-                    <td className={`px-2 py-1 text-right font-medium ${yr.surplus >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                  <TableRow key={yr.age} className={rowBg}>
+                    <TableCell className="text-xs font-medium">{yr.age}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{yr.year}</TableCell>
+                    <TableCell className="text-xs text-right">{fmtK(yr.annuity)}</TableCell>
+                    <TableCell className="text-xs text-right">{yr.fersSupplement > 0 ? fmtK(yr.fersSupplement) : '-'}</TableCell>
+                    <TableCell className="text-xs text-right">{yr.socialSecurity > 0 ? fmtK(yr.socialSecurity) : '-'}</TableCell>
+                    <TableCell className="text-xs text-right">{fmtK(yr.tspWithdrawal)}</TableCell>
+                    <TableCell className="text-xs text-right font-medium">{fmtK(yr.totalIncome)}</TableCell>
+                    <TableCell className="text-xs text-right">{fmtK(yr.totalExpenses)}</TableCell>
+                    <TableCell className={`text-xs text-right font-medium ${yr.surplus >= 0 ? 'text-green-700 dark:text-green-400' : 'text-destructive'}`}>
                       {fmtK(yr.surplus)}
-                    </td>
-                    <td className={`px-2 py-1 text-right font-medium ${depleted ? 'text-red-700' : ''}`}>
+                    </TableCell>
+                    <TableCell className={`text-xs text-right font-medium ${depleted ? 'text-destructive' : ''}`}>
                       {fmtK(yr.totalTSPBalance)}
-                    </td>
-                    <td className="px-2 py-1 text-right">{fmtK(yr.traditionalBalance)}</td>
-                    <td className="px-2 py-1 text-right">{fmtK(yr.rothBalance)}</td>
-                    <td className="px-2 py-1 text-right">{fmtK(yr.highRiskBalance)}</td>
-                    <td className="px-2 py-1 text-right">{fmtK(yr.lowRiskBalance)}</td>
-                    <td className="px-2 py-1 text-center">
-                      <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${phaseColor}`}>
+                    </TableCell>
+                    <TableCell className="text-xs text-right">{fmtK(yr.traditionalBalance)}</TableCell>
+                    <TableCell className="text-xs text-right">{fmtK(yr.rothBalance)}</TableCell>
+                    <TableCell className="text-xs text-right">{fmtK(yr.highRiskBalance)}</TableCell>
+                    <TableCell className="text-xs text-right">{fmtK(yr.lowRiskBalance)}</TableCell>
+                    <TableCell className="text-xs text-center">
+                      <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-medium ${phaseColor} bg-background border border-border`}>
                         {phase}
                       </span>
-                    </td>
-                    <td className="px-2 py-1 text-right">
+                    </TableCell>
+                    <TableCell className="text-xs text-right">
                       {yr.rmdRequired > 0 ? (
-                        <span className={yr.rmdSatisfied ? 'text-green-700' : 'text-red-700'}>
+                        <span className={yr.rmdSatisfied ? 'text-green-700 dark:text-green-400' : 'text-destructive'}>
                           {fmtK(yr.rmdRequired)}
                         </span>
                       ) : '-'}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
     </div>
@@ -634,10 +829,10 @@ function SimulationResults({ result }: { result: FullSimulationResult | null }) 
 
 function MetricBox({ label, value, good }: { label: string; value: string; good?: boolean }) {
   return (
-    <div>
-      <div className="text-xs text-gray-500 mb-1">{label}</div>
+    <div className="text-center">
+      <div className="text-xs text-muted-foreground mb-1">{label}</div>
       <div className={`text-sm font-semibold ${
-        good === true ? 'text-green-700' : good === false ? 'text-red-700' : 'text-gray-900'
+        good === true ? 'text-green-700 dark:text-green-400' : good === false ? 'text-destructive' : 'text-foreground'
       }`}>
         {value}
       </div>

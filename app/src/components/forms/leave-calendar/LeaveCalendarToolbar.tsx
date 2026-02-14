@@ -3,6 +3,10 @@
  * carry-over inputs, save/clear actions.
  */
 
+import { Button } from '@components/ui/button';
+import { Input } from '@components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@components/ui/select';
+import { ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import type { AccrualRate, LeaveCarryOver } from '@models/leave-calendar';
 
 interface LeaveCalendarToolbarProps {
@@ -36,64 +40,67 @@ export function LeaveCalendarToolbar({
       <div className="flex flex-wrap items-center gap-3">
         {/* Year picker */}
         <div className="flex items-center gap-1">
-          <button
-            type="button"
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => onYearChange(year - 1)}
-            className="px-2 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
             aria-label="Previous year"
           >
-            &larr;
-          </button>
-          <span className="text-sm font-semibold text-gray-800 w-12 text-center">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-semibold text-foreground w-12 text-center">
             {year}
           </span>
-          <button
-            type="button"
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => onYearChange(year + 1)}
-            className="px-2 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
             aria-label="Next year"
           >
-            &rarr;
-          </button>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
 
         {/* Accrual rate */}
         <div className="flex items-center gap-2">
-          <label className="text-xs text-gray-600">Accrual:</label>
-          <select
-            value={accrualRate}
-            onChange={(e) => onAccrualRateChange(Number(e.target.value) as AccrualRate)}
-            className="rounded-md border border-gray-300 px-2 py-1 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          >
-            {ACCRUAL_RATE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          <label className="text-xs text-muted-foreground">Accrual:</label>
+          <Select value={String(accrualRate)} onValueChange={(val) => onAccrualRateChange(Number(val) as AccrualRate)}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ACCRUAL_RATE_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={String(opt.value)}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Clear */}
-        <button
-          type="button"
+        <Button
+          variant="destructive"
+          size="sm"
           onClick={() => {
             if (window.confirm(`Clear all leave entries for ${year}?`)) {
               onClearYear();
             }
           }}
-          className="ml-auto text-xs text-gray-500 hover:text-red-600"
+          className="ml-auto"
         >
+          <Trash2 className="h-4 w-4 mr-2" />
           Clear Year
-        </button>
+        </Button>
       </div>
 
       {/* Row 2: Carry-over inputs */}
       <div className="flex flex-wrap gap-3">
         <div className="flex items-center gap-2">
-          <label className="text-xs text-gray-600 whitespace-nowrap">
+          <label className="text-xs text-muted-foreground whitespace-nowrap">
             Annual carry-over (hrs):
           </label>
-          <input
+          <Input
             type="number"
             min={0}
             max={240}
@@ -105,14 +112,14 @@ export function LeaveCalendarToolbar({
                 annualLeaveHours: Math.max(0, Number(e.target.value)),
               })
             }
-            className="w-20 rounded-md border border-gray-300 px-2 py-1 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="w-20 h-8 text-xs"
           />
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-xs text-gray-600 whitespace-nowrap">
+          <label className="text-xs text-muted-foreground whitespace-nowrap">
             Sick carry-over (hrs):
           </label>
-          <input
+          <Input
             type="number"
             min={0}
             step={1}
@@ -123,7 +130,7 @@ export function LeaveCalendarToolbar({
                 sickLeaveHours: Math.max(0, Number(e.target.value)),
               })
             }
-            className="w-20 rounded-md border border-gray-300 px-2 py-1 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="w-20 h-8 text-xs"
           />
         </div>
       </div>

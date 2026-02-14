@@ -6,6 +6,8 @@
  */
 
 import { useState, useCallback, useRef } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card';
+import { Badge } from '@components/ui/badge';
 import { useLeaveCalendar } from './leave-calendar/useLeaveCalendar';
 import { LeaveCalendarToolbar } from './leave-calendar/LeaveCalendarToolbar';
 import { LeaveBalanceSummaryPanel } from './leave-calendar/LeaveBalanceSummaryPanel';
@@ -125,15 +127,15 @@ export function LeaveBalanceForm() {
   ];
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
-      <div className="mb-4">
-        <h3 className="text-base font-medium text-gray-900">Leave Calendar</h3>
-        <p className="text-sm text-gray-600 mt-1">
+    <Card>
+      <CardHeader>
+        <CardTitle>Leave Calendar</CardTitle>
+        <CardDescription>
           Plan and track your leave day-by-day. Click a day to add leave; Shift+click to select a range.
-        </p>
-      </div>
+        </CardDescription>
+      </CardHeader>
 
-      <div className="space-y-4">
+      <CardContent className="space-y-4">
         {/* Toolbar */}
         <LeaveCalendarToolbar
           year={cal.data.activeYear}
@@ -149,12 +151,12 @@ export function LeaveBalanceForm() {
         <LeaveBalanceSummaryPanel summary={cal.summary} />
 
         {/* Legend */}
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2">
           {legendItems.map((item) => (
-            <div key={item.label} className="flex items-center gap-1">
-              <span className={`w-2.5 h-2.5 rounded-full ${item.color}`} />
-              <span className="text-[10px] text-gray-600">{item.label}</span>
-            </div>
+            <Badge key={item.label} variant="outline" className="flex items-center gap-1">
+              <span className={`w-2 h-2 rounded-full ${item.color}`} />
+              {item.label}
+            </Badge>
           ))}
         </div>
 
@@ -165,7 +167,7 @@ export function LeaveBalanceForm() {
           selectedDates={selectedDates}
           onDayClick={handleDayClick}
         />
-      </div>
+      </CardContent>
 
       {/* Modal */}
       {showModal && selectedArr.length > 0 && (
@@ -182,6 +184,6 @@ export function LeaveBalanceForm() {
           onClose={handleCloseModal}
         />
       )}
-    </div>
+    </Card>
   );
 }

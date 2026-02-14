@@ -22,6 +22,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@lib': resolve(__dirname, 'src/lib'),
       '@models': resolve(__dirname, 'src/models'),
       '@modules': resolve(__dirname, 'src/modules'),
       '@utils': resolve(__dirname, 'src/utils'),

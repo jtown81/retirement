@@ -1,4 +1,9 @@
-import type { ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@components/ui/card';
+import { Button } from '@components/ui/button';
+import { Badge } from '@components/ui/badge';
+import { Separator } from '@components/ui/separator';
+import { Check } from 'lucide-react';
 
 interface FormSectionProps {
   title: string;
@@ -10,40 +15,47 @@ interface FormSectionProps {
 }
 
 export function FormSection({ title, description, onSave, onClear, onLoadDefaults, children }: FormSectionProps) {
+  const [showSaved, setShowSaved] = useState(false);
+
+  const handleSave = () => {
+    onSave();
+    setShowSaved(true);
+    // Auto-hide after 2 seconds
+    setTimeout(() => setShowSaved(false), 2000);
+  };
+
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
-      <div className="mb-4">
-        <h3 className="text-base font-medium text-gray-900">{title}</h3>
-        {description && <p className="text-sm text-gray-600 mt-1">{description}</p>}
-      </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        {description && <CardDescription>{description}</CardDescription>}
+      </CardHeader>
 
-      <div className="space-y-4">{children}</div>
+      <CardContent>
+        <div className="space-y-4">{children}</div>
+      </CardContent>
 
-      <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200">
-        <button
-          type="button"
-          onClick={onSave}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
-        >
-          Save Section
-        </button>
-        <button
-          type="button"
-          onClick={onClear}
-          className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50"
-        >
-          Clear Section
-        </button>
-        {onLoadDefaults && (
-          <button
-            type="button"
-            onClick={onLoadDefaults}
-            className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50"
-          >
-            Load Defaults
-          </button>
+      <Separator />
+
+      <CardFooter className="flex items-center justify-between gap-3 mt-0">
+        <div className="flex gap-3">
+          <Button onClick={handleSave}>Save Section</Button>
+          <Button variant="outline" onClick={onClear}>
+            Clear Section
+          </Button>
+          {onLoadDefaults && (
+            <Button variant="outline" onClick={onLoadDefaults}>
+              Load Defaults
+            </Button>
+          )}
+        </div>
+        {showSaved && (
+          <Badge className="animate-in fade-in-0 slide-in-from-right-2 duration-200">
+            <Check className="w-3 h-3 mr-1" />
+            Saved
+          </Badge>
         )}
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }

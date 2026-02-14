@@ -7,6 +7,7 @@
 
 import { DayCell } from './DayCell';
 import { formatDate } from '@modules/leave/calendar-utils';
+import { Card } from '@components/ui/card';
 import type { CalendarLeaveEntry } from '@models/leave-calendar';
 
 const DAY_HEADERS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -64,19 +65,19 @@ export function MonthCalendar({
   const monthHours = monthEntries.reduce((sum, e) => sum + e.hours, 0);
 
   return (
-    <div className="border border-gray-200 rounded-lg p-3">
+    <Card className="p-3">
       <div className="flex justify-between items-center mb-2">
-        <h4 className="text-sm font-medium text-gray-800">
+        <h4 className="text-sm font-medium text-foreground">
           {MONTH_NAMES[month]}
         </h4>
         {monthHours > 0 && (
-          <span className="text-xs text-gray-500">{monthHours}h used</span>
+          <span className="text-xs text-muted-foreground">{monthHours}h used</span>
         )}
       </div>
 
       <div className="grid grid-cols-7 gap-px">
         {DAY_HEADERS.map((d) => (
-          <div key={d} className="text-center text-[10px] font-medium text-gray-500 pb-1">
+          <div key={d} className="text-center text-[10px] font-medium text-muted-foreground pb-1">
             {d}
           </div>
         ))}
@@ -98,6 +99,6 @@ export function MonthCalendar({
           );
         })}
       </div>
-    </div>
+    </Card>
   );
 }

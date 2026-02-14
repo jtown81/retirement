@@ -6,6 +6,18 @@
  */
 
 import { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@components/ui/dialog';
+import { Button } from '@components/ui/button';
+import { Input } from '@components/ui/input';
+import { Label } from '@components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@components/ui/select';
 import type { CalendarLeaveType, SickLeaveCode, CalendarLeaveEntry } from '@models/leave-calendar';
 
 interface LeaveEntryModalProps {
@@ -57,119 +69,109 @@ export function LeaveEntryModal({
       : `${selectedDates.length} days selected`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-sm mx-4 p-5">
-        <h3 className="text-sm font-semibold text-gray-900 mb-1">
-          {existingEntry ? 'Edit Leave Entry' : 'Add Leave'}
-        </h3>
-        <p className="text-xs text-gray-500 mb-4">{dateLabel}</p>
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>{existingEntry ? 'Edit Leave Entry' : 'Add Leave'}</DialogTitle>
+          <DialogDescription>{dateLabel}</DialogDescription>
+        </DialogHeader>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           {/* Leave Type */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Leave Type
-            </label>
-            <select
-              value={leaveType}
-              onChange={(e) => setLeaveType(e.target.value as CalendarLeaveType)}
-              className="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            >
-              {LEAVE_TYPE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+          <div className="space-y-2">
+            <Label htmlFor="leave-type">Leave Type</Label>
+            <Select value={leaveType} onValueChange={(val) => setLeaveType(val as CalendarLeaveType)}>
+              <SelectTrigger id="leave-type">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LEAVE_TYPE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Hours */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Hours
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="hours">Hours</Label>
+            <Input
+              id="hours"
               type="number"
               min={0.25}
               max={8}
               step={0.25}
               value={hours}
               onChange={(e) => setHours(Number(e.target.value))}
-              className="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
           {/* Sick Code (conditional) */}
           {isSick && (
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Sick Leave Code
-              </label>
-              <select
-                value={sickCode ?? ''}
-                onChange={(e) =>
-                  setSickCode(e.target.value ? (e.target.value as SickLeaveCode) : undefined)
-                }
-                className="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="">— optional —</option>
-                {SICK_CODE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+            <div className="space-y-2">
+              <Label htmlFor="sick-code">Sick Leave Code</Label>
+              <Select value={sickCode ?? ''} onValueChange={(val) => setSickCode(val ? (val as SickLeaveCode) : undefined)}>
+                <SelectTrigger id="sick-code">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">— optional —</SelectItem>
+                  {SICK_CODE_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
 
           {/* Notes */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Notes
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes</Label>
+            <Input
+              id="notes"
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Optional"
-              className="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex justify-between mt-5 pt-3 border-t border-gray-200">
+        <DialogFooter className="flex justify-between">
           <div>
             {onDelete && (
-              <button
+              <Button
                 type="button"
+                variant="destructive"
                 onClick={onDelete}
-                className="text-sm text-red-600 hover:text-red-700 font-medium"
               >
                 Delete
-              </button>
+              </Button>
             )}
           </div>
           <div className="flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={onClose}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={() =>
                 onSave(leaveType, hours, isSick ? sickCode : undefined, notes || undefined)
               }
-              className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
             >
               Save
-            </button>
+            </Button>
           </div>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
