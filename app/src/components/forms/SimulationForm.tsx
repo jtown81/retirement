@@ -6,6 +6,7 @@ import {
   FERSEstimateSchema,
   ExpenseProfileSchema,
   PersonalInfoSchema,
+  RetirementAssumptionsFullSchema,
 } from '@storage/index';
 import { projectRetirementSimulation } from '@modules/simulation/retirement-simulation';
 import type { SimulationConfig, FullSimulationResult } from '@models/simulation';
@@ -270,6 +271,7 @@ export function SimulationForm() {
     STORAGE_KEYS.SIMULATION_CONFIG,
     SimulationConfigSchema,
   );
+  const [, saveAssumptions] = useLocalStorage(STORAGE_KEYS.ASSUMPTIONS, RetirementAssumptionsFullSchema);
   const [storedPersonal] = useLocalStorage(STORAGE_KEYS.PERSONAL_INFO, PersonalInfoSchema);
   const [storedFERS] = useLocalStorage(STORAGE_KEYS.FERS_ESTIMATE, FERSEstimateSchema);
   const [storedExpenses] = useLocalStorage(STORAGE_KEYS.EXPENSE_PROFILE, ExpenseProfileSchema);
@@ -339,6 +341,18 @@ export function SimulationForm() {
     }
     setErrors({});
     saveConfig(result.data);
+
+    if (storedFERS) {
+      saveAssumptions({
+        proposedRetirementDate: storedFERS.retirementDate,
+        tspGrowthRate: storedFERS.tspGrowthRate,
+        colaRate: Number(form.colaRate) / 100,
+        retirementHorizonYears: Number(form.endAge) - Number(form.retirementAge),
+        ...(storedFERS.withdrawalRate != null ? { tspWithdrawalRate: storedFERS.withdrawalRate } : {}),
+        ...(storedFERS.ssaBenefitAt62 != null ? { estimatedSSMonthlyAt62: storedFERS.ssaBenefitAt62 } : {}),
+      });
+    }
+
     removeDraft();
   };
 

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useLocalStorage } from '@hooks/useLocalStorage';
-import { STORAGE_KEYS, PersonalInfoSchema, FERSEstimateSchema } from '@storage/index';
+import { STORAGE_KEYS, PersonalInfoSchema, FERSEstimateSchema, TSPBalancesSchema } from '@storage/index';
 import { getAvailableLocalityCodes } from '@data/locality-rates';
 import { getMRA } from '@modules/simulation/eligibility';
 import { FieldGroup } from './FieldGroup';
@@ -195,6 +195,7 @@ function toEstimateInput(form: FormState): FERSEstimateInput {
 export function FERSEstimateForm() {
   const [storedPersonal, savePersonal, removePersonal] = useLocalStorage(STORAGE_KEYS.PERSONAL_INFO, PersonalInfoSchema);
   const [storedFERS, saveFERS, removeFERS] = useLocalStorage(STORAGE_KEYS.FERS_ESTIMATE, FERSEstimateSchema);
+  const [, saveTSP] = useLocalStorage(STORAGE_KEYS.TSP_BALANCES, TSPBalancesSchema);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     personal: true,
     salary: true,
@@ -320,6 +321,15 @@ export function FERSEstimateForm() {
     setErrors({});
     savePersonal(pResult.data!);
     saveFERS(fResult.data!);
+
+    const traditionalBal =
+      fResult.data!.traditionalTspBalance ??
+      Math.max(0, fResult.data!.currentTspBalance - (fResult.data!.rothTspBalance ?? 0));
+    saveTSP({
+      asOf: new Date().toISOString().slice(0, 10),
+      traditionalBalance: traditionalBal,
+      rothBalance: fResult.data!.rothTspBalance ?? 0,
+    });
   };
 
   const handleClear = () => {
