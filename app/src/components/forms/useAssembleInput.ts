@@ -10,10 +10,13 @@ import {
   ExpenseProfileSchema,
   RetirementAssumptionsFullSchema,
   MilitaryServiceSchema,
+  FERSEstimateSchema,
+  SimulationConfigSchema,
 } from '@storage/index';
 import { z } from 'zod';
-import type { SimulationInput } from '@models/simulation';
+import type { SimulationInput, SimulationConfig } from '@models/simulation';
 import type { CareerProfile } from '@models/career';
+import type { GSGrade, GSStep } from '@models/common';
 
 const TSPContributionListSchema = z.array(TSPContributionEventSchema);
 const MilitaryServiceListSchema = z.array(MilitaryServiceSchema);
@@ -31,27 +34,60 @@ export function useAssembleInput(): SimulationInput | null {
   const [expenses] = useLocalStorage(STORAGE_KEYS.EXPENSE_PROFILE, ExpenseProfileSchema);
   const [assumptions] = useLocalStorage(STORAGE_KEYS.ASSUMPTIONS, RetirementAssumptionsFullSchema);
   const [military] = useLocalStorage(STORAGE_KEYS.MILITARY_SERVICE, MilitaryServiceListSchema);
+  const [fersEstimate] = useLocalStorage(STORAGE_KEYS.FERS_ESTIMATE, FERSEstimateSchema);
+  const [simConfig] = useLocalStorage(STORAGE_KEYS.SIMULATION_CONFIG, SimulationConfigSchema);
 
   return useMemo(() => {
-    // All required sections must be present
-    if (!personal || !career || !leave || !tspBalances || !expenses || !assumptions) {
+    // personal, tspBalances, expenses, assumptions are always required
+    if (!personal || !tspBalances || !expenses || !assumptions) {
       return null;
     }
 
-    // Merge personal info fields into the career profile
-    // Cast needed: Zod infers grade/step as `number` but model uses GSGrade/GSStep literal unions
-    const mergedCareer: CareerProfile = {
-      ...(career as CareerProfile),
-      scdLeave: personal.scdLeave,
-      scdRetirement: personal.scdRetirement,
-      paySystem: personal.paySystem,
+    const effectiveLeave = leave ?? {
+      asOf: new Date().toISOString().slice(0, 10),
+      annualLeaveHours: 0,
+      sickLeaveHours: 0,
+      familyCareUsedCurrentYear: 0,
     };
+
+    // Build career profile: use saved career if available, otherwise
+    // synthesize a minimal one from personal info + FERS estimate
+    let mergedCareer: CareerProfile;
+    if (career) {
+      mergedCareer = {
+        ...(career as CareerProfile),
+        scdLeave: personal.scdLeave,
+        scdRetirement: personal.scdRetirement,
+        paySystem: personal.paySystem,
+      };
+    } else {
+      // No career events saved — build a single-event career from FERS data
+      const grade = (fersEstimate?.gsGrade ?? 12) as GSGrade;
+      const step = (fersEstimate?.gsStep ?? 5) as GSStep;
+      const localityCode = fersEstimate?.localityCode ?? 'RUS';
+      mergedCareer = {
+        id: 'auto',
+        scdLeave: personal.scdLeave,
+        scdRetirement: personal.scdRetirement,
+        paySystem: personal.paySystem,
+        events: [{
+          id: 'auto-hire',
+          type: 'hire',
+          effectiveDate: personal.scdRetirement,
+          grade,
+          step,
+          localityCode,
+          paySystem: personal.paySystem,
+          annualSalary: 0, // will be computed by salary engine
+        }],
+      };
+    }
 
     const input: SimulationInput = {
       profile: {
         birthDate: personal.birthDate,
         career: mergedCareer,
-        leaveBalance: leave,
+        leaveBalance: effectiveLeave,
         tspBalances,
         tspContributions: tspContributions ?? [],
         expenses,
@@ -68,5 +104,15 @@ export function useAssembleInput(): SimulationInput | null {
     };
 
     return input;
-  }, [personal, career, leave, tspBalances, tspContributions, expenses, assumptions, military]);
+  }, [personal, career, leave, tspBalances, tspContributions, expenses, assumptions, military, fersEstimate]);
+}
+
+/**
+ * Returns the SimulationConfig if available from localStorage.
+ * This is used by the full retirement simulation path (projectRetirementSimulation).
+ * Returns null if the user hasn't completed the Simulation form tab.
+ */
+export function useSimulationConfig(): SimulationConfig | null {
+  const [simConfig] = useLocalStorage(STORAGE_KEYS.SIMULATION_CONFIG, SimulationConfigSchema);
+  return useMemo(() => simConfig ?? null, [simConfig]);
 }

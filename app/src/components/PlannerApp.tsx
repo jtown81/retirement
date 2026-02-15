@@ -2,8 +2,8 @@ import { useState, Component, type ReactNode, type ErrorInfo } from 'react';
 import { AppShell, type View } from './layout/AppShell';
 import { Dashboard } from './Dashboard';
 import { FormShell, type TabDef } from './forms/FormShell';
-import { useFormSections, useLeaveComplete } from './forms/useFormSections';
-import { useAssembleInput } from './forms/useAssembleInput';
+import { useFormSections } from './forms/useFormSections';
+import { useAssembleInput, useSimulationConfig } from './forms/useAssembleInput';
 import { useSimulation, type SimulationData } from '@hooks/useSimulation';
 import { useTheme } from '@hooks/useTheme';
 import { FERSEstimateForm } from './forms/FERSEstimateForm';
@@ -58,6 +58,7 @@ const DEMO_DATA: SimulationData = {
   leaveBalances: DEMO_LEAVE_BALANCES,
   tspBalances: DEMO_TSP_BALANCES,
   smileCurve: DEMO_SMILE_CURVE,
+  fullSimulation: null,
 };
 
 function FormContent({ activeTabId }: { activeTabId: string }) {
@@ -74,14 +75,14 @@ export function PlannerApp() {
   const [view, setView] = useState<View>('input');
   const { theme, setTheme } = useTheme();
   const sections = useFormSections();
-  const leaveComplete = useLeaveComplete();
   const assembledInput = useAssembleInput();
-  const userData = useSimulation(assembledInput);
+  const simConfig = useSimulationConfig();
+  const userData = useSimulation(assembledInput, simConfig);
 
   const mode = userData ? 'user' : 'demo';
   const data = userData ?? DEMO_DATA;
 
-  const requiredComplete = sections.filter((s) => s.required).every((s) => s.complete) && leaveComplete;
+  const requiredComplete = sections.filter((s) => s.required).every((s) => s.complete);
 
   const tabs: TabDef[] = sections.map((s) => ({
     id: s.id,

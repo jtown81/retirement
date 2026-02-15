@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeRMD, isRMDRequired, getDistributionPeriod } from '../../../src/modules/tsp/rmd';
+import { computeRMD, isRMDRequired, getDistributionPeriod, getRMDStartAge } from '../../../src/modules/tsp/rmd';
 
 describe('isRMDRequired', () => {
   it('returns false below age 73', () => {
@@ -81,5 +81,51 @@ describe('computeRMD', () => {
     // Percentage should increase with age (shorter distribution period)
     expect(rmd73 / balance).toBeLessThan(rmd80 / balance);
     expect(rmd80 / balance).toBeLessThan(rmd90 / balance);
+  });
+
+  describe('Phase D: Birth Year-based RMD Age (SECURE 2.0)', () => {
+    it('getRMDStartAge returns 73 for those born before 1960', () => {
+      expect(getRMDStartAge(1959)).toBe(73);
+      expect(getRMDStartAge(1945)).toBe(73);
+      expect(getRMDStartAge(1920)).toBe(73);
+    });
+
+    it('getRMDStartAge returns 75 for those born 1960 and later', () => {
+      expect(getRMDStartAge(1960)).toBe(75);
+      expect(getRMDStartAge(1965)).toBe(75);
+      expect(getRMDStartAge(2000)).toBe(75);
+    });
+
+    it('isRMDRequired respects birth year for age 73-74', () => {
+      // Born 1950 (before 1960) → RMD at 73
+      expect(isRMDRequired(72, 1950)).toBe(false);
+      expect(isRMDRequired(73, 1950)).toBe(true);
+
+      // Born 1960+ → RMD at 75
+      expect(isRMDRequired(73, 1960)).toBe(false);
+      expect(isRMDRequired(74, 1960)).toBe(false);
+      expect(isRMDRequired(75, 1960)).toBe(true);
+    });
+
+    it('computeRMD respects birth year threshold', () => {
+      // Age 73, born 1950 → RMD applies
+      expect(computeRMD(500_000, 73, 1950)).toBeGreaterThan(0);
+
+      // Age 73, born 1960 → no RMD
+      expect(computeRMD(500_000, 73, 1960)).toBe(0);
+
+      // Age 75, born 1960 → RMD applies
+      expect(computeRMD(500_000, 75, 1960)).toBeGreaterThan(0);
+    });
+
+    it('backward compatibility: isRMDRequired without birth year defaults to 73', () => {
+      expect(isRMDRequired(72)).toBe(false);
+      expect(isRMDRequired(73)).toBe(true);
+    });
+
+    it('backward compatibility: computeRMD without birth year defaults to 73', () => {
+      expect(computeRMD(500_000, 72)).toBe(0);
+      expect(computeRMD(500_000, 73)).toBeGreaterThan(0);
+    });
   });
 });

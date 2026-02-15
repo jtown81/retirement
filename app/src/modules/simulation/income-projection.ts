@@ -165,11 +165,10 @@ export function projectRetirementIncome(input: SimulationInput): SimulationResul
         ? supplementResult.annualAmount * Math.pow(1 + colaRate, yr)
         : 0;
 
-    // TSP: balance grows at growth rate, then we withdraw
-    // Grow balance from start of year, then take withdrawal
-    currentTSPBalance = currentTSPBalance * (1 + tspGrowthRate);
+    // TSP: withdraw first, then grow remaining balance (standard drawdown convention)
     const tspWithdrawal = initialTSPWithdrawal * Math.pow(1 + colaRate, yr);
     currentTSPBalance = Math.max(0, currentTSPBalance - tspWithdrawal);
+    currentTSPBalance = currentTSPBalance * (1 + tspGrowthRate);
 
     const totalIncome = annuity + fersSupplementAmount + tspWithdrawal;
 

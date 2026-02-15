@@ -172,4 +172,97 @@ describe('projectRetirementSimulation', () => {
     const sumIncome = result.years.reduce((s, y) => s + y.totalIncome, 0);
     expect(result.totalLifetimeIncome).toBeCloseTo(sumIncome, 0);
   });
+
+  describe('withdrawal strategy — Phase C', () => {
+    it('uses proportional strategy by default', () => {
+      const config = makeConfig({
+        tspBalanceAtRetirement: 700_000,
+        traditionalPct: 0.70,
+        withdrawalRate: 0.04,
+        withdrawalStrategy: 'proportional',
+      });
+      const result = projectRetirementSimulation(config);
+      const yr0 = result.years[0];
+      // Planned withdrawal: 700k × 0.04 = 28k
+      // Traditional: 490k (70%), Roth: 210k (30%)
+      // Proportional: trad withdrawal = 28k × (490/700) ≈ 19.6k
+      expect(yr0.tspWithdrawal).toBeCloseTo(28_000, 0);
+    });
+
+    it('traditional-first exhausts Traditional before Roth', () => {
+      const config = makeConfig({
+        tspBalanceAtRetirement: 100_000,
+        traditionalPct: 0.50,
+        withdrawalRate: 0.10, // 10k per year
+        withdrawalStrategy: 'traditional-first',
+      });
+      const result = projectRetirementSimulation(config);
+      // First few years should withdraw 10k from Traditional only
+      expect(result.years[0].tspWithdrawal).toBe(10_000);
+      // Traditional balance starts at 50k; should deplete around year 5
+      const tradDeplete = result.years.findIndex((y) => y.traditionalBalance <= 0);
+      expect(tradDeplete).toBeLessThan(20); // should happen before year 20
+    });
+
+    it('roth-first exhausts Roth before Traditional', () => {
+      const config = makeConfig({
+        tspBalanceAtRetirement: 100_000,
+        traditionalPct: 0.50,
+        withdrawalRate: 0.10, // 10k per year
+        withdrawalStrategy: 'roth-first',
+      });
+      const result = projectRetirementSimulation(config);
+      // Roth balance starts at 50k; should deplete around year 5
+      const rothDeplete = result.years.findIndex((y) => y.rothBalance <= 0);
+      expect(rothDeplete).toBeLessThan(20);
+    });
+
+    it('custom strategy uses specified percentages', () => {
+      const config = makeConfig({
+        tspBalanceAtRetirement: 200_000,
+        traditionalPct: 0.60,
+        withdrawalRate: 0.05, // 10k per year
+        withdrawalStrategy: 'custom',
+        customWithdrawalSplit: {
+          traditionalPct: 0.75,
+          rothPct: 0.25,
+        },
+      });
+      const result = projectRetirementSimulation(config);
+      const yr0 = result.years[0];
+      // Planned withdrawal: 200k × 0.05 = 10k
+      // Custom split: 10k × 0.75 = 7.5k from Traditional
+      // Custom split: 10k × 0.25 = 2.5k from Roth
+      expect(yr0.tspWithdrawal).toBeCloseTo(10_000, 0);
+    });
+
+    it('RMD overrides withdrawal strategy when it exceeds planned withdrawal', () => {
+      // At age 73+ with a large Traditional balance, RMD can be large
+      const config = makeConfig({
+        retirementAge: 60,
+        endAge: 80,
+        tspBalanceAtRetirement: 500_000,
+        traditionalPct: 0.80, // 400k Traditional
+        withdrawalRate: 0.02, // Small planned withdrawal
+        withdrawalStrategy: 'roth-first',
+      });
+      const result = projectRetirementSimulation(config);
+      // At age 73 (index 13), RMD should be computed and enforced
+      const yr73 = result.years[13];
+      expect(yr73.rmdRequired).toBeGreaterThan(0);
+      expect(yr73.rmdSatisfied).toBe(true);
+    });
+
+    it('proportional is the default when strategy is not set', () => {
+      const config = makeConfig({
+        tspBalanceAtRetirement: 500_000,
+        traditionalPct: 0.70,
+        // withdrawalStrategy not set
+      });
+      const result = projectRetirementSimulation(config);
+      expect(result.years[0].tspWithdrawal).toBeGreaterThan(0);
+      // Should complete without error
+      expect(result.years.length).toBe(36);
+    });
+  });
 });

@@ -25,3 +25,10 @@ export { projectRetirementIncome } from './income-projection';
 export { projectRetirementSimulation } from './retirement-simulation';
 export type { SimulationConfig, SimulationYearResult, FullSimulationResult } from '../../models/simulation';
 export { runScenario, compareScenarios } from './scenario';
+export type { ScenarioMetrics, PresentValueMetrics, ScenarioComparison } from './scenario-comparison';
+export {
+  extractScenarioMetrics,
+  computePresentValue,
+  computePresentValueMetrics,
+  compareScenarios as compareScenariosPV,
+} from './scenario-comparison';

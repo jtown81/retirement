@@ -264,13 +264,29 @@ export const FERSEstimateSchema = z.object({
 
 export const TimeStepYearsSchema = z.union([z.literal(1), z.literal(2), z.literal(3)]);
 
+export const WithdrawalStrategySchema = z.enum([
+  'proportional',
+  'traditional-first',
+  'roth-first',
+  'custom',
+]);
+
+export const CustomWithdrawalSplitSchema = z.object({
+  traditionalPct: RateSchema.min(0).max(1),
+  rothPct: RateSchema.min(0).max(1),
+});
+
+export const SSClaimingAgeSchema = z.union([z.literal(62), z.literal(67), z.literal(70)]);
+
 export const SimulationConfigSchema = z.object({
   // Core
   retirementAge: z.number().int().min(50).max(90),
   endAge: z.number().int().min(70).max(104),
+  birthYear: z.number().int().min(1900).max(2010).optional(),
   fersAnnuity: USDSchema,
   fersSupplement: USDSchema,
   ssMonthlyAt62: USDSchema,
+  ssClaimingAge: SSClaimingAgeSchema.optional(),
   // TSP
   tspBalanceAtRetirement: USDSchema,
   traditionalPct: RateSchema.min(0).max(1),
@@ -279,6 +295,9 @@ export const SimulationConfigSchema = z.object({
   lowRiskROI: RateSchema.min(-0.5).max(0.5),
   withdrawalRate: RateSchema.min(0).max(1),
   timeStepYears: TimeStepYearsSchema,
+  // Withdrawal Strategy (Phase C)
+  withdrawalStrategy: WithdrawalStrategySchema.optional().default('proportional'),
+  customWithdrawalSplit: CustomWithdrawalSplitSchema.optional(),
   // Expenses
   baseAnnualExpenses: USDSchema,
   goGoEndAge: z.number().int().min(50).max(104),

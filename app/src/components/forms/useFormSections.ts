@@ -6,6 +6,7 @@ import {
   LeaveBalanceSchema,
   ExpenseProfileSchema,
   SimulationConfigSchema,
+  RetirementAssumptionsFullSchema,
 } from '@storage/index';
 
 export interface SectionStatus {
@@ -20,12 +21,13 @@ export function useFormSections(): SectionStatus[] {
   const [career] = useLocalStorage(STORAGE_KEYS.CAREER_PROFILE, CareerProfileSchema);
   const [expenses] = useLocalStorage(STORAGE_KEYS.EXPENSE_PROFILE, ExpenseProfileSchema);
   const [simConfig] = useLocalStorage(STORAGE_KEYS.SIMULATION_CONFIG, SimulationConfigSchema);
+  const [assumptions] = useLocalStorage(STORAGE_KEYS.ASSUMPTIONS, RetirementAssumptionsFullSchema);
 
   return [
     { id: 'personal', label: 'FERS Estimate', complete: personal !== null, required: true },
-    { id: 'career', label: 'Career', complete: career !== null, required: true },
+    { id: 'career', label: 'Career', complete: career !== null, required: false },
     { id: 'expenses', label: 'Expenses', complete: expenses !== null, required: true },
-    { id: 'simulation', label: 'Simulation', complete: simConfig !== null, required: true },
+    { id: 'simulation', label: 'Simulation', complete: simConfig !== null && assumptions !== null, required: true },
   ];
 }
 

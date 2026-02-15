@@ -23,6 +23,27 @@ import { computeRMD, isRMDRequired } from '../tsp/rmd';
 
 /**
  * Computes the expense smile curve multiplier for GoGo/GoSlow/NoGo phases.
+ *
+ * NOTE: Two expense smile curve models exist in this codebase and serve different purposes:
+ *
+ * 1. **Blanchett linear interpolation** (modules/expenses/smile-curve.ts):
+ *    - Smooth piecewise-linear curve through 3 anchor points (year 0 → midDip → 2×midDip)
+ *    - Year-based progression through retirement
+ *    - Used by income-projection.ts (simple retirement income path)
+ *    - Research-based (Blanchett 2014)
+ *
+ * 2. **GoGo/GoSlow/NoGo step function** (this file):
+ *    - Three age-based spending phases with discrete multipliers
+ *    - Age-based transitions (defined by goGoEndAge, goSlowEndAge)
+ *    - Used by retirement-simulation.ts (full dual-pot TSP simulation)
+ *    - Simpler, more intuitive for user input (common in retirement planning)
+ *
+ * Both models are valid representations of retirement spending patterns. The choice of which
+ * to use is intentional per calculation path:
+ * - Simple path uses the academic Blanchett model (smooth, empirically grounded)
+ * - Full simulation uses the practitioner GoGo/GoSlow/NoGo model (simple, user-configurable by age)
+ *
+ * Future enhancement: Allow user to choose between models, or unify if spreadsheet specifies one.
  */
 function smileMultiplier(age: number, config: SimulationConfig): number {
   if (age < config.goGoEndAge) return config.goGoRate;
@@ -79,8 +100,11 @@ export function projectRetirementSimulation(
     const fersSupplement = age < 62
       ? config.fersSupplement * Math.pow(1 + config.colaRate, yr)
       : 0;
-    const socialSecurity = age >= 62
-      ? config.ssMonthlyAt62 * 12 * Math.pow(1 + config.colaRate, Math.max(0, yr - (62 - config.retirementAge)))
+
+    // Social Security: claiming age from config (default 62, Phase D: 67 or 70)
+    const ssClaimingAge = config.ssClaimingAge ?? 62;
+    const socialSecurity = age >= ssClaimingAge
+      ? config.ssMonthlyAt62 * 12 * Math.pow(1 + config.colaRate, Math.max(0, yr - (ssClaimingAge - config.retirementAge)))
       : 0;
 
     const otherIncome = annuity + fersSupplement + socialSecurity;
@@ -103,15 +127,38 @@ export function projectRetirementSimulation(
     const totalBalance = traditionalBalance + rothBalance;
 
     // ── 4. RMD enforcement ───────────────────────────────────────────
-    const rmdRequired = computeRMD(traditionalBalance, age);
-    // Actual Traditional withdrawal must be at least the RMD
-    const tradWithdrawalNeeded = Math.max(
-      // Proportional share of planned withdrawal from Traditional
-      totalBalance > 0 ? plannedWithdrawal * (traditionalBalance / totalBalance) : 0,
-      rmdRequired,
-    );
-    // Remaining from Roth
-    const rothWithdrawalNeeded = Math.max(0, plannedWithdrawal - tradWithdrawalNeeded);
+    const rmdRequired = computeRMD(traditionalBalance, age, config.birthYear);
+
+    // Determine Traditional/Roth withdrawal split based on strategy
+    let tradWithdrawalNeeded: number;
+    let rothWithdrawalNeeded: number;
+
+    const strategy = config.withdrawalStrategy ?? 'proportional';
+
+    if (strategy === 'traditional-first') {
+      // Traditional first, then Roth
+      tradWithdrawalNeeded = Math.min(plannedWithdrawal, traditionalBalance);
+      rothWithdrawalNeeded = Math.max(0, plannedWithdrawal - tradWithdrawalNeeded);
+    } else if (strategy === 'roth-first') {
+      // Roth first, then Traditional
+      rothWithdrawalNeeded = Math.min(plannedWithdrawal, rothBalance);
+      tradWithdrawalNeeded = Math.max(0, plannedWithdrawal - rothWithdrawalNeeded);
+    } else if (strategy === 'custom' && config.customWithdrawalSplit) {
+      // Custom split percentage
+      tradWithdrawalNeeded = plannedWithdrawal * config.customWithdrawalSplit.traditionalPct;
+      rothWithdrawalNeeded = plannedWithdrawal * config.customWithdrawalSplit.rothPct;
+    } else {
+      // Default: proportional to balance ratio
+      tradWithdrawalNeeded = totalBalance > 0 ? plannedWithdrawal * (traditionalBalance / totalBalance) : 0;
+      rothWithdrawalNeeded = Math.max(0, plannedWithdrawal - tradWithdrawalNeeded);
+    }
+
+    // RMD enforcement: Traditional withdrawal must satisfy RMD requirement
+    tradWithdrawalNeeded = Math.max(tradWithdrawalNeeded, rmdRequired);
+    // If RMD forces a larger Traditional withdrawal, reduce Roth to maintain total
+    if (tradWithdrawalNeeded > plannedWithdrawal) {
+      rothWithdrawalNeeded = 0;
+    }
 
     // Actual withdrawals capped to available balance
     const tradWithdrawal = Math.min(tradWithdrawalNeeded, traditionalBalance);
@@ -201,7 +248,7 @@ export function projectRetirementSimulation(
       rothBalance,
       totalTSPBalance: endTotal,
       rmdRequired,
-      rmdSatisfied: isRMDRequired(age) ? tradWithdrawal >= rmdRequired : true,
+      rmdSatisfied: isRMDRequired(age, config.birthYear) ? tradWithdrawal >= rmdRequired : true,
       surplus: totalIncome - totalExpenses,
     });
   }

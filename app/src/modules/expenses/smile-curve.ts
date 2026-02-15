@@ -60,6 +60,11 @@ export function validateSmileCurveParams(params: SmileCurveParams): void {
  *
  * Formula ID: expenses/smile-curve (multiplier only)
  *
+ * NOTE: This is the Blanchett (2014) linear interpolation model, used by income-projection.ts
+ * (simple retirement income path). A separate GoGo/GoSlow/NoGo step-function model exists in
+ * modules/simulation/retirement-simulation.ts for the full dual-pot TSP simulation.
+ * See retirement-simulation.ts smileMultiplier() for design notes.
+ *
  * @param yearsIntoRetirement - Years elapsed since retirement date (0 = retirement year)
  * @param params - Curve parameters (defaults to Blanchett model)
  * @returns Multiplier to apply to base expenses

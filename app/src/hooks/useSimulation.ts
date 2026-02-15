@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { SimulationInput, SimulationResult } from '@models/simulation';
+import type { SimulationInput, SimulationResult, SimulationConfig } from '@models/simulation';
 import type {
   PayGrowthDataPoint,
   LeaveBalanceDataPoint,
@@ -14,7 +14,7 @@ import {
   applySmileCurve,
   defaultSmileCurveParams,
 } from '@modules/expenses';
-import { projectRetirementIncome } from '@modules/simulation';
+import { projectRetirementIncome, projectRetirementSimulation } from '@modules/simulation';
 
 export interface SimulationData {
   result: SimulationResult;
@@ -22,17 +22,31 @@ export interface SimulationData {
   leaveBalances: LeaveBalanceDataPoint[];
   tspBalances: TSPBalanceDataPoint[];
   smileCurve: SmileCurveDataPoint[];
+  /** Full simulation result if SimulationConfig was available (null otherwise) */
+  fullSimulation?: ReturnType<typeof projectRetirementSimulation> | null;
 }
 
 /**
  * Runs the full simulation and produces all chart datasets.
  * Returns null if input is null.
+ *
+ * Flow:
+ * 1. If simConfig is provided: runs projectRetirementSimulation() for full dual-pot TSP + RMD simulation
+ * 2. Always runs simple path: projectRetirementIncome() for basic income vs expense projection
+ * 3. Produces chart datasets from both paths where applicable
  */
-export function useSimulation(input: SimulationInput | null): SimulationData | null {
+export function useSimulation(
+  input: SimulationInput | null,
+  simConfig: SimulationConfig | null = null,
+): SimulationData | null {
   return useMemo(() => {
     if (!input) return null;
 
+    // Run the simple path (always)
     const result = projectRetirementIncome(input);
+
+    // Run the full simulation if config is available
+    const fullSimulation = simConfig ? projectRetirementSimulation(simConfig) : null;
 
     const retireYear = new Date(input.assumptions.proposedRetirementDate).getFullYear();
 
@@ -114,6 +128,6 @@ export function useSimulation(input: SimulationInput | null): SimulationData | n
       });
     }
 
-    return { result, salaryHistory, leaveBalances, tspBalances, smileCurve };
-  }, [input]);
+    return { result, salaryHistory, leaveBalances, tspBalances, smileCurve, fullSimulation };
+  }, [input, simConfig]);
 }

@@ -39,6 +39,8 @@ const fmtK = (n: number) => {
 interface FormState {
   retirementAge: string;
   endAge: string;
+  birthYear: string;
+  ssClaimingAge: string;
   fersAnnuity: string;
   fersSupplement: string;
   ssMonthlyAt62: string;
@@ -49,6 +51,9 @@ interface FormState {
   lowRiskROI: string;
   withdrawalRate: string;
   timeStepYears: string;
+  withdrawalStrategy: string;
+  customTradPct: string;
+  customRothPct: string;
   baseAnnualExpenses: string;
   goGoEndAge: string;
   goGoRate: string;
@@ -64,6 +69,8 @@ interface FormState {
 const DEFAULTS: FormState = {
   retirementAge: '62',
   endAge: '95',
+  birthYear: '1962',
+  ssClaimingAge: '62',
   fersAnnuity: '30000',
   fersSupplement: '0',
   ssMonthlyAt62: '1800',
@@ -74,6 +81,9 @@ const DEFAULTS: FormState = {
   lowRiskROI: '3',
   withdrawalRate: '4',
   timeStepYears: '2',
+  withdrawalStrategy: 'proportional',
+  customTradPct: '50',
+  customRothPct: '50',
   baseAnnualExpenses: '60000',
   goGoEndAge: '72',
   goGoRate: '100',
@@ -115,12 +125,19 @@ function removeDraft(): void {
 
 function toConfig(f: FormState): SimulationConfig {
   const n = (s: string) => (s === '' ? 0 : Number(s));
+  const strategy = (f.withdrawalStrategy || 'proportional') as 'proportional' | 'traditional-first' | 'roth-first' | 'custom';
+  const customTrad = n(f.customTradPct) / 100;
+  const customRoth = n(f.customRothPct) / 100;
+  const ssClaimingAge = (Number(f.ssClaimingAge) as 62 | 67 | 70) || 62;
+
   return {
     retirementAge: Math.round(n(f.retirementAge)),
     endAge: Math.round(n(f.endAge)),
+    ...(n(f.birthYear) > 0 && { birthYear: Math.round(n(f.birthYear)) }),
     fersAnnuity: n(f.fersAnnuity),
     fersSupplement: n(f.fersSupplement),
     ssMonthlyAt62: n(f.ssMonthlyAt62),
+    ssClaimingAge,
     tspBalanceAtRetirement: n(f.tspBalanceAtRetirement),
     traditionalPct: n(f.traditionalPct) / 100,
     highRiskPct: n(f.highRiskPct) / 100,
@@ -128,6 +145,8 @@ function toConfig(f: FormState): SimulationConfig {
     lowRiskROI: n(f.lowRiskROI) / 100,
     withdrawalRate: n(f.withdrawalRate) / 100,
     timeStepYears: Math.round(n(f.timeStepYears)) as 1 | 2 | 3,
+    withdrawalStrategy: strategy,
+    ...(strategy === 'custom' && { customWithdrawalSplit: { traditionalPct: customTrad, rothPct: customRoth } }),
     baseAnnualExpenses: n(f.baseAnnualExpenses),
     goGoEndAge: Math.round(n(f.goGoEndAge)),
     goGoRate: n(f.goGoRate) / 100,
@@ -145,6 +164,8 @@ function configToFormState(config: SimulationConfig): FormState {
   return {
     retirementAge: String(config.retirementAge),
     endAge: String(config.endAge),
+    birthYear: String(config.birthYear ?? 1962),
+    ssClaimingAge: String(config.ssClaimingAge ?? 62),
     fersAnnuity: String(config.fersAnnuity),
     fersSupplement: String(config.fersSupplement),
     ssMonthlyAt62: String(config.ssMonthlyAt62),
@@ -155,6 +176,9 @@ function configToFormState(config: SimulationConfig): FormState {
     lowRiskROI: String(config.lowRiskROI * 100),
     withdrawalRate: String(config.withdrawalRate * 100),
     timeStepYears: String(config.timeStepYears),
+    withdrawalStrategy: config.withdrawalStrategy ?? 'proportional',
+    customTradPct: String((config.customWithdrawalSplit?.traditionalPct ?? 0.5) * 100),
+    customRothPct: String((config.customWithdrawalSplit?.rothPct ?? 0.5) * 100),
     baseAnnualExpenses: String(config.baseAnnualExpenses),
     goGoEndAge: String(config.goGoEndAge),
     goGoRate: String(config.goGoRate * 100),
@@ -342,16 +366,33 @@ export function SimulationForm() {
     setErrors({});
     saveConfig(result.data);
 
-    if (storedFERS) {
-      saveAssumptions({
-        proposedRetirementDate: storedFERS.retirementDate,
-        tspGrowthRate: storedFERS.tspGrowthRate,
-        colaRate: Number(form.colaRate) / 100,
-        retirementHorizonYears: Number(form.endAge) - Number(form.retirementAge),
-        ...(storedFERS.withdrawalRate != null ? { tspWithdrawalRate: storedFERS.withdrawalRate } : {}),
-        ...(storedFERS.ssaBenefitAt62 != null ? { estimatedSSMonthlyAt62: storedFERS.ssaBenefitAt62 } : {}),
-      });
+    // Derive proposedRetirementDate: prefer FERS estimate, fall back to birthDate + retirementAge
+    let proposedRetirementDate: string | null = storedFERS?.retirementDate ?? null;
+    if (!proposedRetirementDate && storedPersonal?.birthDate) {
+      const birth = new Date(storedPersonal.birthDate);
+      const retYear = birth.getFullYear() + Number(form.retirementAge);
+      proposedRetirementDate = `${retYear}-${String(birth.getMonth() + 1).padStart(2, '0')}-${String(birth.getDate()).padStart(2, '0')}`;
     }
+    // Fall back to a date retirementAge years from now if no personal data either
+    if (!proposedRetirementDate) {
+      const now = new Date();
+      proposedRetirementDate = `${now.getFullYear() + Number(form.retirementAge) - 62}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+    }
+
+    // tspGrowthRate: prefer FERS estimate, fall back to weighted average of form ROI rates
+    const tspGrowthRate = storedFERS?.tspGrowthRate
+      ?? (Number(form.highRiskROI) * Number(form.highRiskPct) + Number(form.lowRiskROI) * (100 - Number(form.highRiskPct))) / 10000;
+
+    saveAssumptions({
+      proposedRetirementDate,
+      tspGrowthRate,
+      colaRate: Number(form.colaRate) / 100,
+      retirementHorizonYears: Number(form.endAge) - Number(form.retirementAge),
+      ...(storedFERS?.withdrawalRate != null ? { tspWithdrawalRate: storedFERS.withdrawalRate } : {}),
+      ...((storedFERS?.ssaBenefitAt62 ?? Number(form.ssMonthlyAt62)) > 0
+        ? { estimatedSSMonthlyAt62: storedFERS?.ssaBenefitAt62 ?? Number(form.ssMonthlyAt62) }
+        : {}),
+    });
 
     removeDraft();
   };
@@ -432,6 +473,18 @@ export function SimulationForm() {
                 onChange={(e) => set('endAge', e.target.value)}
               />
             </FieldGroup>
+            <FieldGroup label="Birth Year (Phase D)" htmlFor="sim-birthYear" error={errors.birthYear}
+              hint="For RMD age calculation (73 vs 75)">
+              <Input
+                id="sim-birthYear"
+                type="number"
+                min="1900"
+                max="2010"
+                step="1"
+                value={form.birthYear}
+                onChange={(e) => set('birthYear', e.target.value)}
+              />
+            </FieldGroup>
             <FieldGroup label="FERS Annuity ($/yr)" htmlFor="sim-annuity" error={errors.fersAnnuity}>
               <Input
                 id="sim-annuity"
@@ -462,6 +515,19 @@ export function SimulationForm() {
                 value={form.ssMonthlyAt62}
                 onChange={(e) => set('ssMonthlyAt62', e.target.value)}
               />
+            </FieldGroup>
+            <FieldGroup label="SS Claiming Age (Phase D)" htmlFor="sim-ssClaimAge" error={errors.ssClaimingAge}
+              hint="When to start receiving Social Security">
+              <Select value={form.ssClaimingAge} onValueChange={(value) => set('ssClaimingAge', value)}>
+                <SelectTrigger id="sim-ssClaimAge">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="62">Age 62 (earliest)</SelectItem>
+                  <SelectItem value="67">Age 67 (full retirement age)</SelectItem>
+                  <SelectItem value="70">Age 70 (delayed)</SelectItem>
+                </SelectContent>
+              </Select>
             </FieldGroup>
           </div>
         </CollapsibleContent>
@@ -560,6 +626,51 @@ export function SimulationForm() {
                 </SelectContent>
               </Select>
             </FieldGroup>
+          </div>
+
+          {/* Withdrawal Strategy */}
+          <div className="mt-4 pt-4 border-t border-border">
+            <FieldGroup label="Withdrawal Strategy" htmlFor="sim-strategy" error={errors.withdrawalStrategy}
+              hint="How to split TSP withdrawals between Traditional and Roth">
+              <Select value={form.withdrawalStrategy} onValueChange={(value) => set('withdrawalStrategy', value)}>
+                <SelectTrigger id="sim-strategy">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="proportional">Proportional (by balance ratio)</SelectItem>
+                  <SelectItem value="traditional-first">Traditional First</SelectItem>
+                  <SelectItem value="roth-first">Roth First</SelectItem>
+                  <SelectItem value="custom">Custom %</SelectItem>
+                </SelectContent>
+              </Select>
+            </FieldGroup>
+
+            {form.withdrawalStrategy === 'custom' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 p-3 bg-muted rounded">
+                <FieldGroup label="Traditional %" htmlFor="sim-customTrad" error={errors.customTradPct}>
+                  <Input
+                    id="sim-customTrad"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={form.customTradPct}
+                    onChange={(e) => set('customTradPct', e.target.value)}
+                  />
+                </FieldGroup>
+                <FieldGroup label="Roth %" htmlFor="sim-customRoth" error={errors.customRothPct}>
+                  <Input
+                    id="sim-customRoth"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={form.customRothPct}
+                    onChange={(e) => set('customRothPct', e.target.value)}
+                  />
+                </FieldGroup>
+              </div>
+            )}
           </div>
         </CollapsibleContent>
       </Collapsible>

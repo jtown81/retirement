@@ -98,12 +98,16 @@ export interface SimulationConfig {
   retirementAge: number;
   /** End age for projection (default: 95, max: 104) */
   endAge: number;
+  /** Birth year for RMD age calculation (Phase D) */
+  birthYear?: number;
   /** Net annual FERS annuity (after survivor benefit reduction) */
   fersAnnuity: USD;
   /** Annual FERS Supplement (0 if not eligible; paid until age 62) */
   fersSupplement: USD;
   /** Monthly Social Security benefit at age 62 (0 if unknown) */
   ssMonthlyAt62: USD;
+  /** Social Security claiming age (default 62, Phase D: support 67 and 70) */
+  ssClaimingAge?: 62 | 67 | 70;
 
   // ── TSP ──
   /** Total TSP balance at retirement */
@@ -123,6 +127,21 @@ export interface SimulationConfig {
    * At end of each year, high-risk transfers to low-risk to maintain this buffer.
    */
   timeStepYears: 1 | 2 | 3;
+
+  // ── Withdrawal Strategy (Phase C) ──
+  /**
+   * Strategy for splitting TSP withdrawals between Traditional and Roth accounts.
+   * - 'proportional': Split proportional to account balance ratio (tax-agnostic)
+   * - 'traditional-first': Exhaust Traditional first, then Roth (defer Roth)
+   * - 'roth-first': Exhaust Roth first, then Traditional (maximize Roth growth)
+   * - 'custom': Use customWithdrawalSplit percentages
+   */
+  withdrawalStrategy?: 'proportional' | 'traditional-first' | 'roth-first' | 'custom';
+  /**
+   * Custom withdrawal split when strategy is 'custom'.
+   * Defines % of needed withdrawal from Traditional and Roth.
+   */
+  customWithdrawalSplit?: { traditionalPct: Rate; rothPct: Rate };
 
   // ── Expenses (GoGo / GoSlow / NoGo smile curve) ──
   /** Base annual expenses in today's dollars */
