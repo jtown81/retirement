@@ -2,14 +2,24 @@
 
 ## Bug Summary
 
-| # | Issue | Root Cause | Severity |
-|---|-------|-----------|----------|
-| 1 | No sick leave usage field for modeling | `useSimulation` hardcodes `usageEvents: []`; no average-annual-usage input exists | Medium |
-| 2 | Dashboard charts start in 2026 not retirement year | `retirement-simulation.ts` line 71 uses `new Date().getFullYear()` | Critical |
-| 3 | Annuity & High-3 cards don't update from My Plan data | Synthetic career has `annualSalary: 0` and wrong `effectiveDate` | Critical |
-| 4 | Income Waterfall starts in 2026 | Same root cause as Bug 2 (wrong startYear in full simulation) | Critical |
-| 5 | TSP Lifecycle has discontinuity at retirement | Pre-retirement uses `balance × 0.1` and hardcoded $5k/$2k contributions | High |
-| 6 | RMD Compliance doesn't honor plan data or TSP drawdown | Filter hardcodes `age >= 73`; should use `getRMDStartAge(birthYear)` | High |
+| # | Issue | Root Cause | Severity | Status |
+|---|-------|-----------|----------|--------|
+| 1 | No sick leave usage field for modeling | `useSimulation` hardcodes `usageEvents: []`; no average-annual-usage input exists | Medium | TODO |
+| 2 | Dashboard charts start in 2026 not retirement year | `retirement-simulation.ts` line 71 uses `new Date().getFullYear()` | Critical | ✅ DONE |
+| 3 | Annuity & High-3 cards don't update from My Plan data | Synthetic career has `annualSalary: 0` and wrong `effectiveDate` | Critical | ✅ DONE |
+| 4 | Income Waterfall starts in 2026 | Same root cause as Bug 2 (wrong startYear in full simulation) | Critical | ✅ DONE |
+| 5 | TSP Lifecycle has discontinuity at retirement | Pre-retirement uses `balance × 0.1` and hardcoded $5k/$2k contributions | High | TODO |
+| 6 | RMD Compliance doesn't honor plan data or TSP drawdown | Filter hardcodes `age >= 73`; should use `getRMDStartAge(birthYear)` | High | TODO |
+
+## Completed Fixes
+
+### Bug 2/4: Fixed (Commit ce3095a)
+Charts now use retirement year instead of current year. Income Waterfall, TSP Lifecycle, Expense Phases, and RMD Compliance charts display correct calendar years.
+
+### Bug 3: Fixed (Commit 882ec71)
+- Synthetic career now computes annualSalary from GS pay tables (not $0)
+- Uses scdLeave (hire date) not scdRetirement as effectiveDate
+- Dashboard annuity prefers fullSimulation override when available
 
 ---
 
