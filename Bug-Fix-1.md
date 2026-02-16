@@ -8,18 +8,31 @@
 | 2 | Dashboard charts start in 2026 not retirement year | `retirement-simulation.ts` line 71 uses `new Date().getFullYear()` | Critical | ✅ DONE |
 | 3 | Annuity & High-3 cards don't update from My Plan data | Synthetic career has `annualSalary: 0` and wrong `effectiveDate` | Critical | ✅ DONE |
 | 4 | Income Waterfall starts in 2026 | Same root cause as Bug 2 (wrong startYear in full simulation) | Critical | ✅ DONE |
-| 5 | TSP Lifecycle has discontinuity at retirement | Pre-retirement uses `balance × 0.1` and hardcoded $5k/$2k contributions | High | TODO |
-| 6 | RMD Compliance doesn't honor plan data or TSP drawdown | Filter hardcodes `age >= 73`; should use `getRMDStartAge(birthYear)` | High | TODO |
+| 5 | TSP Lifecycle has discontinuity at retirement | Pre-retirement uses `balance × 0.1` and hardcoded $5k/$2k contributions | High | ✅ DONE |
+| 6 | RMD Compliance doesn't honor plan data or TSP drawdown | Filter hardcodes `age >= 73`; should use `getRMDStartAge(birthYear)` | High | ✅ DONE |
 
-## Completed Fixes
+## Completed Fixes (Feb 16, 2026)
 
-### Bug 2/4: Fixed (Commit ce3095a)
-Charts now use retirement year instead of current year. Income Waterfall, TSP Lifecycle, Expense Phases, and RMD Compliance charts display correct calendar years.
+### Bug 2/4: Fixed (Commit 882ec71)
+Charts now use retirement year instead of current year. Income Waterfall, TSP Lifecycle, Expense Phases, and RMD Compliance charts display correct calendar years starting at user's actual retirement date.
 
-### Bug 3: Fixed (Commit 882ec71)
+### Bug 3: Fixed (Commit ce3095a)
 - Synthetic career now computes annualSalary from GS pay tables (not $0)
 - Uses scdLeave (hire date) not scdRetirement as effectiveDate
 - Dashboard annuity prefers fullSimulation override when available
+- Summary cards show correct High-3 and Annuity values when only FERS Estimate is filled
+
+### Bug 5: Fixed (Commit d8c0c2c)
+- Pre-retirement TSP projection now uses actual current balances (not 10%)
+- Estimates contributions from last salary (5% Traditional, 2% Roth) instead of hardcoded amounts
+- Projects correct years (current to retirement for future, hire to retirement for past)
+- Eliminates discontinuity at retirement; last pre-retirement balance matches post-retirement start
+
+### Bug 6: Fixed (Commit 15b6a6a)
+- RMD Compliance chart now uses dynamic RMD start age (73 for born <1960, 75 for >=1960)
+- Exported getRMDStartAge from tsp module barrel
+- Auto-populate birthYear in SimulationForm from personal birthDate
+- Correctly honors SECURE 2.0 RMD rule changes
 
 ---
 
