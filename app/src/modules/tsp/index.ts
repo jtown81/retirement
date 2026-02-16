@@ -26,3 +26,4 @@ export { projectRothBalance, projectRothDetailed } from './roth';
 export { getTSPLimits, clampToContributionLimit } from '../../data/tsp-limits';
 export type { TSPDepletionResult, PreRetirementTSPYear, PreRetirementTSPProjection } from './future-value';
 export { computeTSPFutureValue, projectTSPDepletion, projectPreRetirementTSP } from './future-value';
+export { getRMDStartAge, isRMDRequired, computeRMD } from './rmd';

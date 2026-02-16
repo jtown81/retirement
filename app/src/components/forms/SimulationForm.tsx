@@ -236,6 +236,12 @@ function buildFromSavedData(
     sourceFields.add('tspBalanceAtRetirement');
   }
 
+  // Auto-populate birthYear from personal data for RMD calculations (SECURE 2.0)
+  if (personal?.birthDate) {
+    patch.birthYear = String(new Date(personal.birthDate).getFullYear());
+    sourceFields.add('birthYear');
+  }
+
   if (fers) {
     if (fers.ssaBenefitAt62 != null) {
       patch.ssMonthlyAt62 = String(fers.ssaBenefitAt62);

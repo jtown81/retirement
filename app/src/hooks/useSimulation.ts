@@ -12,7 +12,7 @@ import type {
 } from '@components/charts/chart-types';
 import { buildSalaryHistory } from '@modules/career';
 import { simulateLeaveYear } from '@modules/leave';
-import { projectTraditionalDetailed, projectRothDetailed } from '@modules/tsp';
+import { projectTraditionalDetailed, projectRothDetailed, getRMDStartAge } from '@modules/tsp';
 import {
   smileCurveMultiplier,
   applySmileCurve,
@@ -259,18 +259,25 @@ export function useSimulation(
         })
       : [];
 
-    // RMD Timeline: Extract RMD data from fullSimulation for ages 73+
+    // RMD Timeline: Extract RMD data from fullSimulation for RMD start age+
     const rmdTimeline: RMDDataPoint[] = fullSimulation
-      ? fullSimulation.years
-          .filter((yr) => yr.age >= 73)
-          .map((yr) => ({
-            year: yr.year,
-            age: yr.age,
-            rmdRequired: yr.rmdRequired,
-            actualWithdrawal: yr.tspWithdrawal,
-            rmdSatisfied: yr.rmdSatisfied,
-            totalTSPBalance: yr.totalTSPBalance,
-          }))
+      ? (() => {
+          // Use dynamic RMD start age based on birth year (73 for born <1960, 75 for >=1960 per SECURE 2.0)
+          const rmdStartAge = fullSimulation.config.birthYear
+            ? getRMDStartAge(fullSimulation.config.birthYear)
+            : 73;
+
+          return fullSimulation.years
+            .filter((yr) => yr.age >= rmdStartAge)
+            .map((yr) => ({
+              year: yr.year,
+              age: yr.age,
+              rmdRequired: yr.rmdRequired,
+              actualWithdrawal: yr.tspWithdrawal,
+              rmdSatisfied: yr.rmdSatisfied,
+              totalTSPBalance: yr.totalTSPBalance,
+            }));
+        })()
       : [];
 
     return {
