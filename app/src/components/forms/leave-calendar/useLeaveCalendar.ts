@@ -98,15 +98,23 @@ export function useLeaveCalendar(): UseLeaveCalendarResult {
       const yearData = newData.years[newData.activeYear];
       if (yearData) {
         const balance = calendarToLeaveBalance(yearData);
+        // Preserve averageAnnualSickLeaveUsage from existing balance if present
+        if (existingBalance?.averageAnnualSickLeaveUsage !== undefined) {
+          balance.averageAnnualSickLeaveUsage = existingBalance.averageAnnualSickLeaveUsage;
+        }
         saveLeaveBalance(balance);
       }
     },
-    [saveCalendar, saveLeaveBalance],
+    [saveCalendar, saveLeaveBalance, existingBalance],
   );
 
   // Write derived balance on first mount
   useEffect(() => {
     const balance = calendarToLeaveBalance(activeYearData);
+    // Preserve averageAnnualSickLeaveUsage from existing balance if present
+    if (existingBalance?.averageAnnualSickLeaveUsage !== undefined) {
+      balance.averageAnnualSickLeaveUsage = existingBalance.averageAnnualSickLeaveUsage;
+    }
     saveLeaveBalance(balance);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

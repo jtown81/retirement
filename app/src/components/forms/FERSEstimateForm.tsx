@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useLocalStorage } from '@hooks/useLocalStorage';
-import { STORAGE_KEYS, PersonalInfoSchema, FERSEstimateSchema, TSPBalancesSchema } from '@storage/index';
+import { STORAGE_KEYS, PersonalInfoSchema, FERSEstimateSchema, TSPBalancesSchema, LeaveBalanceSchema } from '@storage/index';
 import { getAvailableLocalityCodes } from '@data/locality-rates';
 import { getMRA } from '@modules/simulation/eligibility';
+import type { LeaveBalance } from '@models/leave';
 import { FieldGroup } from './FieldGroup';
 import { FormSection } from './FormSection';
 import { FERSEstimateResults } from './FERSEstimateResults';
@@ -49,6 +50,7 @@ interface FormState extends PersonalInfo {
   annualRaiseRate: string;
   high3Override: string;
   sickLeaveHours: string;
+  averageAnnualSickLeaveUsage: string;
   annuityReductionPct: string;
   ssaBenefitAt62: string;
   annualEarnings: string;
@@ -78,6 +80,7 @@ const DEFAULTS: FormState = {
   annualRaiseRate: '2',
   high3Override: '',
   sickLeaveHours: '0',
+  averageAnnualSickLeaveUsage: '0',
   annuityReductionPct: '0',
   ssaBenefitAt62: '',
   annualEarnings: '',
@@ -135,7 +138,7 @@ function loadFromDefaults(): FormState {
   return d;
 }
 
-function formStateFromStored(personal: PersonalInfo | null, fers: FERSEstimate | null): FormState {
+function formStateFromStored(personal: PersonalInfo | null, fers: FERSEstimate | null, leaveBalance: LeaveBalance | null = null): FormState {
   return {
     birthDate: personal?.birthDate ?? '',
     scdLeave: personal?.scdLeave ?? '',
@@ -149,6 +152,7 @@ function formStateFromStored(personal: PersonalInfo | null, fers: FERSEstimate |
     annualRaiseRate: fers?.annualRaiseRate != null ? String(fers.annualRaiseRate * 100) : '2',
     high3Override: fers?.high3Override != null ? String(fers.high3Override) : '',
     sickLeaveHours: fers ? String(fers.sickLeaveHours) : '0',
+    averageAnnualSickLeaveUsage: leaveBalance?.averageAnnualSickLeaveUsage != null ? String(leaveBalance.averageAnnualSickLeaveUsage) : '0',
     annuityReductionPct: fers ? String(fers.annuityReductionPct * 100) : '0',
     ssaBenefitAt62: fers?.ssaBenefitAt62 != null ? String(fers.ssaBenefitAt62) : '',
     annualEarnings: fers?.annualEarnings != null ? String(fers.annualEarnings) : '',
@@ -196,6 +200,7 @@ export function FERSEstimateForm() {
   const [storedPersonal, savePersonal, removePersonal] = useLocalStorage(STORAGE_KEYS.PERSONAL_INFO, PersonalInfoSchema);
   const [storedFERS, saveFERS, removeFERS] = useLocalStorage(STORAGE_KEYS.FERS_ESTIMATE, FERSEstimateSchema);
   const [, saveTSP] = useLocalStorage(STORAGE_KEYS.TSP_BALANCES, TSPBalancesSchema);
+  const [storedLeaveBalance, saveLeaveBalance] = useLocalStorage(STORAGE_KEYS.LEAVE_BALANCE, LeaveBalanceSchema);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     personal: true,
     salary: true,
@@ -209,7 +214,7 @@ export function FERSEstimateForm() {
     // Priority: draft (partial data survives refresh) > validated storage > JSON defaults
     const draft = loadDraft();
     if (draft) return draft;
-    const fromStorage = formStateFromStored(storedPersonal, storedFERS);
+    const fromStorage = formStateFromStored(storedPersonal, storedFERS, storedLeaveBalance);
     const hasStoredData = storedPersonal !== null || storedFERS !== null;
     if (hasStoredData) return fromStorage;
     return loadFromDefaults();
@@ -329,6 +334,19 @@ export function FERSEstimateForm() {
       asOf: new Date().toISOString().slice(0, 10),
       traditionalBalance: traditionalBal,
       rothBalance: fResult.data!.rothTspBalance ?? 0,
+    });
+
+    // Save LeaveBalance with the new averageAnnualSickLeaveUsage field
+    const leaveBalance = storedLeaveBalance ?? {
+      asOf: new Date().toISOString().slice(0, 10),
+      annualLeaveHours: 0,
+      sickLeaveHours: fResult.data!.sickLeaveHours,
+      familyCareUsedCurrentYear: 0,
+    };
+    saveLeaveBalance({
+      ...leaveBalance,
+      sickLeaveHours: fResult.data!.sickLeaveHours,
+      averageAnnualSickLeaveUsage: num(form.averageAnnualSickLeaveUsage),
     });
   };
 
@@ -518,6 +536,21 @@ export function FERSEstimateForm() {
                 step="1"
                 value={form.sickLeaveHours}
                 onChange={(e) => set('sickLeaveHours', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup
+              label="Average Annual Sick Leave Used (hrs)"
+              htmlFor="fe-avgSickUsage"
+              error={errors.averageAnnualSickLeaveUsage}
+              hint="e.g., 40 hours/year for projection modeling"
+            >
+              <Input
+                id="fe-avgSickUsage"
+                type="number"
+                min="0"
+                step="1"
+                value={form.averageAnnualSickLeaveUsage}
+                onChange={(e) => set('averageAnnualSickLeaveUsage', e.target.value)}
               />
             </FieldGroup>
           </div>

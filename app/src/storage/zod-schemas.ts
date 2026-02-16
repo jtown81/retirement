@@ -72,6 +72,7 @@ export const LeaveBalanceSchema = z.object({
   annualLeaveHours: z.number().finite().nonnegative(),
   sickLeaveHours: z.number().finite().nonnegative(),
   familyCareUsedCurrentYear: z.number().finite().nonnegative(),
+  averageAnnualSickLeaveUsage: z.number().finite().nonnegative().optional(),
 });
 
 export const LeaveEventSchema = z.object({

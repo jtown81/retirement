@@ -75,14 +75,20 @@ export function useSimulation(
     const leaveBalances: LeaveBalanceDataPoint[] = [];
     let annualCarry = 0;
     let sickCarry = 0;
+    // Use average annual sick leave usage if provided
+    const avgSickUsage = input.profile.leaveBalance.averageAnnualSickLeaveUsage ?? 0;
     for (let year = hireYear; year < retireYear; year++) {
       const yearsOfService = year - hireYear;
+      // Create usage events if average sick leave usage is provided
+      const usageEvents = avgSickUsage > 0
+        ? [{ id: 'avg-sick', date: `${year}-06-15`, type: 'sick' as const, hoursUsed: avgSickUsage }]
+        : [];
       const lr = simulateLeaveYear({
         yearsOfService,
         annualLeaveCarryIn: annualCarry,
         sickLeaveCarryIn: sickCarry,
         payPeriodsWorked: 26,
-        usageEvents: [],
+        usageEvents,
       });
       leaveBalances.push({
         year,

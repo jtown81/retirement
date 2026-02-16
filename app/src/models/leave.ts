@@ -12,6 +12,8 @@ export interface LeaveBalance {
   annualLeaveHours: number;
   sickLeaveHours: number;
   familyCareUsedCurrentYear: number;
+  /** Average annual sick leave usage in hours (e.g., 40). Used for projection modeling. */
+  averageAnnualSickLeaveUsage?: number;
 }
 
 export interface LeaveEvent {
