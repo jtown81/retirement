@@ -281,6 +281,7 @@ export const SSClaimingAgeSchema = z.union([z.literal(62), z.literal(67), z.lite
 export const SimulationConfigSchema = z.object({
   // Core
   retirementAge: z.number().int().min(50).max(90),
+  retirementYear: z.number().int().min(2000).max(2100),
   endAge: z.number().int().min(70).max(104),
   birthYear: z.number().int().min(1900).max(2010).optional(),
   fersAnnuity: USDSchema,

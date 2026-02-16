@@ -68,7 +68,7 @@ export function projectRetirementSimulation(
   config: SimulationConfig,
 ): FullSimulationResult {
   const years: SimulationYearResult[] = [];
-  const startYear = new Date().getFullYear(); // calendar year for year 0
+  const startYear = config.retirementYear; // calendar year for year 0
 
   // Initial TSP split into Traditional / Roth
   const totalTSP = config.tspBalanceAtRetirement;

@@ -5,6 +5,7 @@ import type { SimulationConfig } from '../../../src/models/simulation';
 function makeConfig(overrides: Partial<SimulationConfig> = {}): SimulationConfig {
   return {
     retirementAge: 60,
+    retirementYear: 2025,
     endAge: 95,
     fersAnnuity: 30_000,
     fersSupplement: 10_000,
@@ -37,6 +38,14 @@ describe('projectRetirementSimulation', () => {
   it('first year starts at retirement age', () => {
     const result = projectRetirementSimulation(makeConfig());
     expect(result.years[0].age).toBe(60);
+  });
+
+  it('year labels start at retirement year (not current year)', () => {
+    const retirementYear = 2030;
+    const result = projectRetirementSimulation(makeConfig({ retirementYear }));
+    expect(result.years[0].year).toBe(retirementYear);
+    expect(result.years[1].year).toBe(retirementYear + 1);
+    expect(result.years[5].year).toBe(retirementYear + 5);
   });
 
   it('last year ends at end age', () => {

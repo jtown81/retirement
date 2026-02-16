@@ -123,15 +123,22 @@ function removeDraft(): void {
 
 // ── Convert form → SimulationConfig ──────────────────────────────────────────
 
-function toConfig(f: FormState): SimulationConfig {
+function toConfig(f: FormState, proposedRetirementDate?: string): SimulationConfig {
   const n = (s: string) => (s === '' ? 0 : Number(s));
   const strategy = (f.withdrawalStrategy || 'proportional') as 'proportional' | 'traditional-first' | 'roth-first' | 'custom';
   const customTrad = n(f.customTradPct) / 100;
   const customRoth = n(f.customRothPct) / 100;
   const ssClaimingAge = (Number(f.ssClaimingAge) as 62 | 67 | 70) || 62;
 
+  // Compute retirementYear from proposedRetirementDate
+  let retirementYear = new Date().getFullYear() + Math.round(n(f.retirementAge)) - 62;
+  if (proposedRetirementDate) {
+    retirementYear = new Date(proposedRetirementDate).getFullYear();
+  }
+
   return {
     retirementAge: Math.round(n(f.retirementAge)),
+    retirementYear,
     endAge: Math.round(n(f.endAge)),
     ...(n(f.birthYear) > 0 && { birthYear: Math.round(n(f.birthYear)) }),
     fersAnnuity: n(f.fersAnnuity),
@@ -161,6 +168,7 @@ function toConfig(f: FormState): SimulationConfig {
 }
 
 function configToFormState(config: SimulationConfig): FormState {
+  // retirementYear is computed in toConfig, not persisted in form state
   return {
     retirementAge: String(config.retirementAge),
     endAge: String(config.endAge),
@@ -343,29 +351,25 @@ export function SimulationForm() {
   // ── Live simulation ──────────────────────────────────────────────────────
   const simulation = useMemo<FullSimulationResult | null>(() => {
     try {
-      const config = toConfig(form);
+      // Derive proposedRetirementDate for config computation
+      let proposedRetirementDate: string | undefined = storedFERS?.retirementDate;
+      if (!proposedRetirementDate && storedPersonal?.birthDate) {
+        const birth = new Date(storedPersonal.birthDate);
+        const retYear = birth.getFullYear() + Number(form.retirementAge);
+        proposedRetirementDate = `${retYear}-${String(birth.getMonth() + 1).padStart(2, '0')}-${String(birth.getDate()).padStart(2, '0')}`;
+      }
+
+      const config = toConfig(form, proposedRetirementDate);
       const result = SimulationConfigSchema.safeParse(config);
       if (!result.success) return null;
       return projectRetirementSimulation(config);
     } catch {
       return null;
     }
-  }, [form]);
+  }, [form, storedFERS, storedPersonal]);
 
   // ── Save / Clear ─────────────────────────────────────────────────────────
   const handleSave = () => {
-    const config = toConfig(form);
-    const result = SimulationConfigSchema.safeParse(config);
-    if (!result.success) {
-      const flat = result.error.flatten().fieldErrors;
-      setErrors(
-        Object.fromEntries(Object.entries(flat).map(([k, v]) => [k, v?.[0] ?? ''])),
-      );
-      return;
-    }
-    setErrors({});
-    saveConfig(result.data);
-
     // Derive proposedRetirementDate: prefer FERS estimate, fall back to birthDate + retirementAge
     let proposedRetirementDate: string | null = storedFERS?.retirementDate ?? null;
     if (!proposedRetirementDate && storedPersonal?.birthDate) {
@@ -378,6 +382,18 @@ export function SimulationForm() {
       const now = new Date();
       proposedRetirementDate = `${now.getFullYear() + Number(form.retirementAge) - 62}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
     }
+
+    const config = toConfig(form, proposedRetirementDate);
+    const result = SimulationConfigSchema.safeParse(config);
+    if (!result.success) {
+      const flat = result.error.flatten().fieldErrors;
+      setErrors(
+        Object.fromEntries(Object.entries(flat).map(([k, v]) => [k, v?.[0] ?? ''])),
+      );
+      return;
+    }
+    setErrors({});
+    saveConfig(result.data);
 
     // tspGrowthRate: prefer FERS estimate, fall back to weighted average of form ROI rates
     const tspGrowthRate = storedFERS?.tspGrowthRate

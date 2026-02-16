@@ -96,6 +96,8 @@ export interface SimulationConfig {
   // ── Core (drawn from FERS Estimate results) ──
   /** Age at retirement (integer) */
   retirementAge: number;
+  /** Calendar year of retirement (required for chart year labels) */
+  retirementYear: number;
   /** End age for projection (default: 95, max: 104) */
   endAge: number;
   /** Birth year for RMD age calculation (Phase D) */
