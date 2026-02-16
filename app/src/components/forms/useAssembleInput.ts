@@ -13,6 +13,7 @@ import {
   FERSEstimateSchema,
   SimulationConfigSchema,
 } from '@storage/index';
+import { calculateAnnualPay } from '@modules/career';
 import { z } from 'zod';
 import type { SimulationInput, SimulationConfig } from '@models/simulation';
 import type { CareerProfile } from '@models/career';
@@ -65,6 +66,9 @@ export function useAssembleInput(): SimulationInput | null {
       const grade = (fersEstimate?.gsGrade ?? 12) as GSGrade;
       const step = (fersEstimate?.gsStep ?? 5) as GSStep;
       const localityCode = fersEstimate?.localityCode ?? 'RUS';
+      const currentYear = new Date().getFullYear();
+      const payResult = calculateAnnualPay(grade, step, localityCode, currentYear);
+
       mergedCareer = {
         id: 'auto',
         scdLeave: personal.scdLeave,
@@ -73,12 +77,12 @@ export function useAssembleInput(): SimulationInput | null {
         events: [{
           id: 'auto-hire',
           type: 'hire',
-          effectiveDate: personal.scdRetirement,
+          effectiveDate: personal.scdLeave, // FIX: use hire date (scdLeave), not retirement date
           grade,
           step,
           localityCode,
           paySystem: personal.paySystem,
-          annualSalary: 0, // will be computed by salary engine
+          annualSalary: payResult.totalAnnualPay, // FIX: compute from pay tables
         }],
       };
     }

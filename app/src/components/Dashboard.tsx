@@ -182,7 +182,9 @@ export function Dashboard({ data, mode }: DashboardProps) {
             : 'Key metrics based on your plan data'}
         />
         <SummaryPanel
-          annuity={USD_FORMAT.format(result.annualAnnuity)}
+          annuity={USD_FORMAT.format(
+            fullSimulation ? fullSimulation.config.fersAnnuity : result.annualAnnuity
+          )}
           high3={USD_FORMAT.format(result.high3Salary)}
           creditableService={`${result.creditableServiceYears.toFixed(1)} yrs`}
           eligibilityType={result.eligibility.type ?? 'N/A'}
