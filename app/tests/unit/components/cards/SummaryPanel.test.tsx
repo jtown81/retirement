@@ -13,10 +13,23 @@ const PROPS = {
 };
 
 describe('SummaryPanel', () => {
-  it('renders all 6 metric cards', () => {
+  it('renders all 9 metric cards (6 core + 3 optional when no fullSimulation)', () => {
     render(<SummaryPanel {...PROPS} />);
     const cards = screen.getAllByTestId('metric-card');
-    expect(cards).toHaveLength(6);
+    expect(cards).toHaveLength(9);
+  });
+
+  it('renders 12 cards when fullSimulation data is provided', () => {
+    render(
+      <SummaryPanel
+        {...PROPS}
+        socialSecurityEstimate="$18,000"
+        tspDepletionAge="Age 92"
+        lifetimeSurplus="$500,000"
+      />
+    );
+    const cards = screen.getAllByTestId('metric-card');
+    expect(cards).toHaveLength(9); // 6 + 3 optional
   });
 
   it('displays all metric values', () => {

@@ -2,13 +2,31 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project Root
+
+**`app-dev/retire/` is the project root.** All work must happen within this directory. Never create or modify files outside of `app-dev/retire/` unless explicitly instructed. All relative paths in this document are relative to this directory.
+
 ## Project Overview
 
 A retirement planning simulation app for U.S. federal employees. Runs locally only (no backend). Architected for eventual mobile deployment. `Retire-original.xlsx` is the authoritative baseline for all formulas and features — app outputs must match it within defined tolerance.
 
 ## Current Status
 
-Phases 1-8 are complete. The app has a working UI with three top-level views (My Plan, Leave, Dashboard), four form tabs within My Plan (FERS Estimate, Career, Expenses, Simulation), a full leave calendar with federal holidays, and a Dashboard with 5 projection charts.
+**Phases 1-9 are complete.** The app has a working UI with three top-level views (My Plan, Leave, Dashboard), four form tabs within My Plan (FERS Estimate, Career, Expenses, Simulation), a full leave calendar with federal holidays, and a modern Dashboard with 6 projection charts + expanded summary cards.
+
+### Phase 9 Completion (Dashboard Replacement - Feb 2026)
+- Fixed Roth TSP bug (was always 0 in pre-retirement charts)
+- Added 4 new chart components:
+  - **IncomeWaterfallChart**: 4-component stacked income (annuity, supplement, SS, TSP) + expense overlay
+  - **TSPLifecycleChart**: Pre-retirement accumulation → post-retirement drawdown on single timeline
+  - **ExpensePhasesChart**: GoGo/GoSlow/NoGo phases with Blanchett comparison
+  - **RMDComplianceChart**: Tax compliance tracking (age 73+)
+- Enhanced 2 existing charts:
+  - **PayGrowthChart**: High-3 average highlighted with reference lines
+  - **LeaveBalancesChart**: Sick leave retirement credit calculation
+- Expanded summary cards: 6 → 9 cards (adding Social Security, TSP depletion age, lifetime surplus)
+- New data transformations in `useSimulation`: incomeWaterfall, tspLifecycle, expensePhases, rmdTimeline
+- All 446 unit tests passing + 18 scenario parity tests passing
 
 ## Tech Stack
 
@@ -67,7 +85,7 @@ All modules communicate via well-defined contracts with no business logic crossi
 - **Military Service Buyback** (`modules/military/`) — Buyback deposit & service credit (module retained; UI disconnected)
 - **Expense Modeling** (`modules/expenses/`) — Categories, expense smile curve, inflation (general + healthcare)
 - **Retirement Simulation Engine** (`modules/simulation/`) — Eligibility, annuity, supplement, dual-pot TSP projection, income vs expense projection, scenario comparison
-- **Visualization Layer** (`components/charts/`) — Zero business logic; 5 chart components, summary cards; must be mobile-friendly and replaceable
+- **Visualization Layer** (`components/charts/`) — Zero business logic; 6 chart components + utilities, 9-card summary panel; must be mobile-friendly and replaceable
 - **Validation** (`modules/validation/`) — Input validation, assumption warnings
 
 ## Data Flow
@@ -121,7 +139,7 @@ app/
       forms/           — FERSEstimateForm, CareerEventsForm, ExpensesForm, SimulationForm, FormShell, etc.
         leave-calendar/ — LeaveCalendarGrid, DayCell, MonthCalendar, LeaveEntryModal, etc.
       cards/           — MetricCard, SummaryPanel
-      charts/          — PayGrowthChart, LeaveBalancesChart, TSPBalancesChart, IncomeVsExpensesChart, ExpenseSmileCurveChart
+      charts/          — IncomeWaterfallChart, TSPLifecycleChart, ExpensePhasesChart, RMDComplianceChart, PayGrowthChart, LeaveBalancesChart, ChartContainer, ChartTooltip
     models/            — Pure data shapes (common, career, leave, leave-calendar, tsp, military, expenses, simulation)
     modules/
       career/          — Grade/step, pay calculator, locality, projection, SCD

@@ -15,10 +15,14 @@ import type {
   LeaveBalanceDataPoint,
   TSPBalanceDataPoint,
   SmileCurveDataPoint,
+  IncomeWaterfallDataPoint,
+  TSPLifecycleDataPoint,
+  ExpensePhaseDataPoint,
+  RMDDataPoint,
 } from '@components/charts/chart-types';
 import { buildSalaryHistory } from '@modules/career';
 import { simulateLeaveYear } from '@modules/leave';
-import { projectTraditionalDetailed } from '@modules/tsp';
+import { projectTraditionalDetailed, projectRothDetailed } from '@modules/tsp';
 import { smileCurveMultiplier, applySmileCurve, defaultSmileCurveParams } from '@modules/expenses';
 import { projectRetirementIncome } from '@modules/simulation';
 
@@ -131,7 +135,7 @@ export const DEMO_LEAVE_BALANCES: LeaveBalanceDataPoint[] = (() => {
   return results;
 })();
 
-/** TSP balances year-by-year for the TSP chart */
+/** TSP balances year-by-year for the TSP chart (fixed: includes Roth) */
 export const DEMO_TSP_BALANCES: TSPBalanceDataPoint[] = (() => {
   // Project Traditional TSP using detailed projection
   const traditionalYears = projectTraditionalDetailed({
@@ -145,11 +149,22 @@ export const DEMO_TSP_BALANCES: TSPBalanceDataPoint[] = (() => {
     isCatchUpEligible: false,
   });
 
-  return traditionalYears.map((ty) => ({
+  // Project Roth TSP (fixed bug: was always 0)
+  const rothYears = projectRothDetailed({
+    openingBalance: 25_000,
+    employeeAnnualContribution: 2_000,
+    growthRate: 0.07,
+    years: new Date(RETIRE_DATE).getFullYear() - 2000,
+    startYear: 2000,
+    isCatchUpEligible: false,
+    traditionalEmployeeContribution: 5_000,
+  });
+
+  return traditionalYears.map((ty, i) => ({
     year: ty.year,
     traditionalBalance: ty.closingBalance,
-    rothBalance: 0,
-    totalBalance: ty.closingBalance,
+    rothBalance: rothYears[i]?.closingBalance ?? 0,
+    totalBalance: (ty.closingBalance ?? 0) + (rothYears[i]?.closingBalance ?? 0),
   }));
 })();
 
@@ -167,6 +182,121 @@ export const DEMO_SMILE_CURVE: SmileCurveDataPoint[] = (() => {
       adjustedExpenses: applySmileCurve(baseExpenses, yr),
       baseExpenses,
     });
+  }
+
+  return points;
+})();
+
+/** Income waterfall for new expanded dashboard */
+export const DEMO_INCOME_WATERFALL: IncomeWaterfallDataPoint[] = DEMO_RESULT.projections.map((proj) => ({
+  year: proj.year,
+  age: proj.age,
+  annuity: proj.annuity,
+  fersSupplement: proj.fersSupplementAmount,
+  socialSecurity: 0, // Demo fixture doesn't include full simulation with SS
+  tspWithdrawal: proj.tspWithdrawal,
+  totalIncome: proj.totalIncome,
+  totalExpenses: proj.totalExpenses,
+  surplus: proj.surplus,
+}));
+
+/** TSP lifecycle combining accumulation and distribution */
+export const DEMO_TSP_LIFECYCLE: TSPLifecycleDataPoint[] = (() => {
+  const lifecycle: TSPLifecycleDataPoint[] = [];
+
+  // Pre-retirement accumulation
+  for (const dp of DEMO_TSP_BALANCES) {
+    lifecycle.push({
+      year: dp.year,
+      phase: 'accumulation',
+      traditionalBalance: dp.traditionalBalance,
+      rothBalance: dp.rothBalance,
+      totalBalance: dp.totalBalance,
+    });
+  }
+
+  // Post-retirement distribution (simplified without full simulation)
+  const retireYear = new Date(RETIRE_DATE).getFullYear();
+  let tradBalance = DEMO_TSP_BALANCES[DEMO_TSP_BALANCES.length - 1]?.traditionalBalance ?? 400_000;
+  let rothBalance = DEMO_TSP_BALANCES[DEMO_TSP_BALANCES.length - 1]?.rothBalance ?? 0;
+
+  for (let i = 1; i <= 30; i++) {
+    const year = retireYear + i;
+    const withdrawal = (tradBalance + rothBalance) * 0.04;
+    tradBalance = Math.max(0, (tradBalance - withdrawal * 0.8) * 1.07);
+    rothBalance = Math.max(0, (rothBalance - withdrawal * 0.2) * 1.07);
+
+    lifecycle.push({
+      year,
+      age: new Date(BIRTH_DATE).getFullYear() + retireYear + i - new Date(BIRTH_DATE).getFullYear(),
+      phase: 'distribution',
+      traditionalBalance: tradBalance,
+      rothBalance: rothBalance,
+      totalBalance: tradBalance + rothBalance,
+      withdrawal,
+    });
+  }
+
+  return lifecycle;
+})();
+
+/** Expense phases for new dashboard (demo: no full simulation, so use simple model) */
+export const DEMO_EXPENSE_PHASES: ExpensePhaseDataPoint[] = (() => {
+  const baseExpenses = 60_000;
+  const points: ExpensePhaseDataPoint[] = [];
+  const retireYear = new Date(RETIRE_DATE).getFullYear();
+  const birthYear = new Date(BIRTH_DATE).getFullYear();
+
+  for (let i = 0; i <= 30; i++) {
+    const year = retireYear + i;
+    const age = birthYear + year - birthYear;
+    const yearsIntoRetirement = i;
+    const phase =
+      age < 70 ? 'GoGo' : age < 85 ? 'GoSlow' : 'NoGo';
+
+    const multiplier = smileCurveMultiplier(yearsIntoRetirement);
+    const adjusted = applySmileCurve(baseExpenses, yearsIntoRetirement);
+
+    points.push({
+      year,
+      age,
+      yearsIntoRetirement,
+      phase,
+      baseExpenses,
+      adjustedExpenses: adjusted,
+      blanchettAdjusted: adjusted,
+      smileMultiplier: multiplier,
+    });
+  }
+
+  return points;
+})();
+
+/** RMD timeline for ages 73+ (demo: no full simulation) */
+export const DEMO_RMD_TIMELINE: RMDDataPoint[] = (() => {
+  const points: RMDDataPoint[] = [];
+  const retireYear = new Date(RETIRE_DATE).getFullYear();
+  const birthYear = new Date(BIRTH_DATE).getFullYear();
+
+  for (let i = 0; i <= 30; i++) {
+    const year = retireYear + i;
+    const age = birthYear + year - birthYear;
+
+    if (age >= 73) {
+      // Simple RMD calculation: divide balance by life expectancy
+      let tspBalance = DEMO_TSP_LIFECYCLE.find(lc => lc.year === year)?.totalBalance ?? 0;
+      const lifeExpectancy = Math.max(10, 120 - age);
+      const rmdRequired = tspBalance / lifeExpectancy;
+
+      points.push({
+        year,
+        age,
+        rmdRequired,
+        actualWithdrawal: (tspBalance * 0.04), // Assume 4% rule covers RMD
+        rmdSatisfied: true,
+        totalTSPBalance: tspBalance,
+      });
+    }
   }
 
   return points;

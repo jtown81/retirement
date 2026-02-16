@@ -37,6 +37,54 @@ export interface SmileCurveDataPoint {
   baseExpenses: number;
 }
 
+export interface IncomeWaterfallDataPoint {
+  year: number;
+  age: number;
+  annuity: number;
+  fersSupplement: number;
+  socialSecurity: number;
+  tspWithdrawal: number;
+  totalIncome: number;
+  totalExpenses: number;
+  surplus: number;
+}
+
+export interface TSPLifecycleDataPoint {
+  year: number;
+  age?: number;
+  phase: 'accumulation' | 'distribution';
+  traditionalBalance: number;
+  rothBalance: number;
+  totalBalance: number;
+  highRiskBalance?: number;
+  lowRiskBalance?: number;
+  rmdRequired?: number;
+  rmdSatisfied?: boolean;
+  withdrawal?: number;
+}
+
+export interface ExpensePhaseDataPoint {
+  year: number;
+  age: number;
+  yearsIntoRetirement: number;
+  phase: 'GoGo' | 'GoSlow' | 'NoGo';
+  baseExpenses: number;
+  adjustedExpenses: number;
+  healthcareExpenses?: number;
+  nonHealthcareExpenses?: number;
+  blanchettAdjusted: number;
+  smileMultiplier: number;
+}
+
+export interface RMDDataPoint {
+  year: number;
+  age: number;
+  rmdRequired: number;
+  actualWithdrawal: number;
+  rmdSatisfied: boolean;
+  totalTSPBalance: number;
+}
+
 // ── Props interfaces ─────────────────────────────────────────────────────────
 
 export interface ChartContainerProps {
@@ -81,4 +129,10 @@ export interface SummaryPanelProps {
   fersSupplement: string;
   year1Surplus: string;
   year1SurplusVariant: MetricCardProps['variant'];
+  // Optional: shown when fullSimulation is available
+  socialSecurityEstimate?: string;
+  tspDepletionAge?: string;
+  tspDepletionVariant?: MetricCardProps['variant'];
+  lifetimeSurplus?: string;
+  lifetimeSurplusVariant?: MetricCardProps['variant'];
 }

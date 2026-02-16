@@ -50,6 +50,10 @@ import {
   DEMO_LEAVE_BALANCES,
   DEMO_TSP_BALANCES,
   DEMO_SMILE_CURVE,
+  DEMO_INCOME_WATERFALL,
+  DEMO_TSP_LIFECYCLE,
+  DEMO_EXPENSE_PHASES,
+  DEMO_RMD_TIMELINE,
 } from '@data/demo-fixture';
 
 const DEMO_DATA: SimulationData = {
@@ -59,6 +63,10 @@ const DEMO_DATA: SimulationData = {
   tspBalances: DEMO_TSP_BALANCES,
   smileCurve: DEMO_SMILE_CURVE,
   fullSimulation: null,
+  incomeWaterfall: DEMO_INCOME_WATERFALL,
+  tspLifecycle: DEMO_TSP_LIFECYCLE,
+  expensePhases: DEMO_EXPENSE_PHASES,
+  rmdTimeline: DEMO_RMD_TIMELINE,
 };
 
 function FormContent({ activeTabId }: { activeTabId: string }) {

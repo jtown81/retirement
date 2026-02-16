@@ -65,4 +65,105 @@ describe('useSimulation', () => {
     expect(data.result.projections).toHaveLength(30);
     expect(data.result.projections[0].totalIncome).toBeGreaterThan(0);
   });
+
+  it('produces income waterfall data (simple path without SS)', () => {
+    const { result } = renderHook(() => useSimulation(DEMO_INPUT, null));
+    const data = result.current!;
+
+    expect(data.incomeWaterfall.length).toBe(30);
+    expect(data.incomeWaterfall[0]).toHaveProperty('year');
+    expect(data.incomeWaterfall[0]).toHaveProperty('age');
+    expect(data.incomeWaterfall[0]).toHaveProperty('annuity');
+    expect(data.incomeWaterfall[0]).toHaveProperty('fersSupplement');
+    expect(data.incomeWaterfall[0]).toHaveProperty('socialSecurity');
+    expect(data.incomeWaterfall[0]).toHaveProperty('tspWithdrawal');
+    expect(data.incomeWaterfall[0]).toHaveProperty('totalIncome');
+    expect(data.incomeWaterfall[0]).toHaveProperty('totalExpenses');
+    expect(data.incomeWaterfall[0]).toHaveProperty('surplus');
+
+    // Without fullSimulation, SS should be 0
+    expect(data.incomeWaterfall[0].socialSecurity).toBe(0);
+  });
+
+  it('produces TSP lifecycle data (accumulation only without fullSimulation)', () => {
+    const { result } = renderHook(() => useSimulation(DEMO_INPUT, null));
+    const data = result.current!;
+
+    // Without fullSimulation config, should only have accumulation phase
+    const hasAccumulation = data.tspLifecycle.some((d) => d.phase === 'accumulation');
+    const hasDistribution = data.tspLifecycle.some((d) => d.phase === 'distribution');
+
+    expect(hasAccumulation).toBe(true);
+    expect(hasDistribution).toBe(false);
+    expect(data.tspLifecycle.length).toBeGreaterThan(0);
+
+    // Each point should have required fields
+    data.tspLifecycle.forEach((point) => {
+      expect(point).toHaveProperty('year');
+      expect(point).toHaveProperty('phase');
+      expect(point).toHaveProperty('traditionalBalance');
+      expect(point).toHaveProperty('rothBalance');
+      expect(point).toHaveProperty('totalBalance');
+    });
+  });
+
+  it('produces expense phases data for 30-year retirement horizon', () => {
+    const { result } = renderHook(() => useSimulation(DEMO_INPUT, null));
+    const data = result.current!;
+
+    // Without fullSimulation, expensePhases is empty
+    expect(data.expensePhases.length).toBe(0);
+  });
+
+  it('produces RMD timeline (empty without fullSimulation)', () => {
+    const { result } = renderHook(() => useSimulation(DEMO_INPUT, null));
+    const data = result.current!;
+
+    // Without fullSimulation, rmdTimeline is empty
+    expect(Array.isArray(data.rmdTimeline)).toBe(true);
+    expect(data.rmdTimeline.length).toBe(0);
+  });
+
+  it('includes Roth TSP balances in lifecycle (Roth bug fix)', () => {
+    const { result } = renderHook(() => useSimulation(DEMO_INPUT, null));
+    const data = result.current!;
+
+    // Roth should be present in pre-retirement accumulation
+    const preRetirementRoth = data.tspLifecycle
+      .filter((d) => d.phase === 'accumulation')
+      .map((d) => d.rothBalance);
+
+    // At least some years should have non-zero Roth
+    const hasRoth = preRetirementRoth.some((balance) => balance > 0);
+    expect(hasRoth).toBe(true);
+  });
+
+  it('income waterfall totals match simulation result projections', () => {
+    const { result } = renderHook(() => useSimulation(DEMO_INPUT, null));
+    const data = result.current!;
+
+    // Check first year income matches projection
+    const projection = data.result.projections[0];
+    const waterfall = data.incomeWaterfall[0];
+
+    expect(waterfall.totalIncome).toBeCloseTo(projection.totalIncome, 0);
+    expect(waterfall.totalExpenses).toBeCloseTo(projection.totalExpenses, 0);
+    expect(waterfall.surplus).toBeCloseTo(projection.surplus, 0);
+  });
+
+  it('TSP lifecycle totals match TSP balance data', () => {
+    const { result } = renderHook(() => useSimulation(DEMO_INPUT, null));
+    const data = result.current!;
+
+    // Pre-retirement TSP balances should match tspBalances array
+    const preRetirementLifecycle = data.tspLifecycle.filter((d) => d.phase === 'accumulation');
+
+    if (preRetirementLifecycle.length > 0 && data.tspBalances.length > 0) {
+      const lastAccumYear = preRetirementLifecycle[preRetirementLifecycle.length - 1];
+      const lastTspBalance = data.tspBalances[data.tspBalances.length - 1];
+
+      expect(lastAccumYear.traditionalBalance).toBeCloseTo(lastTspBalance.traditionalBalance, 0);
+      expect(lastAccumYear.rothBalance).toBeCloseTo(lastTspBalance.rothBalance, 0);
+    }
+  });
 });

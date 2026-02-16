@@ -23,7 +23,7 @@ describe('LeaveBalancesChart', () => {
 
   it('renders the subtitle', () => {
     render(<LeaveBalancesChart data={SAMPLE_DATA} />);
-    expect(screen.getByText('Annual and sick leave accumulation over career')).toBeInTheDocument();
+    expect(screen.getByText(/Annual and sick leave accumulation.*retirement credit/)).toBeInTheDocument();
   });
 
   it('renders with empty data without crashing', () => {

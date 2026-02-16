@@ -18,6 +18,19 @@ export interface ChartTheme {
   surplus: string;
   deficit: string;
   holiday: string;
+  // New colors for expanded dashboard
+  annuity: string;
+  supplement: string;
+  socialSecurity: string;
+  tspWithdrawal: string;
+  highRisk: string;
+  lowRisk: string;
+  goGo: string;
+  goSlow: string;
+  noGo: string;
+  rmdRequired: string;
+  healthcare: string;
+  blanchett: string;
 }
 
 const LIGHT_THEME: ChartTheme = {
@@ -38,6 +51,18 @@ const LIGHT_THEME: ChartTheme = {
   surplus: '#dcfce7',
   deficit: '#fee2e2',
   holiday: '#fbbf24',
+  annuity: '#1e40af',
+  supplement: '#7c3aed',
+  socialSecurity: '#06b6d4',
+  tspWithdrawal: '#8b5cf6',
+  highRisk: '#f59e0b',
+  lowRisk: '#10b981',
+  goGo: '#10b981',
+  goSlow: '#f59e0b',
+  noGo: '#9ca3af',
+  rmdRequired: '#ef4444',
+  healthcare: '#ec4899',
+  blanchett: '#64748b',
 };
 
 const DARK_THEME: ChartTheme = {
@@ -58,6 +83,18 @@ const DARK_THEME: ChartTheme = {
   surplus: '#374151',
   deficit: '#7f1d1d',
   holiday: '#fcd34d',
+  annuity: '#3b82f6',
+  supplement: '#a78bfa',
+  socialSecurity: '#22d3ee',
+  tspWithdrawal: '#c084fc',
+  highRisk: '#fbbf24',
+  lowRisk: '#34d399',
+  goGo: '#34d399',
+  goSlow: '#fbbf24',
+  noGo: '#6b7280',
+  rmdRequired: '#f87171',
+  healthcare: '#f472b6',
+  blanchett: '#94a3b8',
 };
 
 export function useChartTheme(): ChartTheme {

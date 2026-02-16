@@ -61,7 +61,7 @@ Managed by `useFormSections.ts`. Each tab tracks completion via its storage key.
 | Military Service Buyback        | `modules/military/`     | Buyback deposit & service credit (module retained; UI disconnected) |
 | Expense Modeling                | `modules/expenses/`     | Categories, expense smile curve, inflation, healthcare inflation |
 | Retirement Simulation Engine    | `modules/simulation/`   | Eligibility, annuity, supplement, dual-pot TSP, income projection, scenario comparison |
-| Visualization Layer             | `components/charts/`    | Zero business logic; 5 chart components, summary cards      |
+| Visualization Layer             | `components/charts/`    | Zero business logic; 6 chart components + utilities, summary cards |
 | Validation                      | `modules/validation/`   | Input validation, assumption warnings                       |
 
 ---
@@ -96,17 +96,34 @@ Managed by `useFormSections.ts`. Each tab tracks completion via its storage key.
 
 ### Dashboard Components
 
+**Main Dashboard Layout:**
+
 | Component                | Directory             | Purpose                                     |
 |--------------------------|-----------------------|---------------------------------------------|
-| `Dashboard`              | `components/`         | Main projection layout                      |
-| `SummaryPanel`           | `components/cards/`   | Metric cards row (annuity, High-3, etc.)    |
-| `MetricCard`             | `components/cards/`   | Single metric (positive/negative/neutral)   |
-| `PayGrowthChart`         | `components/charts/`  | Salary over career                          |
-| `LeaveBalancesChart`     | `components/charts/`  | Annual & sick leave trajectory              |
-| `TSPBalancesChart`       | `components/charts/`  | Traditional & Roth balance growth           |
-| `IncomeVsExpensesChart`  | `components/charts/`  | Income vs expenses in retirement            |
-| `ExpenseSmileCurveChart` | `components/charts/`  | Spending trajectory with smile multiplier   |
-| `ChartContainer`         | `components/charts/`  | Wrapper with title/subtitle                 |
+| `Dashboard`              | `components/`         | 7-section projection layout with summary cards |
+| `SummaryPanel`           | `components/cards/`   | Expanded metric cards (9 cards: core + optional) |
+| `MetricCard`             | `components/cards/`   | Single metric with color variants           |
+
+**Chart Components (6 + Utilities):**
+
+| Component                | Directory             | Purpose                                     |
+|--------------------------|-----------------------|---------------------------------------------|
+| `IncomeWaterfallChart`   | `components/charts/`  | Hero: 4-component stacked income (annuity, supplement, SS, TSP) + expense overlay |
+| `TSPLifecycleChart`      | `components/charts/`  | Full timeline: pre-retirement accumulation → post-retirement drawdown with depletion |
+| `ExpensePhasesChart`     | `components/charts/`  | GoGo/GoSlow/NoGo phases with Blanchett comparison line |
+| `RMDComplianceChart`     | `components/charts/`  | Tax compliance: RMD required vs actual withdrawals (age 73+) |
+| `PayGrowthChart`         | `components/charts/`  | Career salary progression with High-3 average highlighted |
+| `LeaveBalancesChart`     | `components/charts/`  | Annual & sick leave trajectory with retirement credit calculation |
+| `ChartContainer`         | `components/charts/`  | Reusable wrapper with title/subtitle/height |
+| `ChartTooltip`           | `components/charts/`  | Styled tooltip container for all charts     |
+
+### Deleted Components (Phase 9 Dashboard Replacement)
+
+| Component             | Reason                                                 |
+|-----------------------|--------------------------------------------------------|
+| `IncomeVsExpensesChart` | Replaced by `IncomeWaterfallChart` (adds SS, RMD, component decomposition) |
+| `TSPBalancesChart`    | Replaced by `TSPLifecycleChart` (adds pre/post lifecycle view, depletion detection) |
+| `ExpenseSmileCurveChart` | Replaced by `ExpensePhasesChart` (adds GoGo/GoSlow/NoGo phases, Blanchett comparison) |
 
 ### Orphaned Components (retained but not rendered)
 
@@ -124,7 +141,7 @@ Managed by `useFormSections.ts`. Each tab tracks completion via its storage key.
 | Hook               | File                  | Purpose                                              |
 |--------------------|-----------------------|------------------------------------------------------|
 | `useLocalStorage`  | hooks/useLocalStorage.ts | Typed localStorage persistence with Zod validation |
-| `useSimulation`    | hooks/useSimulation.ts   | Assembles all form data, runs simulation, generates chart datasets |
+| `useSimulation`    | hooks/useSimulation.ts   | Assembles all form data, runs simulation, generates 6 chart datasets (incomeWaterfall, tspLifecycle, expensePhases, rmdTimeline, salaryHistory, leaveBalances, tspBalances, smileCurve) |
 | `useFERSEstimate`  | forms/useFERSEstimate.ts | Computes service years, annuity, supplement, TSP depletion from FERS form |
 | `useFormSections`  | forms/useFormSections.ts | Tracks tab completion status                       |
 | `useLeaveCalendar` | forms/leave-calendar/useLeaveCalendar.ts | Full CRUD for leave calendar entries |
@@ -155,8 +172,12 @@ Managed by `useFormSections.ts`. Each tab tracks completion via its storage key.
               │                   computeFERSSupplement(), projectRetirementIncome(),
               │                   projectRetirementSimulation() (dual-pot + RMD)
               │
+              │
+              ├── New Datasets (Phase 9) ──► incomeWaterfall, tspLifecycle,
+              │                               expensePhases, rmdTimeline
+              │
               ▼
-       [Dashboard] ──► SummaryPanel + 5 Charts (zero business logic)
+       [Dashboard] ──► SummaryPanel (9 cards) + 6 Charts (zero business logic)
 ```
 
 ---

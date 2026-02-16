@@ -23,7 +23,7 @@ describe('PayGrowthChart', () => {
 
   it('renders the subtitle', () => {
     render(<PayGrowthChart data={SAMPLE_DATA} />);
-    expect(screen.getByText('Annual salary progression by grade and step')).toBeInTheDocument();
+    expect(screen.getByText(/Annual salary progression.*High-3/)).toBeInTheDocument();
   });
 
   it('renders with empty data without crashing', () => {
