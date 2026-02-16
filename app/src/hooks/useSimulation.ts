@@ -99,31 +99,52 @@ export function useSimulation(
       const rothBalance = input.profile.tspBalances.rothBalance;
       if (tradBalance === 0 && rothBalance === 0) return [];
 
-      const careerYears = Math.min(retireYear - hireYear, 25);
-      const startYear = retireYear - careerYears;
+      const currentYear = new Date().getFullYear();
+      const yearsToRetirement = Math.max(0, retireYear - currentYear);
       const lastSalary = salaryHistory.length > 0 ? salaryHistory[salaryHistory.length - 1].salary : 50_000;
 
-      // Project Traditional TSP
+      // Estimate contributions based on last salary (default: 5% Traditional, 2% Roth)
+      // These are reasonable assumptions for federal employees
+      const estimatedTradContrib = lastSalary * 0.05;
+      const estimatedRothContrib = lastSalary * 0.02;
+
+      // Determine the projection period:
+      // - If retirement is in future: project from now to retirement
+      // - If retirement is past: show historical accumulation from hire to retirement
+      let projectionStartYear: number;
+      let projectionYears: number;
+
+      if (yearsToRetirement > 0) {
+        // Future retirement: project from current year forward
+        projectionStartYear = currentYear;
+        projectionYears = yearsToRetirement;
+      } else {
+        // Past or current year retirement: show accumulation from hire year
+        projectionStartYear = hireYear;
+        projectionYears = Math.min(retireYear - hireYear, 25); // Cap at 25 years like before
+      }
+
+      // Project Traditional TSP (using actual current balance, not 10%)
       const tradYears = projectTraditionalDetailed({
-        openingBalance: tradBalance > 0 ? tradBalance * 0.1 : 0,
+        openingBalance: tradBalance,
         annualSalary: lastSalary,
-        employeeAnnualContribution: 5_000,
-        employeeContributionPct: 0.10,
+        employeeAnnualContribution: estimatedTradContrib,
+        employeeContributionPct: 0.05,
         growthRate: input.assumptions.tspGrowthRate,
-        years: careerYears,
-        startYear,
+        years: projectionYears,
+        startYear: projectionStartYear,
         isCatchUpEligible: false,
       });
 
-      // Project Roth TSP (fixed bug: was always 0)
+      // Project Roth TSP (using actual current balance, not 10%)
       const rothYears = projectRothDetailed({
-        openingBalance: rothBalance > 0 ? rothBalance * 0.1 : 0,
-        employeeAnnualContribution: 2_000,
+        openingBalance: rothBalance,
+        employeeAnnualContribution: estimatedRothContrib,
         growthRate: input.assumptions.tspGrowthRate,
-        years: careerYears,
-        startYear,
+        years: projectionYears,
+        startYear: projectionStartYear,
         isCatchUpEligible: false,
-        traditionalEmployeeContribution: 5_000,
+        traditionalEmployeeContribution: estimatedTradContrib,
       });
 
       // Combine results
