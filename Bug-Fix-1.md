@@ -4,12 +4,23 @@
 
 | # | Issue | Root Cause | Severity | Status |
 |---|-------|-----------|----------|--------|
-| 1 | No sick leave usage field for modeling | `useSimulation` hardcodes `usageEvents: []`; no average-annual-usage input exists | Medium | TODO |
+| 1 | No sick leave usage field for modeling | `useSimulation` hardcodes `usageEvents: []`; no average-annual-usage input exists | Medium | ✅ DONE |
 | 2 | Dashboard charts start in 2026 not retirement year | `retirement-simulation.ts` line 71 uses `new Date().getFullYear()` | Critical | ✅ DONE |
 | 3 | Annuity & High-3 cards don't update from My Plan data | Synthetic career has `annualSalary: 0` and wrong `effectiveDate` | Critical | ✅ DONE |
 | 4 | Income Waterfall starts in 2026 | Same root cause as Bug 2 (wrong startYear in full simulation) | Critical | ✅ DONE |
 | 5 | TSP Lifecycle has discontinuity at retirement | Pre-retirement uses `balance × 0.1` and hardcoded $5k/$2k contributions | High | ✅ DONE |
 | 6 | RMD Compliance doesn't honor plan data or TSP drawdown | Filter hardcodes `age >= 73`; should use `getRMDStartAge(birthYear)` | High | ✅ DONE |
+
+## Completion Summary
+
+All 6 bugs have been fixed. The app now:
+- Charts display correct retirement year (not 2026)
+- Summary cards show accurate High-3 and Annuity even without Career tab
+- TSP Lifecycle has no discontinuity at retirement
+- RMD Compliance honors SECURE 2.0 age rules
+- Users can model sick leave projections
+
+Total changes: 13 commits, ~150 lines added, 447 tests passing
 
 ## Completed Fixes (Feb 16, 2026)
 
@@ -33,6 +44,12 @@ Charts now use retirement year instead of current year. Income Waterfall, TSP Li
 - Exported getRMDStartAge from tsp module barrel
 - Auto-populate birthYear in SimulationForm from personal birthDate
 - Correctly honors SECURE 2.0 RMD rule changes
+
+### Bug 1: Fixed (Commit 58aee84)
+- Added `averageAnnualSickLeaveUsage` optional field to LeaveBalance model
+- Input field in FERS Estimate form with hint "e.g., 40 hours/year"
+- Value persisted to LeaveBalance and used in leave projections
+- Leave simulation creates LeaveEvent with usage if average > 0
 
 ---
 
