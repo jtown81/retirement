@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@components/ui/tabs';
-import { Calculator, Briefcase, Receipt, LineChart, FileText, CheckCircle2, Circle } from 'lucide-react';
+import { Calculator, Briefcase, Receipt, LineChart, FileText, BarChart3, CheckCircle2, Circle } from 'lucide-react';
 
 export interface TabDef {
   id: string;
@@ -19,6 +19,7 @@ const TAB_ICONS: Record<string, React.ReactNode> = {
   expenses: <Receipt className="w-4 h-4" />,
   simulation: <LineChart className="w-4 h-4" />,
   tax: <FileText className="w-4 h-4" />,
+  'tsp-monitor': <BarChart3 className="w-4 h-4" />,
 };
 
 export function FormShell({ tabs, children }: FormShellProps) {

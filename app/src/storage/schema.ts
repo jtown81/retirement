@@ -33,6 +33,7 @@ export const STORAGE_KEYS = {
   TSP_CONTRIBUTIONS: 'retire:tsp:contributions',
   // v2 addition: balance history with fund allocation
   TSP_SNAPSHOTS: 'retire:tsp:snapshots',
+  TSP_ACCOUNT_SNAPSHOTS: 'retire:tsp:snapshots', // Alias for clarity
 
   // Expenses
   EXPENSE_PROFILE: 'retire:expenses',

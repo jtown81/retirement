@@ -12,6 +12,24 @@ export interface TSPBalances {
 }
 
 /**
+ * TSP investment fund codes per TSP.gov
+ */
+export type TSPFundCode =
+  | 'G' | 'F' | 'C' | 'S' | 'I'
+  | 'L-Income' | 'L2025' | 'L2030' | 'L2035' | 'L2040'
+  | 'L2045' | 'L2050' | 'L2055' | 'L2060' | 'L2065';
+
+/**
+ * Fund allocation across Traditional and Roth buckets
+ */
+export interface TSPFundAllocation {
+  fund: TSPFundCode;
+  percentTraditional: number;  // 0–100; Traditional portion of this fund
+  percentRoth: number;         // 0–100; Roth portion of this fund
+  // Note: percentTraditional + percentRoth should = 100 for this fund
+}
+
+/**
  * TSP Account Snapshot (NEW in Phase 10)
  * Records a point-in-time view of TSP account state with fund allocations
  */
@@ -21,11 +39,30 @@ export interface TSPAccountSnapshot {
   source: 'tsp-statement' | 'manual' | 'import';
   traditionalBalance: USD;
   rothBalance: USD;
-  ytdEmployeeContributions: USD;
-  ytdAgencyContributions: USD;
-  fundAllocations: Array<{ fundSymbol: string; balance: USD }>;
+  ytdEmployeeContributions?: USD;
+  ytdAgencyContributions?: USD;
+  fundAllocations: TSPFundAllocation[];
   notes?: string;
 }
+
+/**
+ * A single parsed row from TSP.gov account activity CSV
+ */
+export interface TSPTransactionRow {
+  date: ISODate;
+  description: string;
+  fund: TSPFundCode | null;  // null if fund unknown
+  source: 'employee' | 'agency-auto' | 'agency-match' | 'earnings' | 'withdrawal' | 'other';
+  amount: number;            // positive = deposit, negative = withdrawal (in dollars)
+  runningBalance: number;
+}
+
+/**
+ * TSP CSV import error (parse or validation)
+ */
+export type TSPImportError =
+  | { type: 'parse-error'; message: string; row?: number }
+  | { type: 'validation-error'; message: string; row?: number };
 
 export interface TSPContributionEvent {
   id: string;

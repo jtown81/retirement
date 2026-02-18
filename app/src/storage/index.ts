@@ -48,6 +48,11 @@ export {
   TSPContributionEventSchema,
   // Military
   MilitaryServiceSchema,
+  // TSP Snapshots
+  TSPFundCodeSchema,
+  TSPFundAllocationSchema,
+  TSPAccountSnapshotSchema,
+  TSPTransactionRowSchema,
   // Tax
   TaxProfileSchema,
   FilingStatusSchema,

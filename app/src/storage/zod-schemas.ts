@@ -158,6 +158,43 @@ export const MilitaryServiceSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// TSP (NEW in Phase 10 — balance snapshots)
+// ---------------------------------------------------------------------------
+
+export const TSPFundCodeSchema = z.enum([
+  'G', 'F', 'C', 'S', 'I',
+  'L-Income', 'L2025', 'L2030', 'L2035', 'L2040',
+  'L2045', 'L2050', 'L2055', 'L2060', 'L2065',
+]);
+
+export const TSPFundAllocationSchema = z.object({
+  fund: TSPFundCodeSchema,
+  percentTraditional: z.number().finite().min(0).max(100),
+  percentRoth: z.number().finite().min(0).max(100),
+});
+
+export const TSPAccountSnapshotSchema = z.object({
+  id: z.string().min(1),
+  asOf: ISODateSchema,
+  source: z.enum(['tsp-statement', 'manual', 'import']),
+  traditionalBalance: USDSchema,
+  rothBalance: USDSchema,
+  ytdEmployeeContributions: USDSchema.optional(),
+  ytdAgencyContributions: USDSchema.optional(),
+  fundAllocations: z.array(TSPFundAllocationSchema),
+  notes: z.string().optional(),
+});
+
+export const TSPTransactionRowSchema = z.object({
+  date: ISODateSchema,
+  description: z.string().min(1),
+  fund: TSPFundCodeSchema.nullable(),
+  source: z.enum(['employee', 'agency-auto', 'agency-match', 'earnings', 'withdrawal', 'other']),
+  amount: z.number().finite(),
+  runningBalance: z.number().finite().nonnegative(),
+});
+
+// ---------------------------------------------------------------------------
 // Tax (NEW in Phase 10)
 // ---------------------------------------------------------------------------
 
