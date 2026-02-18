@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@components/ui/table';
-import { Trash2, Edit2, Upload, Plus } from 'lucide-react';
+import { Trash2, Edit2, Upload, Plus, TrendingUp } from 'lucide-react';
 import { AddSnapshotModal } from './AddSnapshotModal';
 import { TSPImportModal } from './TSPImportModal';
 import type { TSPAccountSnapshot } from '@models/tsp';
@@ -43,6 +43,7 @@ export function TSPMonitorPanel() {
 
   const snapshotList: TSPAccountSnapshot[] = Array.isArray(snapshots) ? snapshots : [];
   const sorted = [...snapshotList].sort((a, b) => new Date(b.asOf).getTime() - new Date(a.asOf).getTime());
+  const latestSnapshot = sorted[0] ?? null;
 
   const handleDelete = (id: string) => {
     if (window.confirm('Delete this snapshot? This cannot be undone.')) {
@@ -69,10 +70,24 @@ export function TSPMonitorPanel() {
         onSave={handleSave}
         onClear={handleClear}
       >
+        {latestSnapshot && (
+          <Alert className="border-primary/30 bg-primary/5">
+            <TrendingUp className="w-4 h-4 text-primary" />
+            <AlertDescription className="text-sm">
+              <span className="font-medium">Projection source:</span> most recent snapshot (
+              {latestSnapshot.asOf}) — Traditional{' '}
+              {formatUSD(latestSnapshot.traditionalBalance)}, Roth{' '}
+              {formatUSD(latestSnapshot.rothBalance)} — is used as the starting balance for
+              all Dashboard projections.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {snapshotList.length === 0 ? (
           <Alert>
             <AlertDescription>
               No TSP snapshots recorded yet. Record your first balance below to enable tracking.
+              Without a snapshot, projections use the balance entered in FERS Estimate.
             </AlertDescription>
           </Alert>
         ) : (
@@ -94,7 +109,14 @@ export function TSPMonitorPanel() {
                   const total = snapshot.traditionalBalance + snapshot.rothBalance;
                   return (
                     <TableRow key={snapshot.id}>
-                      <TableCell className="font-medium">{snapshot.asOf}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {snapshot.asOf}
+                          {snapshot.id === latestSnapshot?.id && (
+                            <Badge variant="default" className="text-xs">Active</Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-right text-sm">{formatUSD(snapshot.traditionalBalance)}</TableCell>
                       <TableCell className="text-right text-sm">{formatUSD(snapshot.rothBalance)}</TableCell>
                       <TableCell className="text-right font-semibold">{formatUSD(total)}</TableCell>
@@ -109,7 +131,7 @@ export function TSPMonitorPanel() {
                       <TableCell>
                         <div className="flex gap-1">
                           <button
-                            onClick={() => setEditingSnapshot(snapshot)}
+                            onClick={() => { setEditingSnapshot(snapshot); setShowAddModal(true); }}
                             className="p-1 hover:bg-muted rounded"
                             title="Edit snapshot"
                           >

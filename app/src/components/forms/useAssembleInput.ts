@@ -7,6 +7,7 @@ import {
   LeaveBalanceSchema,
   TSPBalancesSchema,
   TSPContributionEventSchema,
+  TSPAccountSnapshotSchema,
   ExpenseProfileSchema,
   RetirementAssumptionsFullSchema,
   MilitaryServiceSchema,
@@ -18,8 +19,10 @@ import { z } from 'zod';
 import type { SimulationInput, SimulationConfig } from '@models/simulation';
 import type { CareerProfile } from '@models/career';
 import type { GSGrade, GSStep } from '@models/common';
+import type { TSPBalances } from '@models/tsp';
 
 const TSPContributionListSchema = z.array(TSPContributionEventSchema);
+const TSPSnapshotListSchema = z.array(TSPAccountSnapshotSchema);
 const MilitaryServiceListSchema = z.array(MilitaryServiceSchema);
 
 /**
@@ -30,7 +33,8 @@ export function useAssembleInput(): SimulationInput | null {
   const [personal] = useLocalStorage(STORAGE_KEYS.PERSONAL_INFO, PersonalInfoSchema);
   const [career] = useLocalStorage(STORAGE_KEYS.CAREER_PROFILE, CareerProfileSchema);
   const [leave] = useLocalStorage(STORAGE_KEYS.LEAVE_BALANCE, LeaveBalanceSchema);
-  const [tspBalances] = useLocalStorage(STORAGE_KEYS.TSP_BALANCES, TSPBalancesSchema);
+  const [tspBalancesLegacy] = useLocalStorage(STORAGE_KEYS.TSP_BALANCES, TSPBalancesSchema);
+  const [tspSnapshots] = useLocalStorage(STORAGE_KEYS.TSP_SNAPSHOTS, TSPSnapshotListSchema);
   const [tspContributions] = useLocalStorage(STORAGE_KEYS.TSP_CONTRIBUTIONS, TSPContributionListSchema);
   const [expenses] = useLocalStorage(STORAGE_KEYS.EXPENSE_PROFILE, ExpenseProfileSchema);
   const [assumptions] = useLocalStorage(STORAGE_KEYS.ASSUMPTIONS, RetirementAssumptionsFullSchema);
@@ -39,6 +43,20 @@ export function useAssembleInput(): SimulationInput | null {
   const [simConfig] = useLocalStorage(STORAGE_KEYS.SIMULATION_CONFIG, SimulationConfigSchema);
 
   return useMemo(() => {
+    // Prefer the most recent TSP snapshot; fall back to legacy flat balance
+    const snapshotList = Array.isArray(tspSnapshots) ? tspSnapshots : [];
+    const latestSnapshot = snapshotList.length > 0
+      ? [...snapshotList].sort((a, b) => new Date(b.asOf).getTime() - new Date(a.asOf).getTime())[0]
+      : null;
+
+    const tspBalances: TSPBalances | null = latestSnapshot
+      ? {
+          asOf: latestSnapshot.asOf,
+          traditionalBalance: latestSnapshot.traditionalBalance,
+          rothBalance: latestSnapshot.rothBalance,
+        }
+      : tspBalancesLegacy;
+
     // personal, tspBalances, expenses, assumptions are always required
     if (!personal || !tspBalances || !expenses || !assumptions) {
       return null;
@@ -108,7 +126,7 @@ export function useAssembleInput(): SimulationInput | null {
     };
 
     return input;
-  }, [personal, career, leave, tspBalances, tspContributions, expenses, assumptions, military, fersEstimate]);
+  }, [personal, career, leave, tspBalancesLegacy, tspSnapshots, tspContributions, expenses, assumptions, military, fersEstimate]);
 }
 
 /**
