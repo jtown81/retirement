@@ -9,6 +9,7 @@
  */
 
 import { registerFormula } from '../../registry/index';
+import { computeRMD } from './rmd';
 
 registerFormula({
   id: 'tsp/future-value',
@@ -25,11 +26,14 @@ registerFormula({
   id: 'tsp/depletion-projection',
   name: 'TSP Post-Retirement Depletion Projection',
   module: 'tsp',
-  purpose: 'Projects year-by-year TSP balance from retirement through age 104, finding depletion age.',
-  sourceRef: 'Retire-original.xlsx Basic Calculator V4:AB104',
+  purpose: 'Projects year-by-year TSP balance from retirement through age 104, finding depletion age. Enforces RMD floor when birthYear is provided.',
+  sourceRef: 'Retire-original.xlsx Basic Calculator V4:AB104; IRC § 401(a)(9); SECURE 2.0 Act § 107',
   classification: 'assumption',
-  version: '1.0.0',
-  changelog: [{ date: '2026-02-10', author: 'system', description: 'Initial implementation' }],
+  version: '1.1.0',
+  changelog: [
+    { date: '2026-02-10', author: 'system', description: 'Initial implementation' },
+    { date: '2026-02-18', author: 'system', description: 'Added RMD floor enforcement and Traditional/Roth tracking' },
+  ],
 });
 
 registerFormula({
@@ -87,7 +91,12 @@ export interface TSPDepletionResult {
   /** TSP balance at age 85 (0 if depleted before 85) */
   balanceAt85: number;
   /** Year-by-year projection from retirement age */
-  yearByYear: Array<{ age: number; balance: number }>;
+  yearByYear: Array<{
+    age: number;
+    balance: number;
+    rmdAmount: number; // IRS Required Minimum Distribution (0 if no RMD required at that age)
+    actualWithdrawal: number; // max(plannedWithdrawal, rmdAmount)
+  }>;
 }
 
 /**
@@ -95,6 +104,7 @@ export interface TSPDepletionResult {
  *
  * Each year: balance = (previous balance × (1 + growthRate)) - annualWithdrawal
  * Optional one-time withdrawal at a specified age.
+ * If birthYear is provided, enforces RMD floor: actualWithdrawal = max(annualWithdrawal, rmdAmount).
  * Projects through age 104.
  *
  * @param balanceAtRetirement - TSP balance at start of retirement
@@ -102,7 +112,9 @@ export interface TSPDepletionResult {
  * @param growthRate - Annual growth rate on remaining balance
  * @param retirementAge - Age at retirement (integer)
  * @param oneTimeWithdrawal - Optional one-time withdrawal (amount + age)
- * @returns Depletion result with age and balance at 85
+ * @param birthYear - Optional birth year (enables RMD floor enforcement per IRC § 401(a)(9))
+ * @param traditionalFraction - Optional fraction of TSP that is Traditional (0-1, default 1.0 for conservative RMD calculation)
+ * @returns Depletion result with age, balance at 85, and year-by-year detail including RMD amounts
  */
 export function projectTSPDepletion(
   balanceAtRetirement: number,
@@ -110,38 +122,77 @@ export function projectTSPDepletion(
   growthRate: number,
   retirementAge: number,
   oneTimeWithdrawal?: { amount: number; age: number },
+  birthYear?: number,
+  traditionalFraction?: number,
 ): TSPDepletionResult {
   const MAX_AGE = 104;
-  const yearByYear: Array<{ age: number; balance: number }> = [];
+  const yearByYear: Array<{
+    age: number;
+    balance: number;
+    rmdAmount: number;
+    actualWithdrawal: number;
+  }> = [];
   let balance = balanceAtRetirement;
   let depletionAge: number | null = null;
   let balanceAt85 = 0;
 
+  // Initialize Traditional/Roth tracking for RMD enforcement
+  const tradFraction = traditionalFraction ?? 1.0;
+  let tradBalance = balance * tradFraction;
+  let rothBalance = balance * (1 - tradFraction);
+
   // Apply one-time withdrawal at retirement age if it matches
   if (oneTimeWithdrawal && oneTimeWithdrawal.age === Math.round(retirementAge)) {
     balance = Math.max(0, balance - oneTimeWithdrawal.amount);
+    tradBalance = balance * tradFraction;
+    rothBalance = balance * (1 - tradFraction);
   }
 
-  yearByYear.push({ age: Math.round(retirementAge), balance });
+  yearByYear.push({
+    age: Math.round(retirementAge),
+    balance,
+    rmdAmount: 0,
+    actualWithdrawal: 0,
+  });
 
   for (let age = Math.round(retirementAge) + 1; age <= MAX_AGE; age++) {
     // Apply one-time withdrawal at the specified age
     if (oneTimeWithdrawal && age === oneTimeWithdrawal.age && yearByYear.length > 1) {
       balance = Math.max(0, balance - oneTimeWithdrawal.amount);
+      tradBalance = balance * tradFraction;
+      rothBalance = balance * (1 - tradFraction);
     }
 
-    // Grow balance then withdraw
+    // Grow balance (before RMD/withdrawal calculation)
     balance = balance * (1 + growthRate);
-    balance = balance - annualWithdrawal;
+    tradBalance = tradBalance * (1 + growthRate);
+    rothBalance = rothBalance * (1 + growthRate);
+
+    // Compute RMD on prior year-end Traditional balance (before growth for this year)
+    // Using the balance from the previous iteration's end (which is now before growth)
+    const priorYearTradBalance = tradBalance / (1 + growthRate); // Reverse growth to get prior year-end
+    const rmdAmount = birthYear ? computeRMD(priorYearTradBalance, age, birthYear) : 0;
+
+    // Actual withdrawal is the maximum of planned and RMD
+    const actualWithdrawal = Math.max(annualWithdrawal, rmdAmount);
+
+    // Apply withdrawal (Traditional first, then Roth)
+    balance = balance - actualWithdrawal;
+    const tradWithdrawal = Math.min(tradBalance, actualWithdrawal);
+    tradBalance = tradBalance - tradWithdrawal;
+    const rothWithdrawal = actualWithdrawal - tradWithdrawal;
+    rothBalance = Math.max(0, rothBalance - rothWithdrawal);
 
     if (balance <= 0) {
       balance = 0;
+      tradBalance = 0;
+      rothBalance = 0;
       if (depletionAge === null) {
         depletionAge = age;
       }
     }
 
-    yearByYear.push({ age, balance });
+    yearByYear.push({ age, balance, rmdAmount, actualWithdrawal });
 
     if (age === 85) {
       balanceAt85 = balance;

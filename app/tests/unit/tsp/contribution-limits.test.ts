@@ -26,26 +26,46 @@ describe('getTSPLimits', () => {
 
 describe('clampToContributionLimit', () => {
   it('returns intended amount when under the limit', () => {
-    expect(clampToContributionLimit(10000, 2024, false)).toBe(10000);
+    expect(clampToContributionLimit(10000, 2024, 45)).toBe(10000);
   });
 
-  it('caps at elective deferral limit without catch-up', () => {
-    expect(clampToContributionLimit(99999, 2024, false)).toBe(23000);
+  it('caps at elective deferral limit for age below 50', () => {
+    expect(clampToContributionLimit(99999, 2024, 45)).toBe(23000);
   });
 
-  it('allows catch-up on top of base limit for age 50+', () => {
-    expect(clampToContributionLimit(99999, 2024, true)).toBe(23000 + 7500);
+  it('allows standard catch-up for age 50+ before 2025', () => {
+    expect(clampToContributionLimit(99999, 2024, 50)).toBe(23000 + 7500);
   });
 
-  it('does not apply catch-up when ineligible', () => {
-    expect(clampToContributionLimit(99999, 2024, false)).toBe(23000);
+  it('does not apply catch-up for age below 50', () => {
+    expect(clampToContributionLimit(99999, 2024, 45)).toBe(23000);
+  });
+
+  it('applies standard catch-up for age 59 in 2025 (not enhanced)', () => {
+    expect(clampToContributionLimit(99999, 2025, 59)).toBe(23500 + 7500);
+  });
+
+  it('applies enhanced catch-up for age 60 in 2025 (SECURE 2.0)', () => {
+    expect(clampToContributionLimit(99999, 2025, 60)).toBe(23500 + 11250);
+  });
+
+  it('applies enhanced catch-up for age 63 in 2025 (SECURE 2.0)', () => {
+    expect(clampToContributionLimit(99999, 2025, 63)).toBe(23500 + 11250);
+  });
+
+  it('applies standard catch-up for age 64 in 2025 (not enhanced)', () => {
+    expect(clampToContributionLimit(99999, 2025, 64)).toBe(23500 + 7500);
+  });
+
+  it('does not apply enhanced catch-up for age 60 in 2024 (pre-SECURE 2.0)', () => {
+    expect(clampToContributionLimit(99999, 2024, 60)).toBe(23000 + 7500);
   });
 
   it('throws for negative intended contribution', () => {
-    expect(() => clampToContributionLimit(-1, 2024, false)).toThrow(RangeError);
+    expect(() => clampToContributionLimit(-1, 2024, 45)).toThrow(RangeError);
   });
 
   it('returns zero for zero contribution', () => {
-    expect(clampToContributionLimit(0, 2024, false)).toBe(0);
+    expect(clampToContributionLimit(0, 2024, 45)).toBe(0);
   });
 });

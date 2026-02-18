@@ -138,6 +138,7 @@ export const DEMO_LEAVE_BALANCES: LeaveBalanceDataPoint[] = (() => {
 /** TSP balances year-by-year for the TSP chart (fixed: includes Roth) */
 export const DEMO_TSP_BALANCES: TSPBalanceDataPoint[] = (() => {
   // Project Traditional TSP using detailed projection
+  // Demo assumes employee born in 1965 (age 35 in 2000)
   const traditionalYears = projectTraditionalDetailed({
     openingBalance: 50_000,  // Starting balance in early career
     annualSalary: 50_000,
@@ -146,7 +147,7 @@ export const DEMO_TSP_BALANCES: TSPBalanceDataPoint[] = (() => {
     growthRate: 0.07,
     years: new Date(RETIRE_DATE).getFullYear() - 2000, // ~25 years of contributions
     startYear: 2000,
-    isCatchUpEligible: false,
+    employeeStartAge: 35,
   });
 
   // Project Roth TSP (fixed bug: was always 0)
@@ -156,7 +157,7 @@ export const DEMO_TSP_BALANCES: TSPBalanceDataPoint[] = (() => {
     growthRate: 0.07,
     years: new Date(RETIRE_DATE).getFullYear() - 2000,
     startYear: 2000,
-    isCatchUpEligible: false,
+    employeeStartAge: 35,
     traditionalEmployeeContribution: 5_000,
   });
 

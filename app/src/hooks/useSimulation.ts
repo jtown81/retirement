@@ -127,6 +127,7 @@ export function useSimulation(
       // - If retirement is past: show historical accumulation from hire to retirement
       let projectionStartYear: number;
       let projectionYears: number;
+      let employeeStartAge: number;
 
       if (yearsToRetirement > 0) {
         // Future retirement: project from current year forward
@@ -138,6 +139,10 @@ export function useSimulation(
         projectionYears = Math.min(retireYear - hireYear, 25); // Cap at 25 years like before
       }
 
+      // Compute employee age at start of projection period
+      const birthYear = new Date(input.profile.birthDate).getFullYear();
+      employeeStartAge = projectionStartYear - birthYear;
+
       // Project Traditional TSP (using actual current balance, not 10%)
       const tradYears = projectTraditionalDetailed({
         openingBalance: tradBalance,
@@ -147,7 +152,7 @@ export function useSimulation(
         growthRate: input.assumptions.tspGrowthRate,
         years: projectionYears,
         startYear: projectionStartYear,
-        isCatchUpEligible: false,
+        employeeStartAge,
       });
 
       // Project Roth TSP (using actual current balance, not 10%)
@@ -157,7 +162,7 @@ export function useSimulation(
         growthRate: input.assumptions.tspGrowthRate,
         years: projectionYears,
         startYear: projectionStartYear,
-        isCatchUpEligible: false,
+        employeeStartAge,
         traditionalEmployeeContribution: estimatedTradContrib,
       });
 

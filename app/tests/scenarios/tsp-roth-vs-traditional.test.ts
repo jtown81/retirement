@@ -114,7 +114,7 @@ describe('Scenario: Roth vs Traditional TSP', () => {
       growthRate: GROWTH_RATE,
       years: YEARS,
       startYear: START_YEAR,
-      isCatchUpEligible: false,
+      employeeStartAge: 45,
     });
 
     expect(detail).toHaveLength(YEARS);

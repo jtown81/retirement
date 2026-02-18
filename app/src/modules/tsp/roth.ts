@@ -36,8 +36,8 @@ export interface RothProjectionInput {
   years: number;
   /** Calendar year at start of projection (for IRS limit enforcement) */
   startYear: number;
-  /** True if employee is age 50+ at the start of this projection segment */
-  isCatchUpEligible: boolean;
+  /** Employee age at the start of this projection segment (used to determine catch-up eligibility) */
+  employeeStartAge: number;
   /**
    * Annual Traditional TSP employee contribution in dollars (same projection segment).
    * Used to enforce the combined IRS elective deferral limit across both account types.
@@ -86,7 +86,7 @@ export function projectRothDetailed(input: RothProjectionInput): RothProjectionY
     growthRate,
     years,
     startYear,
-    isCatchUpEligible,
+    employeeStartAge,
     traditionalEmployeeContribution = 0,
   } = input;
 
@@ -98,12 +98,13 @@ export function projectRothDetailed(input: RothProjectionInput): RothProjectionY
 
   for (let i = 0; i < years; i++) {
     const calendarYear = startYear + i;
+    const employeeAge = employeeStartAge + i;
     const opening = balance;
 
     // Combined Traditional + Roth must not exceed the annual elective deferral limit.
     // We apply the cap to the total and allocate proportionally if needed.
     const totalIntended = employeeAnnualContribution + traditionalEmployeeContribution;
-    const totalCapped = clampToContributionLimit(totalIntended, calendarYear, isCatchUpEligible);
+    const totalCapped = clampToContributionLimit(totalIntended, calendarYear, employeeAge);
 
     // If capping occurred, reduce Roth proportionally (traditional gets priority in this model).
     // ASSUMPTION: Traditional contributions are fulfilled first when cap is hit.

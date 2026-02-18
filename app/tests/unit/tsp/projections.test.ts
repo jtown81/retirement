@@ -69,7 +69,7 @@ describe('projectTraditionalDetailed', () => {
     growthRate: 0.07,
     years: 3,
     startYear: 2025,
-    isCatchUpEligible: false,
+    employeeStartAge: 45,
   };
 
   it('returns one entry per year', () => {
@@ -113,7 +113,7 @@ describe('projectRothDetailed', () => {
       growthRate: 0.07,
       years: 3,
       startYear: 2025,
-      isCatchUpEligible: false,
+      employeeStartAge: 45,
     });
     // Roth snapshots have no agencyContribution field — employee only
     for (const yr of result) {
@@ -129,7 +129,7 @@ describe('projectRothDetailed', () => {
       growthRate: 0.07,
       years: 1,
       startYear: 2025,
-      isCatchUpEligible: false,
+      employeeStartAge: 45,
       traditionalEmployeeContribution: 23500,
     });
     expect(result[0].employeeContribution).toBe(0);

@@ -87,6 +87,79 @@ describe('projectTSPDepletion', () => {
     expect(result.yearByYear[0].age).toBe(65);
     expect(result.yearByYear[0].balance).toBe(500_000);
   });
+
+  it('includes rmdAmount and actualWithdrawal in yearByYear', () => {
+    const result = projectTSPDepletion(500_000, 20_000, 0.05, 65);
+    for (const year of result.yearByYear) {
+      expect(year).toHaveProperty('rmdAmount');
+      expect(year).toHaveProperty('actualWithdrawal');
+      expect(typeof year.rmdAmount).toBe('number');
+      expect(typeof year.actualWithdrawal).toBe('number');
+    }
+  });
+
+  it('computes RMD at age 73 when birthYear provided (born before 1960)', () => {
+    // Employee born in 1959 → RMD starts at age 73
+    // Retirement at 65 means RMD starts 8 years later
+    const result = projectTSPDepletion(1_000_000, 30_000, 0.05, 65, undefined, 1959);
+    const age73 = result.yearByYear.find((y) => y.age === 73);
+    expect(age73).toBeDefined();
+    // RMD at age 73 with $1M traditional balance (approx) should be > 0
+    expect(age73!.rmdAmount).toBeGreaterThan(0);
+    // Actual withdrawal should be at least the RMD
+    expect(age73!.actualWithdrawal).toBeGreaterThanOrEqual(age73!.rmdAmount);
+  });
+
+  it('does not compute RMD before age 73 when birthYear provided (born before 1960)', () => {
+    const result = projectTSPDepletion(1_000_000, 30_000, 0.05, 65, undefined, 1959);
+    // RMD age is 73, so ages 65–72 should have rmdAmount = 0
+    for (const year of result.yearByYear) {
+      if (year.age < 73) {
+        expect(year.rmdAmount).toBe(0);
+      }
+    }
+  });
+
+  it('computes RMD at age 75 when birthYear provided (born 1960+)', () => {
+    // Employee born in 1960 → RMD starts at age 75
+    const result = projectTSPDepletion(1_000_000, 30_000, 0.05, 65, undefined, 1960);
+    const age75 = result.yearByYear.find((y) => y.age === 75);
+    expect(age75).toBeDefined();
+    expect(age75!.rmdAmount).toBeGreaterThan(0);
+  });
+
+  it('does not enforce RMD when birthYear is not provided', () => {
+    // Without birthYear, all rmdAmount should be 0, and actualWithdrawal should equal planned
+    const result = projectTSPDepletion(1_000_000, 30_000, 0.05, 65);
+    // First entry (retirement age) has no withdrawal
+    expect(result.yearByYear[0].rmdAmount).toBe(0);
+    expect(result.yearByYear[0].actualWithdrawal).toBe(0);
+    // Subsequent years should have no RMD and withdrawal = planned
+    for (let i = 1; i < result.yearByYear.length; i++) {
+      const year = result.yearByYear[i];
+      expect(year.rmdAmount).toBe(0);
+      expect(year.actualWithdrawal).toBe(30_000); // Just the planned withdrawal
+    }
+  });
+
+  it('RMD floor causes higher withdrawal when RMD > planned', () => {
+    // Large balance, small planned withdrawal → RMD should exceed withdrawal
+    const result = projectTSPDepletion(5_000_000, 10_000, 0.05, 65, undefined, 1959);
+    const age73 = result.yearByYear.find((y) => y.age === 73);
+    expect(age73).toBeDefined();
+    // RMD from $5M balance at age 73 should be much larger than $10k planned
+    expect(age73!.rmdAmount).toBeGreaterThan(100_000);
+    expect(age73!.actualWithdrawal).toBe(age73!.rmdAmount);
+  });
+
+  it('planned withdrawal exceeds RMD when contribution rate is high', () => {
+    // Large planned withdrawal, reasonable balance → planned exceeds RMD
+    const result = projectTSPDepletion(500_000, 100_000, 0.05, 65, undefined, 1959);
+    const age73 = result.yearByYear.find((y) => y.age === 73);
+    expect(age73).toBeDefined();
+    // Planned withdrawal ($100k) should exceed RMD from ~$650k balance
+    expect(age73!.actualWithdrawal).toBeGreaterThanOrEqual(age73!.rmdAmount);
+  });
 });
 
 describe('projectPreRetirementTSP (Phase D)', () => {

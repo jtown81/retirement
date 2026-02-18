@@ -167,6 +167,7 @@ export function useFERSEstimate(input: FERSEstimateInput): FERSEstimateResult | 
       input.tspGrowthRate,
       retirementAge,
       oneTime,
+      birthYear,
     );
 
     const serviceYears = Math.floor(civilianServiceYears);
