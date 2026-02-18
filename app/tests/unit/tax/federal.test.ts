@@ -4,9 +4,9 @@ import { computeFederalTax, computeFederalTaxableIncome, computeFederalTaxFull, 
 describe('Federal Income Tax', () => {
   describe('computeFederalTax', () => {
     it('computes correct tax for $50k single income (2024)', () => {
-      // $50k single: $11,600 @ 10% = $1,160; $38,400 @ 12% = $4,608; total = $5,768
+      // $50k single: $11,600 @ 10% = $1,160; $35,550 @ 12% = $4,266; $2,850 @ 22% = $627; total = $6,053
       const tax = computeFederalTax(50000, 2024, 'single');
-      expect(tax).toBe(5768);
+      expect(tax).toBe(6053);
     });
 
     it('computes correct tax for $100k single income (2024)', () => {

@@ -159,7 +159,9 @@ describe('State Income Tax', () => {
 
     it('rounds to cents', () => {
       const tax = computeStateTax(50001, 0, 0, 'VA', 2024);
-      expect(tax % 1).toBeLessThan(0.01);
+      // Check that it's rounded to 2 decimal places (no third decimal)
+      const cents = Math.round(tax * 100);
+      expect(tax).toBe(cents / 100);
     });
 
     it('never returns negative tax', () => {

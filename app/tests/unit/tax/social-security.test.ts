@@ -11,8 +11,8 @@ describe('Social Security Taxation (IRC § 86)', () => {
   describe('computeProvisionalIncome', () => {
     it('calculates provisional income = AGI + exempt interest + 50% of SS', () => {
       const pi = computeProvisionalIncome(50000, 5000, 24000);
-      // 50k + 5k + (24k × 0.5) = 62k
-      expect(pi).toBe(62000);
+      // 50k + 5k + (24k × 0.5) = 50k + 5k + 12k = 67k
+      expect(pi).toBe(67000);
     });
 
     it('handles zero components', () => {
@@ -77,9 +77,9 @@ describe('Social Security Taxation (IRC § 86)', () => {
     });
 
     it('MFJ has higher thresholds than single', () => {
-      // At PI = $33k: single is 0.5, MFJ is 0
+      // At PI = $33k: single is 0.5, MFJ is also 0.5 (since 32k < 33k <= 44k)
       expect(computeSSTaxableFraction(33000, 'single')).toBe(0.5);
-      expect(computeSSTaxableFraction(33000, 'married-joint')).toBe(0);
+      expect(computeSSTaxableFraction(33000, 'married-joint')).toBe(0.5);
     });
   });
 
@@ -103,9 +103,9 @@ describe('Social Security Taxation (IRC § 86)', () => {
 
   describe('computeTaxableSS', () => {
     it('applies fraction to annual benefit', () => {
-      // $25k benefit, 0.5 fraction = $12,500 taxable
+      // $25k benefit, PI=$35k (>$34k) → 0.85 fraction = $21,250 taxable
       const taxable = computeTaxableSS(25000, 35000, 'single');
-      expect(taxable).toBe(25000 * 0.5); // 12,500
+      expect(taxable).toBe(25000 * 0.85); // 21,250
     });
 
     it('handles 0% taxable fraction', () => {

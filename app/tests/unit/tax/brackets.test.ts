@@ -16,7 +16,7 @@ describe('Tax Brackets', () => {
       const brackets = getBracketsForYearAndStatus(2024, 'married-joint');
       expect(brackets).toHaveLength(7);
       expect(brackets[0].minIncome).toBe(0);
-      expect(brackets[0].maxIncome).toBe(2320000); // $23,200 in cents
+      expect(brackets[0].maxIncome).toBe(23200); // $23,200
     });
 
     it('married-joint brackets are wider than single', () => {
@@ -24,8 +24,8 @@ describe('Tax Brackets', () => {
       const mfj = getBracketsForYearAndStatus(2024, 'married-joint');
 
       // 10% bracket: single $11,600 vs MFJ $23,200
-      expect(single[0]?.maxIncome).toBe(1160000);
-      expect(mfj[0]?.maxIncome).toBe(2320000);
+      expect(single[0]?.maxIncome).toBe(11600);
+      expect(mfj[0]?.maxIncome).toBe(23200);
       expect(mfj[0]?.maxIncome).toBe((single[0]?.maxIncome ?? 0) * 2);
     });
 
