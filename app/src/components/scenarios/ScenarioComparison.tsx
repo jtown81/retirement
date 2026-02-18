@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useScenarioManager } from '@hooks/useScenarioManager';
 import { useLocalStorage } from '@hooks/useLocalStorage';
 import { STORAGE_KEYS, NamedScenariosArraySchema } from '@storage/index';
+import { exportScenarioJSON, exportScenariosJSON } from '@utils/export';
 import {
   computeMetricDelta,
   formatMetric,
@@ -14,7 +15,8 @@ import {
   METRIC_GROUPS,
   prettifyMetricName,
 } from '@utils/scenario-comparison';
-import { AlertCircle } from 'lucide-react';
+import { Button } from '@components/ui/button';
+import { AlertCircle, Download } from 'lucide-react';
 
 export function ScenarioComparison() {
   const [scenarios] = useLocalStorage(STORAGE_KEYS.NAMED_SCENARIOS, NamedScenariosArraySchema);
@@ -47,8 +49,8 @@ export function ScenarioComparison() {
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Scenario Comparison</h2>
 
-      {/* Scenario Selector */}
-      <div className="rounded-lg border border-border bg-card p-4">
+      {/* Scenario Selector & Export */}
+      <div className="rounded-lg border border-border bg-card p-4 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
@@ -83,6 +85,44 @@ export function ScenarioComparison() {
                 ))}
             </select>
           </div>
+        </div>
+
+        {/* Export Buttons */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportScenarioJSON(baseline as any)}
+            className="gap-2"
+            title="Export baseline scenario as JSON"
+          >
+            <Download className="w-4 h-4" />
+            Export Baseline
+          </Button>
+          {selected && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => exportScenarioJSON(selected as any)}
+                className="gap-2"
+                title="Export comparison scenario as JSON"
+              >
+                <Download className="w-4 h-4" />
+                Export Comparison
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => exportScenariosJSON([baseline as any, selected as any])}
+                className="gap-2"
+                title="Export both scenarios as JSON"
+              >
+                <Download className="w-4 h-4" />
+                Export Both
+              </Button>
+            </>
+          )}
         </div>
       </div>
 

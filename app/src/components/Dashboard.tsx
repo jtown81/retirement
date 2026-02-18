@@ -11,6 +11,7 @@ import { LeaveBalancesChart } from './charts/LeaveBalancesChart';
 import { ExpensePhasesChart } from './charts/ExpensePhasesChart';
 import { RMDComplianceChart } from './charts/RMDComplianceChart';
 import { ChartSkeleton } from './charts/ChartSkeleton';
+import { ProjectionTable } from './charts/ProjectionTable';
 import type { SimulationData } from '@hooks/useSimulation';
 
 const USD_FORMAT = new Intl.NumberFormat('en-US', {
@@ -268,6 +269,17 @@ export function Dashboard({ data, mode }: DashboardProps) {
           </section>
         </>
       )}
+
+      <Separator />
+
+      {/* Reports: Projection Table */}
+      <section className="space-y-4">
+        <SectionHeading
+          title="Retirement Projection Table"
+          description="Year-by-year breakdown of income, taxes, and expenses. Download as CSV or print as PDF."
+        />
+        <ProjectionTable years={fullSimulation?.years ?? []} />
+      </section>
     </div>
   );
 }

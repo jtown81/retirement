@@ -1,0 +1,264 @@
+/**
+ * Print Stylesheet
+ * Optimized layout for printing and PDF export.
+ * Hides interactive elements and formats content for readability.
+ */
+
+@media print {
+  /* Hide interactive and navigation elements */
+  header,
+  nav,
+  .navbar,
+  .sidebar,
+  .form-shell,
+  .form-section,
+  button,
+  input,
+  select,
+  textarea,
+  .chart-controls,
+  .export-button,
+  .no-print,
+  .print-hidden,
+  [data-print-hide],
+  /* Specific component selectors */
+  .TabsList,
+  .Tabs__trigger,
+  .card-actions,
+  .modal,
+  .dialog {
+    display: none !important;
+  }
+
+  /* Page setup */
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: white;
+    color: #000;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 11pt;
+    line-height: 1.4;
+  }
+
+  body {
+    width: 100%;
+  }
+
+  /* Main content */
+  main,
+  .main-content,
+  .content {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0.5in;
+    background: white;
+  }
+
+  /* Page breaks - prefer to keep content together */
+  h1,
+  h2 {
+    page-break-after: avoid;
+  }
+
+  table {
+    page-break-inside: avoid;
+  }
+
+  tr {
+    page-break-inside: avoid;
+  }
+
+  .page-break {
+    page-break-after: always;
+  }
+
+  /* Headings */
+  h1 {
+    font-size: 18pt;
+    margin: 0 0 12pt 0;
+    font-weight: bold;
+  }
+
+  h2 {
+    font-size: 14pt;
+    margin: 12pt 0 8pt 0;
+    font-weight: bold;
+  }
+
+  h3 {
+    font-size: 12pt;
+    margin: 8pt 0 4pt 0;
+    font-weight: bold;
+  }
+
+  /* Table styling for print */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12pt;
+    font-size: 9pt;
+  }
+
+  th,
+  td {
+    border: 1px solid #999;
+    padding: 4pt 6pt;
+    text-align: left;
+  }
+
+  th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+  }
+
+  /* Remove background colors but keep borders */
+  tr:nth-child(odd) {
+    background-color: white;
+  }
+
+  tr:nth-child(even) {
+    background-color: white;
+  }
+
+  /* Numeric alignment */
+  td:nth-child(n + 2) {
+    text-align: right;
+  }
+
+  /* Summary cards: display as 2-column table layout */
+  .summary-panel,
+  .metric-grid {
+    display: table;
+    width: 100%;
+    margin-bottom: 12pt;
+    border-collapse: collapse;
+  }
+
+  .metric-card,
+  .summary-card {
+    display: table-cell;
+    width: 50%;
+    padding: 8pt;
+    border: 1px solid #999;
+    background: white;
+  }
+
+  /* Remove colored backgrounds and shadows */
+  * {
+    background: white !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Restore text color */
+  * {
+    color: #000 !important;
+  }
+
+  /* Links */
+  a {
+    color: #000 !important;
+    text-decoration: underline;
+  }
+
+  /* Hide SVG charts - they don't print well */
+  canvas,
+  svg,
+  .recharts-surface,
+  .chart-container,
+  [data-chart],
+  .chart {
+    display: none !important;
+  }
+
+  /* List formatting */
+  ul,
+  ol {
+    margin: 8pt 0;
+    padding-left: 20pt;
+  }
+
+  li {
+    margin: 2pt 0;
+  }
+
+  /* Blockquotes and code */
+  blockquote {
+    margin: 8pt 0;
+    padding: 8pt 12pt;
+    border-left: 2pt solid #999;
+  }
+
+  code,
+  pre {
+    font-family: 'Courier New', monospace;
+    font-size: 10pt;
+  }
+
+  /* Page margins and size */
+  @page {
+    margin: 0.5in;
+    size: letter portrait;
+  }
+
+  /* First page special styling if needed */
+  @page :first {
+    margin: 0.5in;
+  }
+
+  /* Footer with document info */
+  body::after {
+    content: 'Generated from FedRetire — Federal Retirement Planning Tool (local-only, no data transmitted)';
+    display: block;
+    margin-top: 24pt;
+    padding-top: 12pt;
+    border-top: 1px solid #999;
+    font-size: 8pt;
+    color: #666;
+    text-align: center;
+  }
+
+  /* Print utility classes */
+  .print-visible {
+    display: block !important;
+  }
+
+  .print-block {
+    display: block !important;
+  }
+
+  .print-inline {
+    display: inline !important;
+  }
+
+  /* Ensure minimum contrast */
+  body {
+    color: #000;
+  }
+
+  /* Remove all decorative elements */
+  .hr,
+  hr {
+    border: none;
+    border-top: 1px solid #999;
+    margin: 8pt 0;
+  }
+}
+
+/* Print-specific utility classes for use in components */
+.print-only {
+  display: none;
+}
+
+@media print {
+  .print-only {
+    display: block !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}

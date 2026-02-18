@@ -7,8 +7,9 @@ import { useState } from 'react';
 import { useScenarioManager } from '@hooks/useScenarioManager';
 import { useLocalStorage } from '@hooks/useLocalStorage';
 import { STORAGE_KEYS, NamedScenariosArraySchema } from '@storage/index';
+import { exportScenariosJSON } from '@utils/export';
 import { Button } from '@components/ui/button';
-import { AlertCircle, Trash2, Edit2, Copy, CheckCircle } from 'lucide-react';
+import { AlertCircle, Trash2, Edit2, Copy, CheckCircle, Download } from 'lucide-react';
 import { SaveScenarioDialog } from './SaveScenarioDialog';
 import { EditScenarioDialog } from './EditScenarioDialog';
 import type { NamedScenario } from '@models/scenario';
@@ -201,18 +202,32 @@ export function ScenarioManager({ onLoadScenario }: ScenarioManagerProps) {
 
           {/* Summary Stats */}
           <div className="rounded-lg border border-border bg-muted p-4">
-            <h4 className="font-semibold text-foreground mb-2">Summary</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="flex justify-between items-start">
               <div>
-                <span className="text-muted-foreground">Total Scenarios:</span>
-                <p className="font-medium text-foreground">{scenarioList.length}</p>
+                <h4 className="font-semibold text-foreground mb-2">Summary</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Total Scenarios:</span>
+                    <p className="font-medium text-foreground">{scenarioList.length}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Baseline:</span>
+                    <p className="font-medium text-foreground">
+                      {baseline?.label ?? 'None'}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <span className="text-muted-foreground">Baseline:</span>
-                <p className="font-medium text-foreground">
-                  {baseline?.label ?? 'None'}
-                </p>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => exportScenariosJSON(scenarioList as any)}
+                className="gap-2"
+                title="Export all scenarios as JSON"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Export All</span>
+              </Button>
             </div>
           </div>
         </>
