@@ -310,6 +310,7 @@ export const FERSEstimateSchema = z.object({
   biweeklyTspContribution: USDSchema,
   isRothContribution: z.boolean().optional(),
   catchUpEligible: z.boolean().optional(),
+  agencyMatchTrueUp: z.boolean().optional(),
   tspGrowthRate: RateSchema.min(0).max(1),
   // TSP withdrawals
   withdrawalRate: RateSchema.min(0).max(1),

@@ -15,7 +15,7 @@
  * Source: 5 U.S.C. § 8432; TSP regulations 5 CFR Part 1600
  */
 
-import { clampToContributionLimit } from '../../data/tsp-limits';
+import { clampToContributionLimit, getTSPLimits } from '../../data/tsp-limits';
 import { computeAgencyMatch } from './agency-match';
 
 export interface TraditionalProjectionYear {
@@ -44,6 +44,15 @@ export interface TraditionalProjectionInput {
   startYear: number;
   /** Employee age at the start of this projection segment (used to determine catch-up eligibility) */
   employeeStartAge: number;
+  /**
+   * True if the payroll provider performs annual agency match true-up.
+   * When an employee front-loads contributions and hits the 402(g) cap mid-year,
+   * they stop contributing. Without true-up (default), agency stops matching those periods.
+   * With true-up, agency restores match retroactively to reach the annual 5% maximum.
+   * Source: TSP regulations 5 CFR Part 1600; TSP Bulletin 2012-2
+   * HOOK: tsp/annual-trueup
+   */
+  agencyMatchTrueUp?: boolean;
 }
 
 /**
@@ -93,6 +102,7 @@ export function projectTraditionalDetailed(
     years,
     startYear,
     employeeStartAge,
+    agencyMatchTrueUp = false,
   } = input;
 
   if (years < 0) throw new RangeError('years must be >= 0');
@@ -100,33 +110,75 @@ export function projectTraditionalDetailed(
 
   const results: TraditionalProjectionYear[] = [];
   let balance = openingBalance;
+  const BIWEEKLY_PERIODS = 26;
 
   for (let i = 0; i < years; i++) {
     const calendarYear = startYear + i;
     const employeeAge = employeeStartAge + i;
     const opening = balance;
 
-    // IRS limit enforcement
-    const employeeContrib = clampToContributionLimit(
+    // IRS limit enforcement: cap employee contributions to annual limit
+    const cappedEmployeeContrib = clampToContributionLimit(
       employeeAnnualContribution,
       calendarYear,
       employeeAge,
     );
 
     // Agency match always goes to Traditional
-    const { totalAgencyContribution: agencyContrib } = computeAgencyMatch(
+    let agencyContrib = computeAgencyMatch(
       annualSalary,
       employeeContributionPct,
-    );
+    ).totalAgencyContribution;
 
-    const totalContrib = employeeContrib + agencyContrib;
+    // True-up logic: if cap was hit and true-up is enabled, restore match
+    if (agencyMatchTrueUp && cappedEmployeeContrib < employeeAnnualContribution) {
+      // Employee was capped, meaning they couldn't contribute the full amount
+      // Calculate what match would have been paid if no cap existed
+      const limits = getTSPLimits(calendarYear);
+      const annualCap = limits.electiveDeferralLimit;
+
+      // Assuming biweekly contributions at constant rate:
+      // perPeriodIntended = employeeAnnualContribution / BIWEEKLY_PERIODS
+      // Find the period where the cap was hit
+      const perPeriodIntended = employeeAnnualContribution / BIWEEKLY_PERIODS;
+      const perPeriodSalary = annualSalary / BIWEEKLY_PERIODS;
+      let cumulativeContrib = 0;
+      let capHitPeriod = BIWEEKLY_PERIODS; // default: cap never hit
+
+      for (let period = 1; period <= BIWEEKLY_PERIODS; period++) {
+        cumulativeContrib += perPeriodIntended;
+        if (cumulativeContrib >= annualCap) {
+          capHitPeriod = period;
+          break;
+        }
+      }
+
+      // Periods remaining after cap was hit
+      const periodsAfterCap = BIWEEKLY_PERIODS - capHitPeriod;
+
+      if (periodsAfterCap > 0) {
+        // Calculate the match for remaining periods assuming the intended contribution rate
+        // Using the tiered match: 100% on first 3%, 50% on next 2%
+        const { totalAgencyContribution: hypotheticalMatch } = computeAgencyMatch(
+          perPeriodSalary,
+          employeeContributionPct,
+        );
+        const trueUpAmount = hypotheticalMatch * periodsAfterCap;
+
+        // Cap the true-up so total agency doesn't exceed 5%
+        const maxTotalAgency = annualSalary * 0.05;
+        agencyContrib = Math.min(agencyContrib + trueUpAmount, maxTotalAgency);
+      }
+    }
+
+    const totalContrib = cappedEmployeeContrib + agencyContrib;
     const closing = opening * (1 + growthRate) + totalContrib * (1 + growthRate / 2);
     const growth = closing - opening - totalContrib;
 
     results.push({
       year: calendarYear,
       openingBalance: opening,
-      employeeContribution: employeeContrib,
+      employeeContribution: cappedEmployeeContrib,
       agencyContribution: agencyContrib,
       growth,
       closingBalance: closing,

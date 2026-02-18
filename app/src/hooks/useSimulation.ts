@@ -143,6 +143,10 @@ export function useSimulation(
       const birthYear = new Date(input.profile.birthDate).getFullYear();
       employeeStartAge = projectionStartYear - birthYear;
 
+      // Get TSP contribution settings from the first active contribution event
+      const tspEvent = input.profile.tspContributions?.[0];
+      const agencyMatchTrueUp = tspEvent?.agencyMatchTrueUp ?? false;
+
       // Project Traditional TSP (using actual current balance, not 10%)
       const tradYears = projectTraditionalDetailed({
         openingBalance: tradBalance,
@@ -153,6 +157,7 @@ export function useSimulation(
         years: projectionYears,
         startYear: projectionStartYear,
         employeeStartAge,
+        agencyMatchTrueUp,
       });
 
       // Project Roth TSP (using actual current balance, not 10%)

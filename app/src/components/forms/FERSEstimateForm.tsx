@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useLocalStorage } from '@hooks/useLocalStorage';
-import { STORAGE_KEYS, PersonalInfoSchema, FERSEstimateSchema, TSPBalancesSchema, LeaveBalanceSchema } from '@storage/index';
+import { STORAGE_KEYS, PersonalInfoSchema, FERSEstimateSchema, TSPBalancesSchema, LeaveBalanceSchema, TSPContributionEventSchema } from '@storage/index';
 import { getAvailableLocalityCodes } from '@data/locality-rates';
 import { getMRA } from '@modules/simulation/eligibility';
 import type { LeaveBalance } from '@models/leave';
+import type { TSPContributionEvent } from '@models/tsp';
 import { FieldGroup } from './FieldGroup';
 import { FormSection } from './FormSection';
 import { FERSEstimateResults } from './FERSEstimateResults';
@@ -13,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@components/ui/collapsible';
 import { ChevronDown, User, DollarSign, Shield, Building2, PiggyBank, ArrowDownToLine } from 'lucide-react';
-import type { z } from 'zod';
+import { z } from 'zod';
 import defaultInputs from '@data/default-inputs.json';
 
 const LOCALITY_CODES = getAvailableLocalityCodes(new Date().getFullYear());
@@ -60,6 +61,7 @@ interface FormState extends PersonalInfo {
   biweeklyTspContribution: string;
   isRothContribution: boolean;
   catchUpEligible: boolean;
+  agencyMatchTrueUp: boolean;
   tspGrowthRate: string;
   withdrawalRate: string;
   withdrawalStartAge: string;
@@ -90,6 +92,7 @@ const DEFAULTS: FormState = {
   biweeklyTspContribution: '0',
   isRothContribution: false,
   catchUpEligible: false,
+  agencyMatchTrueUp: false,
   tspGrowthRate: '7',
   withdrawalRate: '4',
   withdrawalStartAge: '62',
@@ -162,6 +165,7 @@ function formStateFromStored(personal: PersonalInfo | null, fers: FERSEstimate |
     biweeklyTspContribution: fers ? String(fers.biweeklyTspContribution) : '0',
     isRothContribution: fers?.isRothContribution ?? false,
     catchUpEligible: fers?.catchUpEligible ?? false,
+    agencyMatchTrueUp: fers?.agencyMatchTrueUp ?? false,
     tspGrowthRate: fers ? String(fers.tspGrowthRate * 100) : '7',
     withdrawalRate: fers ? String(fers.withdrawalRate * 100) : '4',
     withdrawalStartAge: fers ? String(fers.withdrawalStartAge) : '62',
@@ -196,10 +200,13 @@ function toEstimateInput(form: FormState): FERSEstimateInput {
   };
 }
 
+const TSPContributionListSchema = z.array(TSPContributionEventSchema);
+
 export function FERSEstimateForm() {
   const [storedPersonal, savePersonal, removePersonal] = useLocalStorage(STORAGE_KEYS.PERSONAL_INFO, PersonalInfoSchema);
   const [storedFERS, saveFERS, removeFERS] = useLocalStorage(STORAGE_KEYS.FERS_ESTIMATE, FERSEstimateSchema);
   const [, saveTSP] = useLocalStorage(STORAGE_KEYS.TSP_BALANCES, TSPBalancesSchema);
+  const [, saveTSPContributions] = useLocalStorage(STORAGE_KEYS.TSP_CONTRIBUTIONS, TSPContributionListSchema);
   const [storedLeaveBalance, saveLeaveBalance] = useLocalStorage(STORAGE_KEYS.LEAVE_BALANCE, LeaveBalanceSchema);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     personal: true,
@@ -335,6 +342,17 @@ export function FERSEstimateForm() {
       traditionalBalance: traditionalBal,
       rothBalance: fResult.data!.rothTspBalance ?? 0,
     });
+
+    // Save TSP Contribution Event with true-up flag
+    const tspContribution: TSPContributionEvent = {
+      id: 'primary-contribution',
+      effectiveDate: new Date().toISOString().slice(0, 10),
+      employeeContributionPct: 0.05, // default 5%
+      isRoth: fResult.data!.isRothContribution ?? false,
+      catchUpEnabled: fResult.data!.catchUpEligible ?? false,
+      agencyMatchTrueUp: form.agencyMatchTrueUp,
+    };
+    saveTSPContributions([tspContribution]);
 
     // Save LeaveBalance with the new averageAnnualSickLeaveUsage field
     const leaveBalance = storedLeaveBalance ?? {
@@ -697,7 +715,7 @@ export function FERSEstimateForm() {
               />
             </FieldGroup>
           </div>
-          <div className="flex gap-6">
+          <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
               <Checkbox
                 id="fe-roth"
@@ -716,6 +734,17 @@ export function FERSEstimateForm() {
               />
               <label htmlFor="fe-catchup" className="text-sm cursor-pointer">
                 Catch-up eligible (age 50+)
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="fe-trueup"
+                checked={form.agencyMatchTrueUp}
+                onCheckedChange={(checked) => set('agencyMatchTrueUp', !!checked)}
+              />
+              <label htmlFor="fe-trueup" className="text-sm cursor-pointer">
+                <span>Agency match true-up</span>
+                <span className="text-xs text-gray-500 ml-1">(restores match if 402(g) cap hit mid-year)</span>
               </label>
             </div>
           </div>
