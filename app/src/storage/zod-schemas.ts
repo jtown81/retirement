@@ -400,6 +400,79 @@ export const RetirementScenarioStoredSchema = z.object({
 export const ScenariosSchema = z.array(RetirementScenarioStoredSchema);
 
 // ---------------------------------------------------------------------------
+// Named Scenarios (NEW in Phase 11, PR-005)
+// Full scenario with snapshot of complete simulation result
+// ---------------------------------------------------------------------------
+
+export const SimulationYearResultSchema = z.object({
+  year: z.number().int(),
+  age: z.number(),
+  annuity: USDSchema,
+  fersSupplement: USDSchema,
+  socialSecurity: USDSchema,
+  tspWithdrawal: USDSchema,
+  totalIncome: USDSchema,
+  federalTax: USDSchema,
+  stateTax: USDSchema,
+  irmaaSurcharge: USDSchema,
+  totalTax: USDSchema,
+  effectiveFederalRate: RateSchema,
+  effectiveTotalRate: RateSchema,
+  socialSecurityTaxableFraction: z.union([z.literal(0), z.literal(0.5), z.literal(0.85)]),
+  afterTaxIncome: USDSchema,
+  smileMultiplier: z.number(),
+  totalExpenses: USDSchema,
+  highRiskBalance: USDSchema,
+  lowRiskBalance: USDSchema,
+  traditionalBalance: USDSchema,
+  rothBalance: USDSchema,
+  totalTSPBalance: USDSchema,
+  rmdRequired: USDSchema,
+  rmdSatisfied: z.boolean(),
+  surplus: USDSchema,
+});
+
+export const FullSimulationResultSchema = z.object({
+  config: SimulationConfigSchema,
+  years: z.array(SimulationYearResultSchema),
+  depletionAge: z.number().int().nullable(),
+  balanceAt85: USDSchema,
+  totalLifetimeIncome: USDSchema,
+  totalLifetimeExpenses: USDSchema,
+  totalLifetimeFederalTax: USDSchema.optional(),
+  totalLifetimeStateTax: USDSchema.optional(),
+  totalLifetimeIrmaa: USDSchema.optional(),
+  totalLifetimeTax: USDSchema.optional(),
+  totalLifetimeAfterTaxIncome: USDSchema.optional(),
+});
+
+export const SimulationInputSchema = z.object({
+  profile: z.object({
+    birthDate: ISODateSchema,
+    career: CareerProfileSchema,
+    leaveBalance: LeaveBalanceSchema,
+    tspBalances: TSPBalancesSchema,
+    tspContributions: z.array(TSPContributionEventSchema),
+    militaryService: z.array(MilitaryServiceSchema).optional(),
+    expenses: ExpenseProfileSchema,
+  }),
+  assumptions: RetirementAssumptionsFullSchema,
+});
+
+export const NamedScenarioSchema = z.object({
+  id: z.string().uuid(),
+  label: z.string().min(1).max(200),
+  createdAt: ISODateSchema,
+  description: z.string().optional(),
+  inputs: SimulationInputSchema,
+  result: FullSimulationResultSchema,
+  isBaseline: z.boolean(),
+  updatedAt: ISODateSchema.optional(),
+});
+
+export const NamedScenariosArraySchema = z.array(NamedScenarioSchema);
+
+// ---------------------------------------------------------------------------
 // StoredRecord wrapper
 // ---------------------------------------------------------------------------
 

@@ -72,6 +72,12 @@ export {
   RetirementAssumptionsFullSchema,
   RetirementScenarioStoredSchema,
   ScenariosSchema,
+  // Named Scenarios (NEW in PR-005)
+  SimulationYearResultSchema,
+  FullSimulationResultSchema,
+  SimulationInputSchema,
+  NamedScenarioSchema,
+  NamedScenariosArraySchema,
   // Envelope
   StoredRecordSchema,
 } from './zod-schemas';

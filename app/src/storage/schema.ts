@@ -49,7 +49,7 @@ export const STORAGE_KEYS = {
   FERS_ESTIMATE: 'retire:fers-estimate',
   FERS_FORM_DRAFT: 'retire:fers-form-draft',
 
-  // Scenarios (v2: renamed to NAMED_SCENARIOS for clarity, but key unchanged)
+  // Scenarios (v2: NEW in Phase 11, PR-005)
   SCENARIOS: 'retire:scenarios',
   NAMED_SCENARIOS: 'retire:scenarios', // Alias (same key as SCENARIOS)
 } as const;

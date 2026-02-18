@@ -13,6 +13,8 @@ import { ExpensesForm } from './forms/ExpensesForm';
 import { SimulationForm } from './forms/SimulationForm';
 import { TaxProfileForm } from './forms/TaxProfileForm';
 import { TSPMonitorPanel } from './forms/TSPMonitorPanel';
+import { ScenarioManager } from './scenarios/ScenarioManager';
+import { ScenarioComparison } from './scenarios/ScenarioComparison';
 import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
@@ -131,6 +133,11 @@ export function PlannerApp() {
         </div>
       ) : view === 'leave' ? (
         <LeaveBalanceForm />
+      ) : view === 'scenarios' ? (
+        <div className="space-y-8">
+          <ScenarioManager />
+          <ScenarioComparison />
+        </div>
       ) : (
         <Dashboard data={data} mode={mode} />
       )}
