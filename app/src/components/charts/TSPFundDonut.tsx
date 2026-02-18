@@ -35,12 +35,12 @@ export function TSPFundDonut({ snapshot }: TSPFundDonutProps) {
     );
   }
 
-  // Prepare data: sum Traditional + Roth for each fund
+  // Prepare data: allocation % of total contributions per fund
   const data = snapshot.fundAllocations
-    .filter(fa => fa.percentTraditional + fa.percentRoth > 0)
+    .filter(fa => fa.percentage > 0)
     .map(fa => ({
       name: fa.fund,
-      value: fa.percentTraditional + fa.percentRoth,
+      value: fa.percentage,
     }))
     .sort((a, b) => b.value - a.value);
 

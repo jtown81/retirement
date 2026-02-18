@@ -166,11 +166,11 @@ describe('projectPreRetirementTSP (Phase D)', () => {
   it('returns correct number of years', () => {
     const result = projectPreRetirementTSP(
       100_000,   // currentBalance
-      0.70,      // traditionalPct
+      0.70,      // traditionalPct (of existing balance)
       80_000,    // annualSalary
       0.03,      // salaryGrowthRate
-      0.06,      // contributionPct (6%)
-      false,     // isRothContribution
+      0.06,      // traditionalContribPct (6% to Traditional)
+      0.00,      // rothContribPct (0% to Roth)
       0.07,      // annualGrowthRate
       10,        // yearsToRetirement
     );
@@ -183,8 +183,8 @@ describe('projectPreRetirementTSP (Phase D)', () => {
       0.70,
       100_000,
       0.05,      // 5% annual salary growth
-      0.05,      // 5% contribution
-      false,
+      0.05,      // 5% Traditional contribution
+      0.00,      // 0% Roth contribution
       0.07,
       5,
     );
@@ -202,8 +202,8 @@ describe('projectPreRetirementTSP (Phase D)', () => {
       0.70,
       100_000,
       0.02,
-      0.05,
-      false,
+      0.05,      // 5% Traditional
+      0.00,      // 0% Roth
       0.07,
       3,
     );
@@ -218,13 +218,13 @@ describe('projectPreRetirementTSP (Phase D)', () => {
       0.70,
       100_000,
       0.02,
-      0.05,      // 5% contribution
-      false,
+      0.05,      // 5% Traditional contribution
+      0.00,      // 0% Roth contribution
       0.07,
       1,
     );
     const yr0 = result.years[0];
-    // Employee contribution: $100k × 5% = $5k
+    // Employee contribution: $100k × 5% = $5k (total)
     // Agency match: 100% of first 3% + 50% of next 2%
     //             = $3k + $1k = $4k
     expect(yr0.agencyMatch).toBeCloseTo(4_000, 0);
@@ -233,11 +233,11 @@ describe('projectPreRetirementTSP (Phase D)', () => {
   it('splits Traditional/Roth correctly for employee contributions', () => {
     const result = projectPreRetirementTSP(
       100_000,
-      0.50,      // 50/50 split initially
+      0.50,      // 50/50 split of existing balance
       100_000,
       0.02,
-      0.06,
-      true,      // Roth contributions
+      0.00,      // 0% Traditional (all Roth)
+      0.06,      // 6% Roth contributions
       0.07,
       1,
     );
@@ -256,9 +256,9 @@ describe('projectPreRetirementTSP (Phase D)', () => {
       0.70,
       100_000,
       0.02,
-      0.05,
-      false,
-      0.08,     // 8% growth
+      0.05,      // 5% Traditional
+      0.00,      // 0% Roth
+      0.08,      // 8% growth
       1,
     );
     const yr0 = result.years[0];
@@ -274,8 +274,8 @@ describe('projectPreRetirementTSP (Phase D)', () => {
       0.70,
       80_000,
       0.03,
-      0.05,
-      false,
+      0.05,      // 5% Traditional
+      0.00,      // 0% Roth
       0.07,
       10,
     );
@@ -289,8 +289,8 @@ describe('projectPreRetirementTSP (Phase D)', () => {
       0.70,
       100_000,
       0.02,
-      0.05,
-      false,
+      0.05,      // 5% Traditional
+      0.00,      // 0% Roth
       0.07,
       5,
     );
@@ -304,8 +304,8 @@ describe('projectPreRetirementTSP (Phase D)', () => {
       0.70,
       100_000,
       0.02,
-      0.05,
-      false,
+      0.05,      // 5% Traditional
+      0.00,      // 0% Roth
       0.07,
       10,
     );

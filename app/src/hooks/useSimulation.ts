@@ -117,10 +117,13 @@ export function useSimulation(
       const yearsToRetirement = Math.max(0, retireYear - currentYear);
       const lastSalary = salaryHistory.length > 0 ? salaryHistory[salaryHistory.length - 1].salary : 50_000;
 
-      // Estimate contributions based on last salary (default: 5% Traditional, 2% Roth)
-      // These are reasonable assumptions for federal employees
-      const estimatedTradContrib = lastSalary * 0.05;
-      const estimatedRothContrib = lastSalary * 0.02;
+      // Get TSP contribution percentages from the first active contribution event
+      // Fall back to 5% Traditional, 0% Roth if no event is stored
+      const tspEvent = input.profile.tspContributions?.[0];
+      const tradPct = tspEvent?.employeeTraditionalPct ?? 0.05;
+      const rothPct = tspEvent?.employeeRothPct ?? 0.0;
+      const estimatedTradContrib = lastSalary * tradPct;
+      const estimatedRothContrib = lastSalary * rothPct;
 
       // Determine the projection period:
       // - If retirement is in future: project from now to retirement
@@ -143,16 +146,16 @@ export function useSimulation(
       const birthYear = new Date(input.profile.birthDate).getFullYear();
       employeeStartAge = projectionStartYear - birthYear;
 
-      // Get TSP contribution settings from the first active contribution event
-      const tspEvent = input.profile.tspContributions?.[0];
       const agencyMatchTrueUp = tspEvent?.agencyMatchTrueUp ?? false;
+      // Agency match is computed on total employee %, Traditional + Roth combined
+      const totalEmployeePct = tradPct + rothPct;
 
-      // Project Traditional TSP (using actual current balance, not 10%)
+      // Project Traditional TSP (using actual current balance and user contribution %)
       const tradYears = projectTraditionalDetailed({
         openingBalance: tradBalance,
         annualSalary: lastSalary,
         employeeAnnualContribution: estimatedTradContrib,
-        employeeContributionPct: 0.05,
+        employeeContributionPct: totalEmployeePct,
         growthRate: input.assumptions.tspGrowthRate,
         years: projectionYears,
         startYear: projectionStartYear,

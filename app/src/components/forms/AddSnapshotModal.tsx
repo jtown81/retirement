@@ -58,8 +58,7 @@ function makeDefaults(): TSPAccountSnapshot {
     ytdAgencyContributions: 0,
     fundAllocations: FUND_CODES.map(fund => ({
       fund,
-      percentTraditional: 100 / FUND_CODES.length,
-      percentRoth: 0,
+      percentage: 100 / FUND_CODES.length,
     })),
     notes: '',
   };
@@ -70,7 +69,7 @@ export function AddSnapshotModal({ snapshot, onSave, onCancel }: AddSnapshotModa
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const totalAllocation = useMemo(() => {
-    return form.fundAllocations.reduce((sum, fa) => sum + fa.percentTraditional + fa.percentRoth, 0);
+    return form.fundAllocations.reduce((sum, fa) => sum + fa.percentage, 0);
   }, [form.fundAllocations]);
 
   const allocationError = useMemo(() => {
@@ -100,11 +99,11 @@ export function AddSnapshotModal({ snapshot, onSave, onCancel }: AddSnapshotModa
     onSave(result.data);
   };
 
-  const updateFundAllocation = (fund: TSPFundCode, traditional: number, roth: number) => {
+  const updateFundAllocation = (fund: TSPFundCode, percentage: number) => {
     setForm(prev => ({
       ...prev,
       fundAllocations: prev.fundAllocations.map(fa =>
-        fa.fund === fund ? { ...fa, percentTraditional: traditional, percentRoth: roth } : fa
+        fa.fund === fund ? { ...fa, percentage } : fa
       ),
     }));
   };
@@ -196,47 +195,34 @@ export function AddSnapshotModal({ snapshot, onSave, onCancel }: AddSnapshotModa
 
           {/* ── Fund Allocation ────────────────────────────── */}
           <div>
-            <Label className="block mb-2 text-sm font-medium">Fund Allocation (%)</Label>
+            <Label className="block mb-2 text-sm font-medium">Fund Allocation (% of total contributions)</Label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Allocations apply to all contributions combined — Traditional, Roth, and agency match. Must sum to 100%.
+            </p>
             {allocationError && (
               <Alert variant="destructive" className="mb-3">
                 <AlertDescription className="text-xs">{allocationError}</AlertDescription>
               </Alert>
             )}
-            <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
               {form.fundAllocations.map(fa => (
                 <div key={fa.fund} className="flex items-center gap-3 text-sm">
-                  <label className="w-20 font-medium">{FUND_LABELS[fa.fund]}</label>
-                  <div className="flex-1 flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground w-12 text-right">Trad:</span>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="1"
-                      value={fa.percentTraditional}
-                      onChange={(e) => updateFundAllocation(fa.fund, Number(e.target.value), fa.percentRoth)}
-                      className="w-16 h-8 text-sm"
-                    />
-                    <span className="text-xs">%</span>
-                  </div>
-                  <div className="flex-1 flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground w-12 text-right">Roth:</span>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="1"
-                      value={fa.percentRoth}
-                      onChange={(e) => updateFundAllocation(fa.fund, fa.percentTraditional, Number(e.target.value))}
-                      className="w-16 h-8 text-sm"
-                    />
-                    <span className="text-xs">%</span>
-                  </div>
+                  <label className="w-36 font-medium text-xs">{FUND_LABELS[fa.fund]}</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={fa.percentage}
+                    onChange={(e) => updateFundAllocation(fa.fund, Number(e.target.value))}
+                    className="w-20 h-8 text-sm"
+                  />
+                  <span className="text-xs">%</span>
                 </div>
               ))}
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              Total allocation: {totalAllocation.toFixed(1)}% (must be ≈100%)
+              Total: {totalAllocation.toFixed(1)}% (must be ≈100%)
             </p>
           </div>
 

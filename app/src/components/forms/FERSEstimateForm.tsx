@@ -58,8 +58,10 @@ interface FormState extends PersonalInfo {
   currentTspBalance: string;
   traditionalTspBalance: string;
   rothTspBalance: string;
-  biweeklyTspContribution: string;
-  isRothContribution: boolean;
+  /** Employee Traditional TSP contribution as percent of gross pay, e.g. "5" = 5% */
+  traditionalContribPct: string;
+  /** Employee Roth TSP contribution as percent of gross pay, e.g. "5" = 5% */
+  rothContribPct: string;
   catchUpEligible: boolean;
   agencyMatchTrueUp: boolean;
   tspGrowthRate: string;
@@ -89,8 +91,8 @@ const DEFAULTS: FormState = {
   currentTspBalance: '0',
   traditionalTspBalance: '',
   rothTspBalance: '',
-  biweeklyTspContribution: '0',
-  isRothContribution: false,
+  traditionalContribPct: '5',
+  rothContribPct: '0',
   catchUpEligible: false,
   agencyMatchTrueUp: false,
   tspGrowthRate: '7',
@@ -162,8 +164,8 @@ function formStateFromStored(personal: PersonalInfo | null, fers: FERSEstimate |
     currentTspBalance: fers ? String(fers.currentTspBalance) : '0',
     traditionalTspBalance: fers?.traditionalTspBalance != null ? String(fers.traditionalTspBalance) : '',
     rothTspBalance: fers?.rothTspBalance != null ? String(fers.rothTspBalance) : '',
-    biweeklyTspContribution: fers ? String(fers.biweeklyTspContribution) : '0',
-    isRothContribution: fers?.isRothContribution ?? false,
+    traditionalContribPct: fers?.traditionalContribPct != null ? String(fers.traditionalContribPct * 100) : '5',
+    rothContribPct: fers?.rothContribPct != null ? String(fers.rothContribPct * 100) : '0',
     catchUpEligible: fers?.catchUpEligible ?? false,
     agencyMatchTrueUp: fers?.agencyMatchTrueUp ?? false,
     tspGrowthRate: fers ? String(fers.tspGrowthRate * 100) : '7',
@@ -191,7 +193,7 @@ function toEstimateInput(form: FormState): FERSEstimateInput {
     ssaBenefitAt62: optNum(form.ssaBenefitAt62),
     annualEarnings: optNum(form.annualEarnings),
     currentTspBalance: num(form.currentTspBalance),
-    biweeklyTspContribution: num(form.biweeklyTspContribution),
+    employeeTotalContribPct: (num(form.traditionalContribPct) + num(form.rothContribPct)) / 100,
     tspGrowthRate: num(form.tspGrowthRate) / 100,
     withdrawalRate: num(form.withdrawalRate) / 100,
     withdrawalStartAge: num(form.withdrawalStartAge),
@@ -297,8 +299,8 @@ export function FERSEstimateForm() {
       currentTspBalance: num(form.currentTspBalance),
       traditionalTspBalance: optNum(form.traditionalTspBalance),
       rothTspBalance: optNum(form.rothTspBalance),
-      biweeklyTspContribution: num(form.biweeklyTspContribution),
-      isRothContribution: form.isRothContribution,
+      traditionalContribPct: num(form.traditionalContribPct) / 100,
+      rothContribPct: num(form.rothContribPct) / 100,
       catchUpEligible: form.catchUpEligible,
       tspGrowthRate: num(form.tspGrowthRate) / 100,
       withdrawalRate: num(form.withdrawalRate) / 100,
@@ -343,12 +345,12 @@ export function FERSEstimateForm() {
       rothBalance: fResult.data!.rothTspBalance ?? 0,
     });
 
-    // Save TSP Contribution Event with true-up flag
+    // Save TSP Contribution Event with separate Traditional/Roth percentages
     const tspContribution: TSPContributionEvent = {
       id: 'primary-contribution',
       effectiveDate: new Date().toISOString().slice(0, 10),
-      employeeContributionPct: 0.05, // default 5%
-      isRoth: fResult.data!.isRothContribution ?? false,
+      employeeTraditionalPct: fResult.data!.traditionalContribPct,
+      employeeRothPct: fResult.data!.rothContribPct,
       catchUpEnabled: fResult.data!.catchUpEligible ?? false,
       agencyMatchTrueUp: form.agencyMatchTrueUp,
     };
@@ -692,14 +694,28 @@ export function FERSEstimateForm() {
             </FieldGroup>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <FieldGroup label="Bi-weekly Contribution ($)" htmlFor="fe-tspContrib" error={errors.biweeklyTspContribution}>
+            <FieldGroup label="Traditional Contribution (%)" htmlFor="fe-tradContrib" error={errors.traditionalContribPct}
+              hint="% of gross pay to Traditional">
               <Input
-                id="fe-tspContrib"
+                id="fe-tradContrib"
                 type="number"
                 min="0"
-                step="0.01"
-                value={form.biweeklyTspContribution}
-                onChange={(e) => set('biweeklyTspContribution', e.target.value)}
+                max="100"
+                step="0.5"
+                value={form.traditionalContribPct}
+                onChange={(e) => set('traditionalContribPct', e.target.value)}
+              />
+            </FieldGroup>
+            <FieldGroup label="Roth Contribution (%)" htmlFor="fe-rothContrib" error={errors.rothContribPct}
+              hint="% of gross pay to Roth">
+              <Input
+                id="fe-rothContrib"
+                type="number"
+                min="0"
+                max="100"
+                step="0.5"
+                value={form.rothContribPct}
+                onChange={(e) => set('rothContribPct', e.target.value)}
               />
             </FieldGroup>
             <FieldGroup label="Growth Rate (%)" htmlFor="fe-tspGrowth" error={errors.tspGrowthRate}
@@ -715,17 +731,19 @@ export function FERSEstimateForm() {
               />
             </FieldGroup>
           </div>
+          {(() => {
+            const trad = Number(form.traditionalContribPct) || 0;
+            const roth = Number(form.rothContribPct) || 0;
+            const total = trad + roth;
+            const maxAgency = Math.min(total, 5);
+            return (
+              <p className="text-xs text-muted-foreground">
+                Employee: {trad}% Traditional + {roth}% Roth = {total}% total.{' '}
+                Agency match: up to {maxAgency.toFixed(1)}% (always Traditional). Grand total: up to {(total + maxAgency).toFixed(1)}% of salary.
+              </p>
+            );
+          })()}
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="fe-roth"
-                checked={form.isRothContribution}
-                onCheckedChange={(checked) => set('isRothContribution', !!checked)}
-              />
-              <label htmlFor="fe-roth" className="text-sm cursor-pointer">
-                Contributing to Roth TSP
-              </label>
-            </div>
             <div className="flex items-center gap-2">
               <Checkbox
                 id="fe-catchup"

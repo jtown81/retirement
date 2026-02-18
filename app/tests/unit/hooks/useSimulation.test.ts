@@ -124,11 +124,31 @@ describe('useSimulation', () => {
     expect(data.rmdTimeline.length).toBe(0);
   });
 
-  it('includes Roth TSP balances in lifecycle (Roth bug fix)', () => {
-    const { result } = renderHook(() => useSimulation(DEMO_INPUT, null));
+  it('includes Roth TSP balances in lifecycle when Roth contribution is specified', () => {
+    // Create input with an explicit Roth contribution election
+    const inputWithRoth = {
+      ...DEMO_INPUT,
+      profile: {
+        ...DEMO_INPUT.profile,
+        tspBalances: {
+          ...DEMO_INPUT.profile.tspBalances,
+          rothBalance: 50_000, // Non-zero starting Roth balance
+        },
+        tspContributions: [
+          {
+            id: 'roth-test',
+            effectiveDate: '2024-01-01',
+            employeeTraditionalPct: 0.03,
+            employeeRothPct: 0.05, // 5% Roth contribution
+            catchUpEnabled: false,
+          },
+        ],
+      },
+    };
+    const { result } = renderHook(() => useSimulation(inputWithRoth, null));
     const data = result.current!;
 
-    // Roth should be present in pre-retirement accumulation
+    // Roth should be present in pre-retirement accumulation (from initial balance + contributions)
     const preRetirementRoth = data.tspLifecycle
       .filter((d) => d.phase === 'accumulation')
       .map((d) => d.rothBalance);
@@ -136,6 +156,19 @@ describe('useSimulation', () => {
     // At least some years should have non-zero Roth
     const hasRoth = preRetirementRoth.some((balance) => balance > 0);
     expect(hasRoth).toBe(true);
+  });
+
+  it('shows zero Roth balance when no Roth contribution is specified', () => {
+    // DEMO_INPUT has tspContributions: [] and rothBalance: 0 — should show 0 Roth
+    const { result } = renderHook(() => useSimulation(DEMO_INPUT, null));
+    const data = result.current!;
+
+    const preRetirementRoth = data.tspLifecycle
+      .filter((d) => d.phase === 'accumulation')
+      .map((d) => d.rothBalance ?? 0);
+
+    // Without a Roth contribution, Roth balance stays at the initial value (0)
+    expect(preRetirementRoth.every((balance) => balance === 0)).toBe(true);
   });
 
   it('income waterfall totals match simulation result projections', () => {

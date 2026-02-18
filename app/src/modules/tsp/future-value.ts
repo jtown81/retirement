@@ -250,18 +250,18 @@ export interface PreRetirementTSPProjection {
  *
  * Accounts for:
  * - Annual salary growth
- * - Employee contributions as a % of salary (capped to IRS limits)
- * - Agency automatic contribution (1% of salary)
- * - Agency match (matches employee contributions up to 5% total)
+ * - Employee Traditional + Roth contributions as separate % of salary
+ * - Agency automatic contribution (1% of salary, always Traditional)
+ * - Agency match based on total employee % — up to 5% max match (always Traditional)
  * - Month-by-month compound growth within each year
  * - Separate Traditional and Roth tracking
  *
  * @param currentBalance - Starting TSP balance
- * @param traditionalPct - Fraction that is Traditional (remainder is Roth)
+ * @param traditionalPct - Fraction of current balance that is Traditional (remainder is Roth)
  * @param annualSalary - Starting annual salary
  * @param salaryGrowthRate - Annual salary growth rate (e.g., 0.03 = 3%)
- * @param contributionPct - Employee contribution as % of salary (e.g., 0.05 = 5%)
- * @param isRothContribution - If true, employee contributions are to Roth; match still goes to Traditional
+ * @param traditionalContribPct - Employee Traditional contribution % of salary (e.g., 0.05 = 5%)
+ * @param rothContribPct - Employee Roth contribution % of salary (e.g., 0.05 = 5%)
  * @param annualGrowthRate - Annual growth rate for TSP (e.g., 0.07 = 7%)
  * @param yearsToRetirement - Number of years to project
  * @returns Year-by-year projection with final balances
@@ -271,8 +271,8 @@ export function projectPreRetirementTSP(
   traditionalPct: number,
   annualSalary: number,
   salaryGrowthRate: number,
-  contributionPct: number,
-  isRothContribution: boolean,
+  traditionalContribPct: number,
+  rothContribPct: number,
   annualGrowthRate: number,
   yearsToRetirement: number,
 ): PreRetirementTSPProjection {
@@ -286,12 +286,15 @@ export function projectPreRetirementTSP(
   for (let year = 0; year < yearsToRetirement; year++) {
     const startingBalance = traditionalBalance + rothBalance;
 
-    // Calculate contributions for this year
-    // Employee contribution (biweekly × 26)
-    const annualEmployeeContrib = currentSalary * Math.min(contributionPct, 1.0); // cap at 100%
-    const agencyAuto = currentSalary * 0.01; // 1% automatic
+    // Total employee contribution based on combined Traditional + Roth %
+    const totalContribPct = Math.min(traditionalContribPct + rothContribPct, 1.0);
+    const annualEmployeeContrib = currentSalary * totalContribPct;
 
-    // Agency match: 100% of first 3%, 50% of next 2%
+    // Agency automatic contribution: 1% of salary (always Traditional)
+    const agencyAuto = currentSalary * 0.01;
+
+    // Agency match: based on total employee %, 100% on first 3%, 50% on next 2%
+    // Always deposited to Traditional — 5 U.S.C. § 8432(c)
     const matchableUpTo3pct = Math.min(annualEmployeeContrib, currentSalary * 0.03);
     const matchableUpTo5pct = Math.min(
       annualEmployeeContrib - matchableUpTo3pct,
@@ -301,10 +304,14 @@ export function projectPreRetirementTSP(
 
     const totalContrib = annualEmployeeContrib + agencyAuto + agencyMatchAmount;
 
-    // Employee and match contributions are split by Trad/Roth,
-    // but agency contributions ALWAYS go to Traditional
-    const employeeToTrad = isRothContribution ? 0 : annualEmployeeContrib;
-    const employeeToRoth = isRothContribution ? annualEmployeeContrib : 0;
+    // Employee contributions split by Traditional/Roth percentages
+    // Agency contributions ALWAYS go to Traditional (5 U.S.C. § 8432(c))
+    const employeeToTrad = totalContribPct > 0
+      ? annualEmployeeContrib * (traditionalContribPct / totalContribPct)
+      : 0;
+    const employeeToRoth = totalContribPct > 0
+      ? annualEmployeeContrib * (rothContribPct / totalContribPct)
+      : 0;
     const agencyContribsToTrad = agencyAuto + agencyMatchAmount;
 
     // Compound growth within the year

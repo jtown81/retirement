@@ -16,8 +16,8 @@ function makeEmptyContribution(): TSPContributionEvent {
   return {
     id: crypto.randomUUID(),
     effectiveDate: '',
-    employeeContributionPct: 0.05,
-    isRoth: false,
+    employeeTraditionalPct: 0.05,
+    employeeRothPct: 0,
     catchUpEnabled: false,
   };
 }
@@ -153,26 +153,31 @@ export function TSPForm() {
                 />
               </FieldGroup>
 
-              <FieldGroup label="Contribution (%)" htmlFor={`tc-pct-${c.id}`}>
+              <FieldGroup label="Traditional (%)" htmlFor={`tc-trad-${c.id}`}>
                 <Input
-                  id={`tc-pct-${c.id}`}
+                  id={`tc-trad-${c.id}`}
                   type="number"
                   min="0"
                   max="100"
-                  step="1"
-                  value={Math.round(c.employeeContributionPct * 100)}
-                  onChange={(e) => updateContribution(c.id, { employeeContributionPct: Number(e.target.value) / 100 })}
+                  step="0.5"
+                  value={Math.round(c.employeeTraditionalPct * 100)}
+                  onChange={(e) => updateContribution(c.id, { employeeTraditionalPct: Number(e.target.value) / 100 })}
+                />
+              </FieldGroup>
+
+              <FieldGroup label="Roth (%)" htmlFor={`tc-roth-${c.id}`}>
+                <Input
+                  id={`tc-roth-${c.id}`}
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.5"
+                  value={Math.round(c.employeeRothPct * 100)}
+                  onChange={(e) => updateContribution(c.id, { employeeRothPct: Number(e.target.value) / 100 })}
                 />
               </FieldGroup>
 
               <div className="flex items-end gap-4 col-span-2 sm:col-span-2">
-                <Label className="inline-flex items-center gap-2 pb-2">
-                  <Checkbox
-                    checked={c.isRoth}
-                    onCheckedChange={(checked) => updateContribution(c.id, { isRoth: !!checked })}
-                  />
-                  Roth
-                </Label>
                 <Label className="inline-flex items-center gap-2 pb-2">
                   <Checkbox
                     checked={c.catchUpEnabled}

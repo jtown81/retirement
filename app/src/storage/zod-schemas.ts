@@ -137,8 +137,8 @@ export const TSPBalancesSchema = z.object({
 export const TSPContributionEventSchema = z.object({
   id: z.string().min(1),
   effectiveDate: ISODateSchema,
-  employeeContributionPct: RateSchema.min(0).max(1),
-  isRoth: z.boolean(),
+  employeeTraditionalPct: RateSchema.min(0).max(1),
+  employeeRothPct: RateSchema.min(0).max(1),
   catchUpEnabled: z.boolean(),
   agencyMatchTrueUp: z.boolean().optional(),
 });
@@ -170,8 +170,7 @@ export const TSPFundCodeSchema = z.enum([
 
 export const TSPFundAllocationSchema = z.object({
   fund: TSPFundCodeSchema,
-  percentTraditional: z.number().finite().min(0).max(100),
-  percentRoth: z.number().finite().min(0).max(100),
+  percentage: z.number().finite().min(0).max(100),
 });
 
 export const TSPAccountSnapshotSchema = z.object({
@@ -307,8 +306,10 @@ export const FERSEstimateSchema = z.object({
   currentTspBalance: USDSchema,
   traditionalTspBalance: USDSchema.optional(),
   rothTspBalance: USDSchema.optional(),
-  biweeklyTspContribution: USDSchema,
-  isRothContribution: z.boolean().optional(),
+  /** Employee Traditional TSP contribution as % of gross pay (e.g., 0.05 = 5%) */
+  traditionalContribPct: RateSchema.min(0).max(1),
+  /** Employee Roth TSP contribution as % of gross pay (e.g., 0.05 = 5%) */
+  rothContribPct: RateSchema.min(0).max(1),
   catchUpEligible: z.boolean().optional(),
   agencyMatchTrueUp: z.boolean().optional(),
   tspGrowthRate: RateSchema.min(0).max(1),

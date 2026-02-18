@@ -26,8 +26,8 @@ function formatUSD(amount: number): string {
 function formatAllocation(snapshot: TSPAccountSnapshot): string {
   if (snapshot.fundAllocations.length === 0) return 'Not set';
   const summary = snapshot.fundAllocations
-    .filter(fa => fa.percentTraditional + fa.percentRoth > 0)
-    .map(fa => `${fa.fund} ${Math.round(fa.percentTraditional + fa.percentRoth)}%`)
+    .filter(fa => fa.percentage > 0)
+    .map(fa => `${fa.fund} ${Math.round(fa.percentage)}%`)
     .join(' / ');
   return summary || 'Not set';
 }

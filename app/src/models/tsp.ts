@@ -20,13 +20,13 @@ export type TSPFundCode =
   | 'L2045' | 'L2050' | 'L2055' | 'L2060' | 'L2065';
 
 /**
- * Fund allocation across Traditional and Roth buckets
+ * Fund allocation — percentage of TOTAL contributions (employee + agency) directed to this fund.
+ * All fund allocations must sum to 100%.
  */
 export interface TSPFundAllocation {
   fund: TSPFundCode;
-  percentTraditional: number;  // 0–100; Traditional portion of this fund
-  percentRoth: number;         // 0–100; Roth portion of this fund
-  // Note: percentTraditional + percentRoth should = 100 for this fund
+  /** Percentage of total contributions allocated to this fund (0–100). All funds must sum to 100%. */
+  percentage: number;
 }
 
 /**
@@ -67,10 +67,17 @@ export type TSPImportError =
 export interface TSPContributionEvent {
   id: string;
   effectiveDate: ISODate;
-  /** Employee contribution as a percentage of gross pay (e.g., 0.10 = 10%) */
-  employeeContributionPct: Rate;
-  /** True if employee's contribution is designated as Roth */
-  isRoth: boolean;
+  /**
+   * Employee Traditional TSP contribution as a percentage of gross pay (e.g., 0.05 = 5%).
+   * Agency match is always deposited to Traditional only (5 U.S.C. § 8432(c)).
+   */
+  employeeTraditionalPct: Rate;
+  /**
+   * Employee Roth TSP contribution as a percentage of gross pay (e.g., 0.05 = 5%).
+   * Combined with employeeTraditionalPct, the total must not exceed the IRS 402(g) limit.
+   * Source: IRC § 402A; TSP regulations 5 CFR Part 1600.
+   */
+  employeeRothPct: Rate;
   /**
    * True if employee is eligible for and elects catch-up contributions.
    * Catch-up is available at age 50+.
@@ -92,9 +99,6 @@ export interface TSPContributionEvent {
    *
    * Source: TSP regulations 5 CFR Part 1600; TSP Bulletin 2012-2
    * Classification: Assumption (user-configurable based on payroll provider behavior)
-   * HOOK: tsp/annual-trueup — [NOT IMPLEMENTED] This flag exists for documentation
-   * and future implementation. Current projection engines assume no true-up.
    */
   agencyMatchTrueUp?: boolean;
-  // Note: agency match always goes to Traditional regardless of isRoth
 }

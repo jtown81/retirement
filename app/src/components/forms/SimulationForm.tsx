@@ -295,7 +295,7 @@ function buildFERSEstimateInput(personal: PersonalInfo | null, fers: FERSEstimat
     ssaBenefitAt62: fers.ssaBenefitAt62,
     annualEarnings: fers.annualEarnings,
     currentTspBalance: fers.currentTspBalance,
-    biweeklyTspContribution: fers.biweeklyTspContribution,
+    employeeTotalContribPct: fers.traditionalContribPct + fers.rothContribPct,
     tspGrowthRate: fers.tspGrowthRate,
     withdrawalRate: fers.withdrawalRate,
     withdrawalStartAge: fers.withdrawalStartAge,

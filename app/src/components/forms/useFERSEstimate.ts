@@ -19,7 +19,8 @@ export interface FERSEstimateInput {
   ssaBenefitAt62?: number;
   annualEarnings?: number;
   currentTspBalance: number;
-  biweeklyTspContribution: number;
+  /** Combined employee Traditional + Roth contribution as decimal (e.g., 0.10 = 10%) */
+  employeeTotalContribPct: number;
   tspGrowthRate: number;
   withdrawalRate: number;
   withdrawalStartAge: number;
@@ -143,8 +144,8 @@ export function useFERSEstimate(input: FERSEstimateInput): FERSEstimateResult | 
       ssAt62,
     );
 
-    // TSP Projection
-    const monthlyContrib = (input.biweeklyTspContribution * 26) / 12;
+    // TSP Projection — monthly contribution derived from salary × total employee %
+    const monthlyContrib = (high3Salary * input.employeeTotalContribPct) / 12;
     const yrsToRet = Math.max(0, yearsToRetirement);
     const tspFutureValue = computeTSPFutureValue(
       input.currentTspBalance,
@@ -214,7 +215,7 @@ export function useFERSEstimate(input: FERSEstimateInput): FERSEstimateResult | 
     input.ssaBenefitAt62,
     input.annualEarnings,
     input.currentTspBalance,
-    input.biweeklyTspContribution,
+    input.employeeTotalContribPct,
     input.tspGrowthRate,
     input.withdrawalRate,
     input.withdrawalStartAge,
