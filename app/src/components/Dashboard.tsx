@@ -13,6 +13,7 @@ import { ExpensePhasesChart } from './charts/ExpensePhasesChart';
 import { RMDComplianceChart } from './charts/RMDComplianceChart';
 import { ChartSkeleton } from './charts/ChartSkeleton';
 import { ProjectionTable } from './charts/ProjectionTable';
+import { useMonteCarloWorker } from '@hooks/useMonteCarloWorker';
 import type { SimulationData } from '@hooks/useSimulation';
 
 const USD_FORMAT = new Intl.NumberFormat('en-US', {
@@ -123,8 +124,11 @@ export function Dashboard({ data, mode }: DashboardProps) {
     tspLifecycle,
     expensePhases,
     rmdTimeline,
-    monteCarloResult,
   } = data;
+
+  const { result: monteCarloResult, isPending: monteCarloIsPending } =
+    useMonteCarloWorker(fullSimulation?.config ?? null);
+
   const retireYear = result.projections[0]?.year;
   const year1Surplus = result.projections[0]?.surplus ?? 0;
 
@@ -227,18 +231,25 @@ export function Dashboard({ data, mode }: DashboardProps) {
       <Separator />
 
       {/* Monte Carlo Confidence Bands */}
-      {fullSimulation && monteCarloResult && (
+      {fullSimulation && (monteCarloIsPending || monteCarloResult) && (
         <>
           <section className="space-y-4">
             <SectionHeading
               title="Monte Carlo Confidence Bands"
-              description="TSP balance range (P10–P90) across 1000 market scenarios"
+              description="TSP balance range (P10–P90) across 1,000 market scenarios"
             />
-            <MonteCarloFanChart
-              data={monteCarloResult.bands}
-              overallSuccessRate={monteCarloResult.overallSuccessRate}
-              successRateAt85={monteCarloResult.successRateAt85}
-            />
+            {monteCarloIsPending ? (
+              <ChartSkeleton
+                title="Monte Carlo Confidence Bands"
+                subtitle="Running 1,000 simulations…"
+              />
+            ) : (
+              <MonteCarloFanChart
+                data={monteCarloResult!.bands}
+                overallSuccessRate={monteCarloResult!.overallSuccessRate}
+                successRateAt85={monteCarloResult!.successRateAt85}
+              />
+            )}
           </section>
 
           <Separator />

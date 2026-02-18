@@ -30,6 +30,7 @@ export default defineConfig({
       '@registry': resolve(__dirname, 'src/registry'),
       '@components': resolve(__dirname, 'src/components'),
       '@hooks': resolve(__dirname, 'src/hooks'),
+      '@workers': resolve(__dirname, 'src/workers'),
       '@data': resolve(__dirname, 'src/data'),
     },
   },

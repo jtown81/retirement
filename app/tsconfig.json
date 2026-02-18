@@ -11,6 +11,7 @@
       "@registry/*": ["src/registry/*"],
       "@components/*": ["src/components/*"],
       "@hooks/*": ["src/hooks/*"],
+      "@workers/*": ["src/workers/*"],
       "@data/*": ["src/data/*"]
     }
   },
