@@ -91,6 +91,17 @@ export interface RMDDataPoint {
   totalTSPBalance: number;
 }
 
+export interface MonteCarloYearBand {
+  year: number;
+  age: number;
+  p10_balance: number;
+  p25_balance: number;
+  p50_balance: number;
+  p75_balance: number;
+  p90_balance: number;
+  successRate: number;
+}
+
 // ── Props interfaces ─────────────────────────────────────────────────────────
 
 export interface ChartContainerProps {
@@ -141,4 +152,10 @@ export interface SummaryPanelProps {
   tspDepletionVariant?: MetricCardProps['variant'];
   lifetimeSurplus?: string;
   lifetimeSurplusVariant?: MetricCardProps['variant'];
+}
+
+export interface MonteCarloFanChartProps {
+  data: MonteCarloYearBand[];
+  overallSuccessRate: number;
+  successRateAt85: number;
 }

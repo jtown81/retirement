@@ -10,6 +10,7 @@ import type {
   TSPLifecycleDataPoint,
   ExpensePhaseDataPoint,
   RMDDataPoint,
+  MonteCarloYearBand,
 } from '@components/charts/chart-types';
 import { buildSalaryHistory } from '@modules/career';
 import { simulateLeaveYear } from '@modules/leave';
@@ -19,7 +20,7 @@ import {
   applySmileCurve,
   defaultSmileCurveParams,
 } from '@modules/expenses';
-import { projectRetirementIncome, projectRetirementSimulation } from '@modules/simulation';
+import { projectRetirementIncome, projectRetirementSimulation, runMonteCarlo } from '@modules/simulation';
 import { useLocalStorage } from './useLocalStorage';
 import { TaxProfileSchema } from '@storage/zod-schemas';
 import { STORAGE_KEYS } from '@storage/schema';
@@ -37,6 +38,12 @@ export interface SimulationData {
   tspLifecycle: TSPLifecycleDataPoint[];
   expensePhases: ExpensePhaseDataPoint[];
   rmdTimeline: RMDDataPoint[];
+  // Monte Carlo stochastic analysis (NEW in PR-008)
+  monteCarloResult?: {
+    bands: MonteCarloYearBand[];
+    overallSuccessRate: number;
+    successRateAt85: number;
+  } | null;
 }
 
 /**
@@ -300,6 +307,12 @@ export function useSimulation(
         })()
       : [];
 
+    // Monte Carlo stochastic analysis (NEW in PR-008)
+    // Only run if fullSimulation is available
+    const monteCarloResult = fullSimulation && simConfig
+      ? runMonteCarlo(simConfig, { iterations: 1000 })
+      : null;
+
     return {
       result,
       salaryHistory,
@@ -311,6 +324,7 @@ export function useSimulation(
       tspLifecycle,
       expensePhases,
       rmdTimeline,
+      monteCarloResult,
     };
   }, [input, simConfig, taxProfile]);
 }
