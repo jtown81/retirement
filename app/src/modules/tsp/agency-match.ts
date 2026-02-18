@@ -14,6 +14,12 @@
  * Agency contributions do NOT go to Roth under any circumstances.
  *
  * Source: 5 U.S.C. § 8432(c); TSP regulations 5 CFR Part 1600
+ *
+ * NOTE: This implementation assumes no annual match true-up (HOOK: tsp/annual-trueup).
+ * If an employee front-loads contributions and hits the 402(g) cap mid-year, this
+ * implementation assumes they lose agency match for remaining pay periods. To enable
+ * true-up support, wire TSPContributionEvent.agencyMatchTrueUp flag into the
+ * pre-retirement projection engine. See: tests/unit/tsp/agency-match-trueup.test.ts
  */
 
 export interface AgencyMatchResult {

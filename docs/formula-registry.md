@@ -491,6 +491,46 @@ If planned withdrawal < RMD, the Traditional withdrawal is increased to satisfy 
 
 ---
 
+### FORMULA_ID: tsp/annual-trueup
+
+| Field         | Value                                                                 |
+|---------------|-----------------------------------------------------------------------|
+| Name          | Agency Match Annual True-Up                                           |
+| Module        | tsp                                                                   |
+| Purpose       | Restores agency match to annual maximum if employee hits 402(g) cap mid-year |
+| Inputs        | `ytdEmployeeContrib: USD`, `payPeriodsRemaining: number`, `salary: USD`, `electiveDeferralCap: USD` |
+| Outputs       | `trueUpAmount: USD` (additional agency match retroactively)           |
+| Dependencies  | none                                                                  |
+| Source        | TSP Bulletin 2012-2; 5 CFR § 1600.23(b)                             |
+| Classification| Assumption (provider-dependent; default false)                       |
+| Version       | 0.1.0 (HOOK — not yet implemented)                                  |
+| Changelog     | 2026-02-18 — Added agencyMatchTrueUp flag to TSPContributionEvent; marked as future hook |
+
+**Design (not yet implemented):**
+
+Background: When an employee front-loads contributions and hits the IRC § 402(g) elective deferral cap mid-year, they stop contributing for remaining pay periods. Without true-up, the agency stops matching those periods (forfeiting match). With true-up, the payroll provider retroactively restores the match to reach the annual 5% maximum.
+
+Configuration flag: `TSPContributionEvent.agencyMatchTrueUp` (default: undefined/false)
+- false: Conservative model; employee loses match if cap hit mid-year (matches NFC processing)
+- true: Enable if payroll provider (some DFAS, agency TSP offices) performs annual true-up
+
+When implemented:
+1. Track YTD employee contributions by pay period
+2. Upon cap hit, calculate remaining pay periods
+3. For remaining periods: set employee contribution to 0, but agency match to the "catch-up" amount
+4. This restores the total agency contribution to 5% × annual salary
+
+Example (2025 cap = $23,500):
+- Salary: $100k/year = $3,846.15/pp
+- Employee: 5% = $192.31/pp × 26 = $5,000 intended
+- At pp 23: YTD = $23,100; remaining cap = $400
+- Without true-up: pp 24 contributes $400 only; pp 25–26 = $0 (no match for those)
+- With true-up: pp 24–26 receive "catch-up" match to bring annual total to 5% × $100k = $5,000
+
+See: `tests/unit/tsp/agency-match-trueup.test.ts` for test scenarios.
+
+---
+
 ### FORMULA_ID: military/buyback-deposit
 
 | Field         | Value                                                                 |

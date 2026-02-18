@@ -78,5 +78,23 @@ export interface TSPContributionEvent {
    * ASSUMPTION: Engine validates age eligibility; this flag records the election.
    */
   catchUpEnabled: boolean;
+  /**
+   * True if the payroll provider performs annual agency match true-up.
+   * Background: If an employee front-loads contributions and hits the 402(g) cap
+   * mid-year (e.g., in pay period 20 of 26), they stop contributing for the
+   * remaining pay periods. Without true-up, the agency stops matching those
+   * periods. With true-up, the agency restores match retroactively to reach
+   * the annual maximum (5% of salary).
+   *
+   * Default (false): No true-up. Employee loses match for periods after cap hit.
+   * This is the conservative model and matches NFC payroll processing.
+   * Set true if your payroll provider (e.g., some DFAS or agency TSP offices) performs true-up.
+   *
+   * Source: TSP regulations 5 CFR Part 1600; TSP Bulletin 2012-2
+   * Classification: Assumption (user-configurable based on payroll provider behavior)
+   * HOOK: tsp/annual-trueup — [NOT IMPLEMENTED] This flag exists for documentation
+   * and future implementation. Current projection engines assume no true-up.
+   */
+  agencyMatchTrueUp?: boolean;
   // Note: agency match always goes to Traditional regardless of isRoth
 }

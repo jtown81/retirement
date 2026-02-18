@@ -809,13 +809,31 @@ This section maps the design above to the existing `app/src/modules/tsp/` codeba
 
 ### 9.2 Priority Fixes
 
-1. **SECURE 2.0 § 109 Enhanced Catch-Up** — Employees aged 60–63 are entitled to $11,250 catch-up (2025) rather than $7,500. Update `tsp-limits.ts` and `clampToContributionLimit()` to accept age parameter and branch on 60–63 range.
+1. **SECURE 2.0 § 109 Enhanced Catch-Up** ✅ **COMPLETE**
+   - Implemented in `tsp-limits.ts`: `enhancedCatchUpLimit` field with $11,250 for ages 60–63 (2025+)
+   - `clampToContributionLimit()` correctly enforces this with age parameter
+   - Comprehensive test coverage in `contribution-limits.test.ts`
 
-2. **RMD Floor in Depletion Projection** — `projectTSPDepletion()` should enforce `actualWithdrawal = max(plannedWithdrawal, rmdAmount)` once RMD age is reached. Add `birthYear` parameter to depletion function.
+2. **RMD Floor in Depletion Projection** ✅ **COMPLETE**
+   - Implemented in `future-value.ts`: `projectTSPDepletion()` enforces `actualWithdrawal = max(annualWithdrawal, rmdAmount)`
+   - `birthYear` parameter added for SECURE 2.0 age 73/75 determination
+   - Traditional/Roth balance tracking during withdrawals
+   - Comprehensive test coverage in `future-value.test.ts` (lines 101–162)
 
-3. **Fund Allocation Per-Balance Tracking** — `TSPFundAllocation` model captures percentage splits but the projection engine aggregates to total Traditional / total Roth. No gap in accuracy for total balance projection; fund-level tracking is a display enhancement only.
+3. **Fund Allocation Per-Balance Tracking** ✅ **REVIEWED**
+   - Model exists in `models/tsp.ts` as `TSPFundAllocation`
+   - Projection engine aggregates to total Traditional/Roth (no accuracy gap)
+   - Fund-level tracking is a display enhancement only
+   - Current implementation sufficient for all projection accuracy requirements
 
-4. **True-Up Flag** — Document the absent true-up behavior as an explicit assumption in user-facing output. Default behavior (no true-up) is conservative and matches NFC payroll processing.
+4. **True-Up Flag** ✅ **COMPLETE**
+   - Added `agencyMatchTrueUp?: boolean` field to `TSPContributionEvent` in `models/tsp.ts`
+   - Updated Zod schema in `storage/zod-schemas.ts` with optional field
+   - Comprehensive documentation explaining:
+     - Background: employee front-loads, hits cap mid-year, loses match
+     - Default false: conservative model matches NFC payroll processing
+     - When to set true: if payroll provider (some DFAS, agency TSP offices) performs true-up
+   - Marked as HOOK for future implementation (not yet wired into projection engine)
 
 ---
 

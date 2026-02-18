@@ -140,6 +140,7 @@ export const TSPContributionEventSchema = z.object({
   employeeContributionPct: RateSchema.min(0).max(1),
   isRoth: z.boolean(),
   catchUpEnabled: z.boolean(),
+  agencyMatchTrueUp: z.boolean().optional(),
 });
 
 // ---------------------------------------------------------------------------
