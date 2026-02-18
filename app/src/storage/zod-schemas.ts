@@ -328,6 +328,7 @@ export const WithdrawalStrategySchema = z.enum([
   'traditional-first',
   'roth-first',
   'custom',
+  'tax-bracket-fill',
 ]);
 
 export const CustomWithdrawalSplitSchema = z.object({

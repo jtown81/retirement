@@ -51,6 +51,13 @@ function makeMockYears(startAge: number, endAge: number): SimulationYearResult[]
       rmdSatisfied: true,
       // Net
       surplus,
+      // Withdrawal sequencing (NEW in PR-007)
+      tradWithdrawal: 14000,
+      rothWithdrawal: 6000,
+      taxableIncome: 49000,
+      afterTaxSurplus: surplus,
+      marginalBracketRate: 0.12,
+      bracketHeadroom: 5000,
     });
   }
 
@@ -103,6 +110,13 @@ describe('extractScenarioMetrics (Phase E)', () => {
         rmdSatisfied: true,
         // Net
         surplus: -2_000,
+        // Withdrawal sequencing (NEW in PR-007)
+        tradWithdrawal: 14000,
+        rothWithdrawal: 6000,
+        taxableIncome: 39600,
+        afterTaxSurplus: -2_000,
+        marginalBracketRate: 0.12,
+        bracketHeadroom: 5000,
       });
     }
 

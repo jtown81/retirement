@@ -137,8 +137,9 @@ export interface SimulationConfig {
    * - 'traditional-first': Exhaust Traditional first, then Roth (defer Roth)
    * - 'roth-first': Exhaust Roth first, then Traditional (maximize Roth growth)
    * - 'custom': Use customWithdrawalSplit percentages
+   * - 'tax-bracket-fill': Withdraw Traditional up to current tax bracket boundary, then Roth (minimize lifetime taxes)
    */
-  withdrawalStrategy?: 'proportional' | 'traditional-first' | 'roth-first' | 'custom';
+  withdrawalStrategy?: 'proportional' | 'traditional-first' | 'roth-first' | 'custom' | 'tax-bracket-fill';
   /**
    * Custom withdrawal split when strategy is 'custom'.
    * Defines % of needed withdrawal from Traditional and Roth.
@@ -205,6 +206,13 @@ export interface SimulationYearResult {
   rmdSatisfied: boolean;
   // Net
   surplus: USD;
+  // Withdrawal Sequencing (NEW in PR-007)
+  tradWithdrawal: USD; // Traditional TSP withdrawal this year
+  rothWithdrawal: USD; // Roth TSP withdrawal this year
+  taxableIncome: USD; // Post-deduction federal taxable income (Traditional-only AGI)
+  afterTaxSurplus: USD; // afterTaxIncome - totalExpenses
+  marginalBracketRate: Rate; // Marginal federal bracket rate reached this year
+  bracketHeadroom: USD; // Dollars of remaining room in current tax bracket
 }
 
 /**

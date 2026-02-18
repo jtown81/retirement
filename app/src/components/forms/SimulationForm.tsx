@@ -125,7 +125,7 @@ function removeDraft(): void {
 
 function toConfig(f: FormState, proposedRetirementDate?: string): SimulationConfig {
   const n = (s: string) => (s === '' ? 0 : Number(s));
-  const strategy = (f.withdrawalStrategy || 'proportional') as 'proportional' | 'traditional-first' | 'roth-first' | 'custom';
+  const strategy = (f.withdrawalStrategy || 'proportional') as 'proportional' | 'traditional-first' | 'roth-first' | 'custom' | 'tax-bracket-fill';
   const customTrad = n(f.customTradPct) / 100;
   const customRoth = n(f.customRothPct) / 100;
   const ssClaimingAge = (Number(f.ssClaimingAge) as 62 | 67 | 70) || 62;
@@ -662,6 +662,7 @@ export function SimulationForm() {
                   <SelectItem value="proportional">Proportional (by balance ratio)</SelectItem>
                   <SelectItem value="traditional-first">Traditional First</SelectItem>
                   <SelectItem value="roth-first">Roth First</SelectItem>
+                  <SelectItem value="tax-bracket-fill">Tax-Bracket Fill (Roth-last)</SelectItem>
                   <SelectItem value="custom">Custom %</SelectItem>
                 </SelectContent>
               </Select>

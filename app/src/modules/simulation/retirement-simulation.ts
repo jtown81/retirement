@@ -26,6 +26,9 @@ import {
   computeSSBenefitTaxation,
   computeStateTaxDetailed,
   computeIrmaaDetailed,
+  getStandardDeduction,
+  getBracketAtIncome,
+  getMarginalBracketRate,
 } from '../tax';
 
 /**
@@ -148,6 +151,7 @@ export function projectRetirementSimulation(
     // Determine Traditional/Roth withdrawal split based on strategy
     let tradWithdrawalNeeded: number;
     let rothWithdrawalNeeded: number;
+    let bracketHeadroomForDisplay = 0; // Used by tax-bracket-fill and stored in year result
 
     const strategy = config.withdrawalStrategy ?? 'proportional';
 
@@ -163,6 +167,41 @@ export function projectRetirementSimulation(
       // Custom split percentage
       tradWithdrawalNeeded = plannedWithdrawal * config.customWithdrawalSplit.traditionalPct;
       rothWithdrawalNeeded = plannedWithdrawal * config.customWithdrawalSplit.rothPct;
+    } else if (strategy === 'tax-bracket-fill') {
+      // Tax-bracket fill: withdraw Traditional up to bracket boundary, then Roth
+      // This strategy minimizes lifetime taxes by maximizing Roth preservation
+      if (taxProfile) {
+        // Compute income from taxable sources (excluding TSP)
+        const nonTSPIncome = otherIncome; // annuity + fersSupplement + socialSecurity
+
+        // Get standard deduction for this year
+        const deductionAmt = taxProfile.deductionStrategy === 'standard'
+          ? getStandardDeduction(calendarYear, taxProfile.filingStatus)
+          : taxProfile.deductionStrategy;
+        const tentativeTaxable = Math.max(0, nonTSPIncome - deductionAmt);
+
+        // Find the bracket at current income (to determine headroom)
+        const currentBracket = getBracketAtIncome(
+          tentativeTaxable + 1,
+          calendarYear,
+          taxProfile.filingStatus,
+        );
+
+        // Compute headroom (remaining dollars in current bracket) — stored for display in year result
+        let computedBracketHeadroom = Infinity;
+        if (currentBracket.maxIncome !== null) {
+          computedBracketHeadroom = Math.max(0, currentBracket.maxIncome - tentativeTaxable);
+        }
+        bracketHeadroomForDisplay = isFinite(computedBracketHeadroom) ? computedBracketHeadroom : 0;
+
+        // Traditional fills bracket headroom, Roth takes the rest
+        tradWithdrawalNeeded = Math.min(plannedWithdrawal, computedBracketHeadroom, traditionalBalance);
+        rothWithdrawalNeeded = Math.max(0, plannedWithdrawal - tradWithdrawalNeeded);
+      } else {
+        // If no tax profile, fall back to proportional
+        tradWithdrawalNeeded = totalBalance > 0 ? plannedWithdrawal * (traditionalBalance / totalBalance) : 0;
+        rothWithdrawalNeeded = Math.max(0, plannedWithdrawal - tradWithdrawalNeeded);
+      }
     } else {
       // Default: proportional to balance ratio
       tradWithdrawalNeeded = totalBalance > 0 ? plannedWithdrawal * (traditionalBalance / totalBalance) : 0;
@@ -241,7 +280,7 @@ export function projectRetirementSimulation(
     totalLifetimeIncome += totalIncome;
     totalLifetimeExpenses += totalExpenses;
 
-    // ── 2b. Tax calculation (NEW in Phase 10) ───────────────────────────
+    // ── 2b. Tax calculation (NEW in Phase 10, FIXED in PR-007) ───────────────────────────
     let federalTax = 0;
     let stateTax = 0;
     let irmaaSurcharge = 0;
@@ -249,21 +288,46 @@ export function projectRetirementSimulation(
     let effectiveFederalRate = 0;
     let effectiveTotalRate = 0;
     let afterTaxIncome = totalIncome;
+    let taxableIncomeForDisplay = 0;
+    let marginalBracketRate = 0;
 
     if (taxProfile) {
-      // Compute federal income tax
+      // PR-007 FIX: Only Traditional TSP is taxable; Roth is tax-free (IRC § 402A)
+      const taxableGrossIncome = otherIncome + tradWithdrawal; // excludes Roth
+
+      // Compute federal income tax (uses correct taxable income)
       const federalResult = computeFederalTaxFull(
-        totalIncome,
+        taxableGrossIncome,
         calendarYear,
         taxProfile.filingStatus,
         taxProfile.deductionStrategy,
       );
       federalTax = federalResult.federalTax;
       effectiveFederalRate = federalResult.effectiveRate;
+      taxableIncomeForDisplay = federalResult.taxableIncome;
+
+      // Compute marginal bracket rate
+      marginalBracketRate = getMarginalBracketRate(
+        federalResult.taxableIncome,
+        calendarYear,
+        taxProfile.filingStatus,
+      );
+
+      // Compute bracket headroom for display (unless already computed in tax-bracket-fill strategy)
+      if (strategy !== 'tax-bracket-fill') {
+        const bracket = getBracketAtIncome(
+          federalResult.taxableIncome + 1,
+          calendarYear,
+          taxProfile.filingStatus,
+        );
+        bracketHeadroomForDisplay = bracket.maxIncome !== null
+          ? Math.max(0, bracket.maxIncome - federalResult.taxableIncome)
+          : 0;
+      }
 
       // Compute Social Security taxable portion
       const ssResult = computeSSBenefitTaxation(
-        federalResult.agi, // AGI = totalIncome in retirement context
+        federalResult.agi, // AGI = taxableGrossIncome (Traditional-only for Roth fix)
         0, // No tax-exempt interest
         socialSecurity,
         taxProfile.filingStatus,
@@ -280,10 +344,10 @@ export function projectRetirementSimulation(
       );
       stateTax = stateResult.stateTax;
 
-      // Compute IRMAA surcharge if enabled
+      // Compute IRMAA surcharge if enabled (MAGI for IRMAA also excludes Roth)
       if (taxProfile.modelIrmaa) {
         const irmaaResult = computeIrmaaDetailed(
-          federalResult.agi,
+          federalResult.agi, // Uses correct taxable income (without Roth)
           taxProfile.filingStatus,
           calendarYear,
         );
@@ -297,6 +361,9 @@ export function projectRetirementSimulation(
       totalLifetimeFederalTax += federalTax;
       totalLifetimeStateTax += stateTax;
       totalLifetimeIrmaa += irmaaSurcharge;
+    } else {
+      // No tax profile: use full income as-is (backward compatibility)
+      taxableIncomeForDisplay = totalIncome;
     }
 
     if (endTotal <= 0 && depletionAge === null) {
@@ -337,6 +404,13 @@ export function projectRetirementSimulation(
       rmdSatisfied: isRMDRequired(age, config.birthYear) ? tradWithdrawal >= rmdRequired : true,
       // Net
       surplus: totalIncome - totalExpenses,
+      // Withdrawal Sequencing (NEW in PR-007)
+      tradWithdrawal,
+      rothWithdrawal,
+      taxableIncome: taxableIncomeForDisplay,
+      afterTaxSurplus: afterTaxIncome - totalExpenses,
+      marginalBracketRate,
+      bracketHeadroom: bracketHeadroomForDisplay,
     });
   }
 

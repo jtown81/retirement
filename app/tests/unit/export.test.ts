@@ -36,6 +36,12 @@ const mockYears: SimulationYearResult[] = [
     rmdRequired: 0,
     rmdSatisfied: true,
     surplus: -2220,
+    tradWithdrawal: 14400,
+    rothWithdrawal: 3600,
+    taxableIncome: 40200,
+    afterTaxSurplus: -2220,
+    marginalBracketRate: 0.12,
+    bracketHeadroom: 5000,
   },
   {
     year: 2028,
@@ -63,6 +69,12 @@ const mockYears: SimulationYearResult[] = [
     rmdRequired: 0,
     rmdSatisfied: true,
     surplus: -2208,
+    tradWithdrawal: 14784,
+    rothWithdrawal: 3696,
+    taxableIncome: 41699,
+    afterTaxSurplus: -2208,
+    marginalBracketRate: 0.12,
+    bracketHeadroom: 4500,
   },
 ];
 
