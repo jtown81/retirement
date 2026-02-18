@@ -158,6 +158,27 @@ export const MilitaryServiceSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Tax (NEW in Phase 10)
+// ---------------------------------------------------------------------------
+
+export const FilingStatusSchema = z.enum([
+  'single',
+  'married-joint',
+  'married-separate',
+  'head-of-household',
+]);
+
+export const StateCodeSchema = z.string().length(2).nullable();
+
+export const TaxProfileSchema = z.object({
+  filingStatus: FilingStatusSchema,
+  stateCode: StateCodeSchema,
+  stateResidencyYear: z.number().int().min(2000).max(2100),
+  deductionStrategy: z.union([z.literal('standard'), z.number().nonnegative()]),
+  modelIrmaa: z.boolean(),
+});
+
+// ---------------------------------------------------------------------------
 // Expenses
 // ---------------------------------------------------------------------------
 

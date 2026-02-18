@@ -47,6 +47,12 @@ export interface IncomeWaterfallDataPoint {
   totalIncome: number;
   totalExpenses: number;
   surplus: number;
+  // Tax data (NEW in Phase 10, optional)
+  federalTax?: number;
+  stateTax?: number;
+  irmaaSurcharge?: number;
+  totalTax?: number;
+  afterTaxIncome?: number;
 }
 
 export interface TSPLifecycleDataPoint {

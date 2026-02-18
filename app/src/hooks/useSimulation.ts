@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { SimulationInput, SimulationResult, SimulationConfig } from '@models/simulation';
+import type { TaxProfile } from '@models/tax';
 import type {
   PayGrowthDataPoint,
   LeaveBalanceDataPoint,
@@ -19,6 +20,9 @@ import {
   defaultSmileCurveParams,
 } from '@modules/expenses';
 import { projectRetirementIncome, projectRetirementSimulation } from '@modules/simulation';
+import { useLocalStorage } from './useLocalStorage';
+import { TaxProfileSchema } from '@storage/zod-schemas';
+import { STORAGE_KEYS } from '@storage/schema';
 
 export interface SimulationData {
   result: SimulationResult;
@@ -43,19 +47,23 @@ export interface SimulationData {
  * 1. If simConfig is provided: runs projectRetirementSimulation() for full dual-pot TSP + RMD simulation
  * 2. Always runs simple path: projectRetirementIncome() for basic income vs expense projection
  * 3. Produces chart datasets from both paths where applicable
+ * 4. Passes tax profile to projectRetirementSimulation if available (NEW in Phase 10)
  */
 export function useSimulation(
   input: SimulationInput | null,
   simConfig: SimulationConfig | null = null,
 ): SimulationData | null {
+  // Read tax profile from localStorage (NEW in Phase 10)
+  const [taxProfile] = useLocalStorage<TaxProfile>(STORAGE_KEYS.TAX_PROFILE, TaxProfileSchema);
+
   return useMemo(() => {
     if (!input) return null;
 
     // Run the simple path (always)
     const result = projectRetirementIncome(input);
 
-    // Run the full simulation if config is available
-    const fullSimulation = simConfig ? projectRetirementSimulation(simConfig) : null;
+    // Run the full simulation if config is available, passing tax profile for tax calculations
+    const fullSimulation = simConfig ? projectRetirementSimulation(simConfig, taxProfile ?? undefined) : null;
 
     const retireYear = new Date(input.assumptions.proposedRetirementDate).getFullYear();
 
@@ -193,6 +201,12 @@ export function useSimulation(
           totalIncome: yr.totalIncome,
           totalExpenses: yr.totalExpenses,
           surplus: yr.surplus,
+          // Tax data (NEW in Phase 10)
+          federalTax: yr.federalTax,
+          stateTax: yr.stateTax,
+          irmaaSurcharge: yr.irmaaSurcharge,
+          totalTax: yr.totalTax,
+          afterTaxIncome: yr.afterTaxIncome,
         }))
       : result.projections.map((proj) => ({
           year: proj.year,
@@ -298,5 +312,5 @@ export function useSimulation(
       expensePhases,
       rmdTimeline,
     };
-  }, [input, simConfig]);
+  }, [input, simConfig, taxProfile]);
 }

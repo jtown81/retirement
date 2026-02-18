@@ -11,6 +11,22 @@ export interface TSPBalances {
   rothBalance: USD;
 }
 
+/**
+ * TSP Account Snapshot (NEW in Phase 10)
+ * Records a point-in-time view of TSP account state with fund allocations
+ */
+export interface TSPAccountSnapshot {
+  id: string;
+  asOf: ISODate;
+  source: 'tsp-statement' | 'manual' | 'import';
+  traditionalBalance: USD;
+  rothBalance: USD;
+  ytdEmployeeContributions: USD;
+  ytdAgencyContributions: USD;
+  fundAllocations: Array<{ fundSymbol: string; balance: USD }>;
+  notes?: string;
+}
+
 export interface TSPContributionEvent {
   id: string;
   effectiveDate: ISODate;

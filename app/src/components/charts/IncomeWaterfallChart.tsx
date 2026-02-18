@@ -133,7 +133,6 @@ export function IncomeWaterfallChart({ data }: IncomeWaterfallChartProps) {
           strokeWidth={2}
           dot={false}
           name="Expenses"
-          yAxisId="left"
         />
       </ComposedChart>
     </ChartContainer>

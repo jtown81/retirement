@@ -28,15 +28,28 @@ function makeMockYears(startAge: number, endAge: number): SimulationYearResult[]
       socialSecurity: age >= 62 ? 18_000 : 0,
       tspWithdrawal: 20_000,
       totalIncome,
+      // Tax fields (NEW in Phase 10)
+      federalTax: totalIncome * 0.12,
+      stateTax: totalIncome * 0.05,
+      irmaaSurcharge: 0,
+      totalTax: totalIncome * 0.17,
+      effectiveFederalRate: 0.12,
+      effectiveTotalRate: 0.17,
+      socialSecurityTaxableFraction: 0.5,
+      afterTaxIncome: totalIncome * 0.83,
+      // Expenses
       smileMultiplier: 1.0,
       totalExpenses,
+      // TSP
       highRiskBalance: balance * 0.6,
       lowRiskBalance: balance * 0.4,
       traditionalBalance: balance * 0.7,
       rothBalance: balance * 0.3,
       totalTSPBalance: balance,
+      // RMD
       rmdRequired: 0,
       rmdSatisfied: true,
+      // Net
       surplus,
     });
   }
@@ -67,15 +80,28 @@ describe('extractScenarioMetrics (Phase E)', () => {
         socialSecurity: age >= 62 ? 18_000 : 0,
         tspWithdrawal: 20_000,
         totalIncome: 48_000,
+        // Tax fields (NEW in Phase 10)
+        federalTax: 48_000 * 0.12,
+        stateTax: 48_000 * 0.05,
+        irmaaSurcharge: 0,
+        totalTax: 48_000 * 0.17,
+        effectiveFederalRate: 0.12,
+        effectiveTotalRate: 0.17,
+        socialSecurityTaxableFraction: 0.5,
+        afterTaxIncome: 48_000 * 0.83,
+        // Expenses
         smileMultiplier: 1.0,
         totalExpenses: 50_000,
+        // TSP
         highRiskBalance: age < 75 ? 50_000 : 0,
         lowRiskBalance: age < 75 ? 50_000 : 0,
         traditionalBalance: age < 75 ? 70_000 : 0,
         rothBalance: age < 75 ? 30_000 : 0,
         totalTSPBalance: age < 75 ? 100_000 : 0, // depletes at age 75
+        // RMD
         rmdRequired: 0,
         rmdSatisfied: true,
+        // Net
         surplus: -2_000,
       });
     }

@@ -182,6 +182,15 @@ export interface SimulationYearResult {
   socialSecurity: USD;
   tspWithdrawal: USD;
   totalIncome: USD;
+  // Tax (NEW in Phase 10)
+  federalTax: USD;
+  stateTax: USD;
+  irmaaSurcharge: USD;
+  totalTax: USD;
+  effectiveFederalRate: Rate;
+  effectiveTotalRate: Rate;
+  socialSecurityTaxableFraction: 0 | 0.5 | 0.85;
+  afterTaxIncome: USD;
   // Expenses
   smileMultiplier: number;
   totalExpenses: USD;
@@ -212,4 +221,14 @@ export interface FullSimulationResult {
   totalLifetimeIncome: USD;
   /** Total lifetime expenses across all projected years */
   totalLifetimeExpenses: USD;
+  /** Total federal income tax across all projected years (NEW in Phase 10) */
+  totalLifetimeFederalTax?: USD;
+  /** Total state income tax across all projected years (NEW in Phase 10) */
+  totalLifetimeStateTax?: USD;
+  /** Total IRMAA surcharge across all projected years (NEW in Phase 10) */
+  totalLifetimeIrmaa?: USD;
+  /** Total taxes (federal + state + IRMAA) (NEW in Phase 10) */
+  totalLifetimeTax?: USD;
+  /** Total after-tax income across all projected years (NEW in Phase 10) */
+  totalLifetimeAfterTaxIncome?: USD;
 }

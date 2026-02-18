@@ -14,6 +14,7 @@
  */
 
 import { migrate as v1Migrate, VERSION as V1 } from './v1';
+import { migrate as v2Migrate, VERSION as V2 } from './v2';
 
 interface Migration {
   version: number;
@@ -26,6 +27,7 @@ interface Migration {
  */
 const MIGRATIONS: Migration[] = [
   { version: V1, migrate: v1Migrate },
+  { version: V2, migrate: v2Migrate },
 ];
 
 /**

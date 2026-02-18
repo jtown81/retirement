@@ -19,7 +19,14 @@ import type {
   SimulationYearResult,
   FullSimulationResult,
 } from '../../models/simulation';
+import type { TaxProfile } from '../../models/tax';
 import { computeRMD, isRMDRequired } from '../tsp/rmd';
+import {
+  computeFederalTaxFull,
+  computeSSBenefitTaxation,
+  computeStateTaxDetailed,
+  computeIrmaaDetailed,
+} from '../tax';
 
 /**
  * Computes the expense smile curve multiplier for GoGo/GoSlow/NoGo phases.
@@ -56,16 +63,21 @@ function smileMultiplier(age: number, config: SimulationConfig): number {
  *
  * Processing order per year:
  *   1. Compute income (annuity, supplement, SS)
- *   2. Compute expenses (smile curve × inflation)
- *   3. Determine TSP withdrawal needed (expenses - other income)
- *   4. Enforce RMD on Traditional balance
- *   5. Withdraw from TSP (low-risk pot first)
- *   6. Grow balances by ROI
- *   7. Rebalance high→low to maintain time-step buffer
- *   8. Record year results
+ *   2. Compute taxes on income (federal, state, IRMAA, SS taxation)
+ *   3. Compute expenses (smile curve × inflation)
+ *   4. Determine TSP withdrawal needed (expenses - other income)
+ *   5. Enforce RMD on Traditional balance
+ *   6. Withdraw from TSP (low-risk pot first)
+ *   7. Grow balances by ROI
+ *   8. Rebalance high→low to maintain time-step buffer
+ *   9. Record year results with after-tax income
+ *
+ * @param config - Simulation configuration (retirement age, TSP settings, etc.)
+ * @param taxProfile - User's tax profile (filing status, state, deductions); if omitted, no tax calculated
  */
 export function projectRetirementSimulation(
   config: SimulationConfig,
+  taxProfile?: TaxProfile,
 ): FullSimulationResult {
   const years: SimulationYearResult[] = [];
   const startYear = config.retirementYear; // calendar year for year 0
@@ -88,6 +100,10 @@ export function projectRetirementSimulation(
   let balanceAt85 = 0;
   let totalLifetimeIncome = 0;
   let totalLifetimeExpenses = 0;
+  // NEW: Track lifetime tax totals
+  let totalLifetimeFederalTax = 0;
+  let totalLifetimeStateTax = 0;
+  let totalLifetimeIrmaa = 0;
 
   const numYears = config.endAge - config.retirementAge + 1;
 
@@ -225,6 +241,64 @@ export function projectRetirementSimulation(
     totalLifetimeIncome += totalIncome;
     totalLifetimeExpenses += totalExpenses;
 
+    // ── 2b. Tax calculation (NEW in Phase 10) ───────────────────────────
+    let federalTax = 0;
+    let stateTax = 0;
+    let irmaaSurcharge = 0;
+    let socialSecurityTaxableFraction: 0 | 0.5 | 0.85 = 0;
+    let effectiveFederalRate = 0;
+    let effectiveTotalRate = 0;
+    let afterTaxIncome = totalIncome;
+
+    if (taxProfile) {
+      // Compute federal income tax
+      const federalResult = computeFederalTaxFull(
+        totalIncome,
+        calendarYear,
+        taxProfile.filingStatus,
+        taxProfile.deductionStrategy,
+      );
+      federalTax = federalResult.federalTax;
+      effectiveFederalRate = federalResult.effectiveRate;
+
+      // Compute Social Security taxable portion
+      const ssResult = computeSSBenefitTaxation(
+        federalResult.agi, // AGI = totalIncome in retirement context
+        0, // No tax-exempt interest
+        socialSecurity,
+        taxProfile.filingStatus,
+      );
+      socialSecurityTaxableFraction = ssResult.taxableFraction;
+
+      // Compute state income tax
+      const stateResult = computeStateTaxDetailed(
+        totalIncome,
+        annuity,
+        actualTSPWithdrawal,
+        taxProfile.stateCode,
+        calendarYear,
+      );
+      stateTax = stateResult.stateTax;
+
+      // Compute IRMAA surcharge if enabled
+      if (taxProfile.modelIrmaa) {
+        const irmaaResult = computeIrmaaDetailed(
+          federalResult.agi,
+          taxProfile.filingStatus,
+          calendarYear,
+        );
+        irmaaSurcharge = irmaaResult.annualSurcharge;
+      }
+
+      const totalTax = federalTax + stateTax + irmaaSurcharge;
+      effectiveTotalRate = totalIncome > 0 ? totalTax / totalIncome : 0;
+      afterTaxIncome = Math.max(0, totalIncome - totalTax);
+
+      totalLifetimeFederalTax += federalTax;
+      totalLifetimeStateTax += stateTax;
+      totalLifetimeIrmaa += irmaaSurcharge;
+    }
+
     if (endTotal <= 0 && depletionAge === null) {
       depletionAge = age;
     }
@@ -240,15 +314,28 @@ export function projectRetirementSimulation(
       socialSecurity,
       tspWithdrawal: actualTSPWithdrawal,
       totalIncome,
+      // Tax (NEW in Phase 10)
+      federalTax,
+      stateTax,
+      irmaaSurcharge,
+      totalTax: federalTax + stateTax + irmaaSurcharge,
+      effectiveFederalRate,
+      effectiveTotalRate,
+      socialSecurityTaxableFraction,
+      afterTaxIncome,
+      // Expenses
       smileMultiplier: smile,
       totalExpenses,
+      // TSP
       highRiskBalance: endHighRisk,
       lowRiskBalance: endLowRisk,
       traditionalBalance,
       rothBalance,
       totalTSPBalance: endTotal,
+      // RMD
       rmdRequired,
       rmdSatisfied: isRMDRequired(age, config.birthYear) ? tradWithdrawal >= rmdRequired : true,
+      // Net
       surplus: totalIncome - totalExpenses,
     });
   }
@@ -265,5 +352,15 @@ export function projectRetirementSimulation(
     balanceAt85,
     totalLifetimeIncome,
     totalLifetimeExpenses,
+    // Tax totals (NEW in Phase 10)
+    totalLifetimeFederalTax: taxProfile ? totalLifetimeFederalTax : undefined,
+    totalLifetimeStateTax: taxProfile ? totalLifetimeStateTax : undefined,
+    totalLifetimeIrmaa: taxProfile ? totalLifetimeIrmaa : undefined,
+    totalLifetimeTax: taxProfile
+      ? totalLifetimeFederalTax + totalLifetimeStateTax + totalLifetimeIrmaa
+      : undefined,
+    totalLifetimeAfterTaxIncome: taxProfile
+      ? totalLifetimeIncome - (totalLifetimeFederalTax + totalLifetimeStateTax + totalLifetimeIrmaa)
+      : undefined,
   };
 }
