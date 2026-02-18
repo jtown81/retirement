@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@components/ui/tabs';
-import { Calculator, Briefcase, Receipt, LineChart, CheckCircle2, Circle } from 'lucide-react';
+import { Calculator, Briefcase, Receipt, LineChart, FileText, CheckCircle2, Circle } from 'lucide-react';
 
 export interface TabDef {
   id: string;
@@ -18,6 +18,7 @@ const TAB_ICONS: Record<string, React.ReactNode> = {
   career: <Briefcase className="w-4 h-4" />,
   expenses: <Receipt className="w-4 h-4" />,
   simulation: <LineChart className="w-4 h-4" />,
+  tax: <FileText className="w-4 h-4" />,
 };
 
 export function FormShell({ tabs, children }: FormShellProps) {
@@ -25,9 +26,9 @@ export function FormShell({ tabs, children }: FormShellProps) {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
-      <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-6">
+      <TabsList className="flex flex-wrap w-full gap-2 mb-6">
         {tabs.map((tab) => (
-          <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
+          <TabsTrigger key={tab.id} value={tab.id} className="flex-1 flex items-center gap-2 min-w-fit">
             {TAB_ICONS[tab.id] || <Circle className="w-4 h-4" />}
             <span className="hidden sm:inline">{tab.label}</span>
             {tab.complete ? (

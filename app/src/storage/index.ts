@@ -48,6 +48,10 @@ export {
   TSPContributionEventSchema,
   // Military
   MilitaryServiceSchema,
+  // Tax
+  TaxProfileSchema,
+  FilingStatusSchema,
+  StateCodeSchema,
   // Expenses
   ExpenseCategoryNameSchema,
   SmileCurveParamsSchema,

@@ -11,6 +11,7 @@ import { CareerEventsForm } from './forms/CareerEventsForm';
 import { LeaveBalanceForm } from './forms/LeaveBalanceForm';
 import { ExpensesForm } from './forms/ExpensesForm';
 import { SimulationForm } from './forms/SimulationForm';
+import { TaxProfileForm } from './forms/TaxProfileForm';
 import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
@@ -75,6 +76,7 @@ function FormContent({ activeTabId }: { activeTabId: string }) {
     case 'career': return <CareerEventsForm />;
     case 'expenses': return <ExpensesForm />;
     case 'simulation': return <SimulationForm />;
+    case 'tax': return <TaxProfileForm />;
     default: return null;
   }
 }
