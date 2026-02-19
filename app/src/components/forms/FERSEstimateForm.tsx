@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useLocalStorage } from '@hooks/useLocalStorage';
-import { STORAGE_KEYS, PersonalInfoSchema, FERSEstimateSchema, TSPBalancesSchema, LeaveBalanceSchema, TSPContributionEventSchema } from '@storage/index';
+import { STORAGE_KEYS, PersonalInfoSchema, FERSEstimateSchema, LeaveBalanceSchema, TSPContributionEventSchema, TSPAccountSnapshotSchema } from '@storage/index';
 import { getAvailableLocalityCodes } from '@data/locality-rates';
 import { getMRA } from '@modules/simulation/eligibility';
 import type { LeaveBalance } from '@models/leave';
@@ -204,10 +204,12 @@ function toEstimateInput(form: FormState): FERSEstimateInput {
 
 const TSPContributionListSchema = z.array(TSPContributionEventSchema);
 
+const TSPSnapshotListSchema = z.array(TSPAccountSnapshotSchema);
+
 export function FERSEstimateForm() {
   const [storedPersonal, savePersonal, removePersonal] = useLocalStorage(STORAGE_KEYS.PERSONAL_INFO, PersonalInfoSchema);
   const [storedFERS, saveFERS, removeFERS] = useLocalStorage(STORAGE_KEYS.FERS_ESTIMATE, FERSEstimateSchema);
-  const [, saveTSP] = useLocalStorage(STORAGE_KEYS.TSP_BALANCES, TSPBalancesSchema);
+  const [storedSnapshots, saveSnapshots] = useLocalStorage(STORAGE_KEYS.TSP_SNAPSHOTS, TSPSnapshotListSchema);
   const [, saveTSPContributions] = useLocalStorage(STORAGE_KEYS.TSP_CONTRIBUTIONS, TSPContributionListSchema);
   const [storedLeaveBalance, saveLeaveBalance] = useLocalStorage(STORAGE_KEYS.LEAVE_BALANCE, LeaveBalanceSchema);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -336,14 +338,24 @@ export function FERSEstimateForm() {
     savePersonal(pResult.data!);
     saveFERS(fResult.data!);
 
+    // Save TSP balance as snapshot (D-1: deprecate retire:tsp, use snapshots only)
+    const asOfDate = new Date().toISOString().slice(0, 10);
     const traditionalBal =
       fResult.data!.traditionalTspBalance ??
       Math.max(0, fResult.data!.currentTspBalance - (fResult.data!.rothTspBalance ?? 0));
-    saveTSP({
-      asOf: new Date().toISOString().slice(0, 10),
+    const snapshots = Array.isArray(storedSnapshots) ? storedSnapshots : [];
+    const newSnapshot = {
+      id: `snapshot-${asOfDate}`,
+      asOf: asOfDate,
+      source: 'manual' as const,
       traditionalBalance: traditionalBal,
       rothBalance: fResult.data!.rothTspBalance ?? 0,
-    });
+      fundAllocations: [] as any[],
+      notes: 'Created from FERS Estimate form',
+    };
+    const updated = snapshots.filter((s) => s.asOf !== asOfDate);
+    updated.push(newSnapshot);
+    saveSnapshots(updated);
 
     // Save TSP Contribution Event with separate Traditional/Roth percentages
     const tspContribution: TSPContributionEvent = {

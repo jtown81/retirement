@@ -33,7 +33,6 @@ export function useAssembleInput(): SimulationInput | null {
   const [personal] = useLocalStorage(STORAGE_KEYS.PERSONAL_INFO, PersonalInfoSchema);
   const [career] = useLocalStorage(STORAGE_KEYS.CAREER_PROFILE, CareerProfileSchema);
   const [leave] = useLocalStorage(STORAGE_KEYS.LEAVE_BALANCE, LeaveBalanceSchema);
-  const [tspBalancesLegacy] = useLocalStorage(STORAGE_KEYS.TSP_BALANCES, TSPBalancesSchema);
   const [tspSnapshots] = useLocalStorage(STORAGE_KEYS.TSP_SNAPSHOTS, TSPSnapshotListSchema);
   const [tspContributions] = useLocalStorage(STORAGE_KEYS.TSP_CONTRIBUTIONS, TSPContributionListSchema);
   const [expenses] = useLocalStorage(STORAGE_KEYS.EXPENSE_PROFILE, ExpenseProfileSchema);
@@ -43,7 +42,7 @@ export function useAssembleInput(): SimulationInput | null {
   const [simConfig] = useLocalStorage(STORAGE_KEYS.SIMULATION_CONFIG, SimulationConfigSchema);
 
   return useMemo(() => {
-    // Prefer the most recent TSP snapshot; fall back to legacy flat balance
+    // D-1: Use only TSP snapshots (deprecated retire:tsp flat balance key)
     const snapshotList = Array.isArray(tspSnapshots) ? tspSnapshots : [];
     const latestSnapshot = snapshotList.length > 0
       ? [...snapshotList].sort((a, b) => new Date(b.asOf).getTime() - new Date(a.asOf).getTime())[0]
@@ -55,7 +54,7 @@ export function useAssembleInput(): SimulationInput | null {
           traditionalBalance: latestSnapshot.traditionalBalance,
           rothBalance: latestSnapshot.rothBalance,
         }
-      : tspBalancesLegacy;
+      : null;
 
     // personal, tspBalances, expenses, assumptions are always required
     if (!personal || !tspBalances || !expenses || !assumptions) {
@@ -126,7 +125,7 @@ export function useAssembleInput(): SimulationInput | null {
     };
 
     return input;
-  }, [personal, career, leave, tspBalancesLegacy, tspSnapshots, tspContributions, expenses, assumptions, military, fersEstimate]);
+  }, [personal, career, leave, tspSnapshots, tspContributions, expenses, assumptions, military, fersEstimate]);
 }
 
 /**
