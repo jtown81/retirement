@@ -14,7 +14,14 @@ A retirement planning simulation app for U.S. federal employees. Runs locally on
 
 **Phases 1-9 complete.** **Phases A-E (post-Phase-9 refinement) in progress.**
 
-The app has a working UI with three top-level views (My Plan, Leave, Dashboard), nested form tabs within My Plan with sub-form components (FERS Estimate E.1, Career, Expenses, Simulation E.2, Tax E.3), a full leave calendar with federal holidays, and a modern Dashboard with 6 projection charts + expanded summary cards.
+The app has a working UI with three top-level views (My Plan, Leave, Dashboard), nested form tabs within My Plan with sub-form components (FERS Estimate E.1, Career E.4, Expenses, Simulation E.2, Tax E.3), a full leave calendar with federal holidays, and a modern Dashboard with 6 projection charts + expanded summary cards.
+
+### Phase E.4 Completion (CareerEventsForm Refactor - Feb 2026)
+- ✅ Extracted CareerEventItem.tsx sub-component for individual event editing
+- ✅ Auto-salary computation on grade/step/locality/date changes
+- ✅ Refactored CareerEventsForm from 232 → 109 lines (53% reduction, composition pattern)
+- ✅ Component separation: list management in form, item editing in sub-component
+- ✅ All 732 tests passing with zero changes needed
 
 ### Phase E.3 Completion (TaxProfileForm Split - Feb 2026)
 - ✅ Created 3 tax sub-forms (FederalDeductions, StateResidency, IrmaaSettings)
@@ -185,7 +192,23 @@ When a form grows large (600+ lines) with logically distinct sections, split it 
    - Merge: `{ ...DEFAULTS, ...saved, ...myFields }` ensures all fields present
    - No partial updates; each sub-form is atomic
 
-See `app/src/components/forms/simulation/` for Phase E.2 example, `app/src/components/forms/fers/` for Phase E.1.
+See `app/src/components/forms/simulation/` for Phase E.2 example, `app/src/components/forms/fers/` for Phase E.1, `app/src/components/forms/tax/` for Phase E.3.
+
+## Component Extraction Pattern (Phase E.4)
+
+For list-based forms (e.g., career events, leave entries), extract individual item editing logic into reusable sub-components:
+
+1. **Item component** (e.g., `CareerEventItem.tsx`):
+   - Receives `item`, `index`, `onUpdate(patch)`, `onRemove()` props
+   - Manages field-level logic (e.g., auto-salary computation)
+   - No state; all updates flow through callbacks to parent
+
+2. **Container form** (e.g., `CareerEventsForm.tsx`):
+   - Manages list state (add/remove items)
+   - Maps over items, mounting item component for each
+   - Handles storage I/O and validation
+
+See `app/src/components/forms/career/` for Phase E.4 example.
 
 ## Key Domain Notes
 
@@ -204,6 +227,7 @@ app/
         fers/          — PersonalSubForm, SalarySubForm, AnnuitySocialSubForm, TSPSubForm (Phase E.1)
         simulation/    — CoreParametersSubForm, TSPSimulationSubForm, ExpensesSimulationSubForm, RatesSubForm (Phase E.2)
         tax/           — FederalDeductionsSubForm, StateResidencySubForm, IrmaaSettingsSubForm (Phase E.3)
+        career/        — CareerEventItem (Phase E.4)
         leave-calendar/ — LeaveCalendarGrid, DayCell, MonthCalendar, LeaveEntryModal, etc.
       cards/           — MetricCard, SummaryPanel
       charts/          — IncomeWaterfallChart, TSPLifecycleChart, ExpensePhasesChart, RMDComplianceChart, PayGrowthChart, LeaveBalancesChart, ChartContainer, ChartTooltip

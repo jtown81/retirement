@@ -43,7 +43,7 @@ Dashboard unlocks when all 4 form sections + Leave section are complete.
 | Tab ID       | Label         | Component             | Storage Key               | Architecture |
 |--------------|---------------|-----------------------|---------------------------|---------------|
 | `personal`   | FERS Estimate | `FERSEstimateForm`    | `retire:personal` (+ others) | Container with 4 sub-tabs (E.1) |
-| `career`     | Career        | `CareerEventsForm`    | `retire:career`           | Monolithic form |
+| `career`     | Career        | `CareerEventsForm`    | `retire:career`           | Composed with CareerEventItem (E.4) |
 | `expenses`   | Expenses      | `ExpensesForm`        | `retire:expenses`         | Monolithic form |
 | `simulation` | Simulation    | `SimulationForm`      | `retire:simulation-config`| Container with 4 sub-tabs (E.2) |
 | `tax`        | Tax Profile   | `TaxProfileForm`      | `retire:tax-profile`      | Container with 3 sub-tabs (E.3) |
@@ -55,6 +55,7 @@ Managed by `useFormSections.ts`. Each tab tracks completion via its storage key.
 - **Phase E.1**: Split `FERSEstimateForm` into 4 sub-forms (Personal, Salary, Annuity & SS, TSP)
 - **Phase E.2**: Split `SimulationForm` into 4 sub-forms (Core Parameters, TSP, Expenses, Rates)
 - **Phase E.3**: Split `TaxProfileForm` into 3 sub-forms (Federal Deductions, State Residency, Medicare IRMAA)
+- **Phase E.4**: Extract `CareerEventItem` sub-component for individual event editing (composition pattern)
 
 ---
 
@@ -115,6 +116,12 @@ Managed by `useFormSections.ts`. Each tab tracks completion via its storage key.
 | `FederalDeductionsSubForm`     | Filing status, deduction strategy (standard vs itemized), standard deduction display |
 | `StateResidencySubForm`        | State code selection (50 states + DC), state residency year |
 | `IrmaaSettingsSubForm`         | Medicare IRMAA modeling toggle, comprehensive IRMAA education (thresholds, MAGI, surcharges) |
+
+### Career Events Sub-Component (`components/forms/career/`, Phase E.4)
+
+| Component                      | Purpose                                                  |
+|--------------------------------|-------------------------------------------------------|
+| `CareerEventItem`              | Individual event editor: type, date, grade, step, locality, salary (auto-computed on grade/step/locality/date changes) |
 
 ### Leave Calendar Sub-Components (`components/forms/leave-calendar/`)
 
