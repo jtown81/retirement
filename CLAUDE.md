@@ -14,7 +14,16 @@ A retirement planning simulation app for U.S. federal employees. Runs locally on
 
 **Phases 1-9 complete.** **Phases A-E (post-Phase-9 refinement) in progress.**
 
-The app has a working UI with three top-level views (My Plan, Leave, Dashboard), nested form tabs within My Plan with sub-form components (FERS Estimate E.1, Career E.4, Expenses, Simulation E.2, Tax E.3), a full leave calendar with federal holidays, and a modern Dashboard with 6 projection charts + expanded summary cards.
+The app has a working UI with three top-level views (My Plan, Leave, Dashboard), nested form tabs within My Plan with sub-form components (FERS Estimate E.1, Career E.4, Expenses E.5, Simulation E.2, Tax E.3), a full leave calendar with federal holidays, and a modern Dashboard with 6 projection charts + expanded summary cards.
+
+### Phase E.5 Completion (ExpensesForm Split - Feb 2026)
+- ✅ Created 2 expense sub-forms (Categories, Settings)
+- ✅ Refactored ExpensesForm from 237 → 94 lines (60% reduction, container pattern)
+- ✅ ExpenseCategoriesSubForm: 10 category amount inputs with monthly breakdown
+- ✅ ExpenseSettingsSubForm: Base year, inflation rates, smile curve toggle + educational content
+- ✅ Totals banner always visible (read-only, computed from stored data)
+- ✅ Implemented merge-on-save pattern with EXPENSE_DEFAULTS
+- ✅ All 732 tests passing with zero changes needed
 
 ### Phase E.4 Completion (CareerEventsForm Refactor - Feb 2026)
 - ✅ Extracted CareerEventItem.tsx sub-component for individual event editing
@@ -228,6 +237,7 @@ app/
         simulation/    — CoreParametersSubForm, TSPSimulationSubForm, ExpensesSimulationSubForm, RatesSubForm (Phase E.2)
         tax/           — FederalDeductionsSubForm, StateResidencySubForm, IrmaaSettingsSubForm (Phase E.3)
         career/        — CareerEventItem (Phase E.4)
+        expenses/      — ExpenseCategoriesSubForm, ExpenseSettingsSubForm (Phase E.5)
         leave-calendar/ — LeaveCalendarGrid, DayCell, MonthCalendar, LeaveEntryModal, etc.
       cards/           — MetricCard, SummaryPanel
       charts/          — IncomeWaterfallChart, TSPLifecycleChart, ExpensePhasesChart, RMDComplianceChart, PayGrowthChart, LeaveBalancesChart, ChartContainer, ChartTooltip

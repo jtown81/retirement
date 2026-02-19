@@ -44,7 +44,7 @@ Dashboard unlocks when all 4 form sections + Leave section are complete.
 |--------------|---------------|-----------------------|---------------------------|---------------|
 | `personal`   | FERS Estimate | `FERSEstimateForm`    | `retire:personal` (+ others) | Container with 4 sub-tabs (E.1) |
 | `career`     | Career        | `CareerEventsForm`    | `retire:career`           | Composed with CareerEventItem (E.4) |
-| `expenses`   | Expenses      | `ExpensesForm`        | `retire:expenses`         | Monolithic form |
+| `expenses`   | Expenses      | `ExpensesForm`        | `retire:expenses`         | Container with 2 sub-tabs (E.5) |
 | `simulation` | Simulation    | `SimulationForm`      | `retire:simulation-config`| Container with 4 sub-tabs (E.2) |
 | `tax`        | Tax Profile   | `TaxProfileForm`      | `retire:tax-profile`      | Container with 3 sub-tabs (E.3) |
 | `tsp-monitor` | TSP Monitor  | `TSPMonitorPanel`     | `retire:tsp-snapshots`    | Monolithic form |
@@ -56,6 +56,7 @@ Managed by `useFormSections.ts`. Each tab tracks completion via its storage key.
 - **Phase E.2**: Split `SimulationForm` into 4 sub-forms (Core Parameters, TSP, Expenses, Rates)
 - **Phase E.3**: Split `TaxProfileForm` into 3 sub-forms (Federal Deductions, State Residency, Medicare IRMAA)
 - **Phase E.4**: Extract `CareerEventItem` sub-component for individual event editing (composition pattern)
+- **Phase E.5**: Split `ExpensesForm` into 2 sub-forms (Categories, Settings)
 
 ---
 
@@ -122,6 +123,13 @@ Managed by `useFormSections.ts`. Each tab tracks completion via its storage key.
 | Component                      | Purpose                                                  |
 |--------------------------------|-------------------------------------------------------|
 | `CareerEventItem`              | Individual event editor: type, date, grade, step, locality, salary (auto-computed on grade/step/locality/date changes) |
+
+### Expense Sub-Components (`components/forms/expenses/`, Phase E.5)
+
+| Component                      | Purpose                                                  |
+|--------------------------------|-------------------------------------------------------|
+| `ExpenseCategoriesSubForm`     | 10 category amount inputs (housing, food, healthcare, etc.) with monthly breakdown |
+| `ExpenseSettingsSubForm`       | Base year, inflation rates (general + healthcare), smile curve toggle with educational content |
 
 ### Leave Calendar Sub-Components (`components/forms/leave-calendar/`)
 
