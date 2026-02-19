@@ -14,7 +14,14 @@ A retirement planning simulation app for U.S. federal employees. Runs locally on
 
 **Phases 1-9 complete.** **Phases A-E (post-Phase-9 refinement) in progress.**
 
-The app has a working UI with three top-level views (My Plan, Leave, Dashboard), nested form tabs within My Plan with sub-form components (FERS Estimate E.1, Career, Expenses, Simulation E.2), a full leave calendar with federal holidays, and a modern Dashboard with 6 projection charts + expanded summary cards.
+The app has a working UI with three top-level views (My Plan, Leave, Dashboard), nested form tabs within My Plan with sub-form components (FERS Estimate E.1, Career, Expenses, Simulation E.2, Tax E.3), a full leave calendar with federal holidays, and a modern Dashboard with 6 projection charts + expanded summary cards.
+
+### Phase E.3 Completion (TaxProfileForm Split - Feb 2026)
+- ✅ Created 3 tax sub-forms (FederalDeductions, StateResidency, IrmaaSettings)
+- ✅ Refactored TaxProfileForm.tsx from 256 → 49 lines (81% reduction, container pattern)
+- ✅ Implemented merge-on-save pattern with TAX_DEFAULTS
+- ✅ Comprehensive IRMAA educational content (Medicare surcharge thresholds, MAGI calculation)
+- ✅ All 732 tests passing with zero changes needed
 
 ### Phase E.2 Completion (SimulationForm Split - Feb 2026)
 - ✅ Created 4 simulation sub-forms (CoreParameters, TSP, Expenses, Rates)
@@ -193,9 +200,10 @@ app/
   src/
     components/
       layout/          — AppShell (top-level nav)
-      forms/           — FERSEstimateForm, CareerEventsForm, ExpensesForm, SimulationForm, FormShell, etc.
+      forms/           — FERSEstimateForm, CareerEventsForm, ExpensesForm, SimulationForm, TaxProfileForm, FormShell, etc.
         fers/          — PersonalSubForm, SalarySubForm, AnnuitySocialSubForm, TSPSubForm (Phase E.1)
         simulation/    — CoreParametersSubForm, TSPSimulationSubForm, ExpensesSimulationSubForm, RatesSubForm (Phase E.2)
+        tax/           — FederalDeductionsSubForm, StateResidencySubForm, IrmaaSettingsSubForm (Phase E.3)
         leave-calendar/ — LeaveCalendarGrid, DayCell, MonthCalendar, LeaveEntryModal, etc.
       cards/           — MetricCard, SummaryPanel
       charts/          — IncomeWaterfallChart, TSPLifecycleChart, ExpensePhasesChart, RMDComplianceChart, PayGrowthChart, LeaveBalancesChart, ChartContainer, ChartTooltip

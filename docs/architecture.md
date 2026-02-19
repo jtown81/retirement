@@ -46,12 +46,15 @@ Dashboard unlocks when all 4 form sections + Leave section are complete.
 | `career`     | Career        | `CareerEventsForm`    | `retire:career`           | Monolithic form |
 | `expenses`   | Expenses      | `ExpensesForm`        | `retire:expenses`         | Monolithic form |
 | `simulation` | Simulation    | `SimulationForm`      | `retire:simulation-config`| Container with 4 sub-tabs (E.2) |
+| `tax`        | Tax Profile   | `TaxProfileForm`      | `retire:tax-profile`      | Container with 3 sub-tabs (E.3) |
+| `tsp-monitor` | TSP Monitor  | `TSPMonitorPanel`     | `retire:tsp-snapshots`    | Monolithic form |
 
 Managed by `useFormSections.ts`. Each tab tracks completion via its storage key.
 
 **Refactoring Timeline:**
 - **Phase E.1**: Split `FERSEstimateForm` into 4 sub-forms (Personal, Salary, Annuity & SS, TSP)
 - **Phase E.2**: Split `SimulationForm` into 4 sub-forms (Core Parameters, TSP, Expenses, Rates)
+- **Phase E.3**: Split `TaxProfileForm` into 3 sub-forms (Federal Deductions, State Residency, Medicare IRMAA)
 
 ---
 
@@ -81,6 +84,7 @@ Managed by `useFormSections.ts`. Each tab tracks completion via its storage key.
 | `CareerEventsForm`    | CareerEventsForm.tsx       | Career timeline: hire, promotion, step-increase, locality-change, separation, rehire |
 | `ExpensesForm`        | ExpensesForm.tsx           | 10 expense categories with defaults, totals banner, dual inflation rates, smile curve toggle |
 | `SimulationForm`      | SimulationForm.tsx         | Container: Tabs for Core Parameters/TSP/Expenses/Rates (Phase E.2); live results panel |
+| `TaxProfileForm`      | TaxProfileForm.tsx         | Container: Tabs for Federal Deductions/State Residency/Medicare IRMAA (Phase E.3) |
 | `LeaveBalanceForm`    | LeaveBalanceForm.tsx       | Leave calendar orchestrator (toolbar + summary + grid + modal) |
 | `FormShell`           | FormShell.tsx              | Tab bar container with completion indicators     |
 | `FormSection`         | FormSection.tsx            | Reusable section wrapper with save/clear actions |
@@ -103,6 +107,14 @@ Managed by `useFormSections.ts`. Each tab tracks completion via its storage key.
 | `TSPSimulationSubForm`         | TSP balance, allocation, ROI, withdrawal strategy (conditional custom split) |
 | `ExpensesSimulationSubForm`    | Base expenses, GoGo/GoSlow/NoGo phase configuration      |
 | `RatesSubForm`                 | COLA, inflation, healthcare inflation, healthcare expense |
+
+### Tax Profile Sub-Components (`components/forms/tax/`, Phase E.3)
+
+| Component                      | Purpose                                                  |
+|--------------------------------|-------------------------------------------------------|
+| `FederalDeductionsSubForm`     | Filing status, deduction strategy (standard vs itemized), standard deduction display |
+| `StateResidencySubForm`        | State code selection (50 states + DC), state residency year |
+| `IrmaaSettingsSubForm`         | Medicare IRMAA modeling toggle, comprehensive IRMAA education (thresholds, MAGI, surcharges) |
 
 ### Leave Calendar Sub-Components (`components/forms/leave-calendar/`)
 
