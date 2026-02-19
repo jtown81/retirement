@@ -12,9 +12,17 @@ A retirement planning simulation app for U.S. federal employees. Runs locally on
 
 ## Current Status
 
-**Phases 1-9 complete.** **Phases A-F (post-Phase-9 refinement) complete. Phase F (UX) in progress.**
+**Phases 1-9 complete.** **Phases A-G (post-Phase-9 refinement) complete.**
 
-The app has a working UI with three top-level views (My Plan, Leave, Dashboard), nested form tabs within My Plan with sub-form components (FERS Estimate E.1, Career E.4, Expenses E.5, Simulation E.2, Tax E.3), a full leave calendar with federal holidays, and a modern Dashboard with 6 projection charts + expanded summary cards. Enhanced form UX with animations, keyboard shortcuts, and better error feedback.
+The app has a working UI with three top-level views (My Plan, Leave, Dashboard), nested form tabs within My Plan with sub-form components (FERS Estimate E.1, Career E.4, Expenses E.5, Simulation E.2, Tax E.3), a full leave calendar with federal holidays, and a modern Dashboard with 6 projection charts + expanded summary cards. Enhanced form UX with animations, keyboard shortcuts, better error feedback, and scenario management with export capabilities.
+
+### Phase G Completion (Scenario Management & Export UI - Feb 2026)
+- ✅ SaveScenarioDialog: Save current plan as named scenario with optional description
+- ✅ ScenarioListDialog: View, manage, and load saved scenarios with baseline selection
+- ✅ ExportPanel: Export projection as CSV and scenarios as JSON
+- ✅ Integration with useScenarioManager hook and existing export utilities
+- ✅ Full error handling and user confirmation dialogs
+- ✅ All 732 tests passing with zero changes needed
 
 ### Phase F Completion (Form UX Enhancements - Feb 2026)
 - ✅ FieldGroup enhancements: required field indicator (*), error animations, AlertCircle icons, better accessibility
