@@ -40,14 +40,18 @@ Dashboard unlocks when all 4 form sections + Leave section are complete.
 
 ### My Plan Sub-Tabs (FormShell)
 
-| Tab ID       | Label         | Component             | Storage Key               |
-|--------------|---------------|-----------------------|---------------------------|
-| `personal`   | FERS Estimate | `FERSEstimateForm`    | `retire:personal`         |
-| `career`     | Career        | `CareerEventsForm`    | `retire:career`           |
-| `expenses`   | Expenses      | `ExpensesForm`        | `retire:expenses`         |
-| `simulation` | Simulation    | `SimulationForm`      | `retire:simulation-config`|
+| Tab ID       | Label         | Component             | Storage Key               | Architecture |
+|--------------|---------------|-----------------------|---------------------------|---------------|
+| `personal`   | FERS Estimate | `FERSEstimateForm`    | `retire:personal` (+ others) | Container with 4 sub-tabs (E.1) |
+| `career`     | Career        | `CareerEventsForm`    | `retire:career`           | Monolithic form |
+| `expenses`   | Expenses      | `ExpensesForm`        | `retire:expenses`         | Monolithic form |
+| `simulation` | Simulation    | `SimulationForm`      | `retire:simulation-config`| Container with 4 sub-tabs (E.2) |
 
 Managed by `useFormSections.ts`. Each tab tracks completion via its storage key.
+
+**Refactoring Timeline:**
+- **Phase E.1**: Split `FERSEstimateForm` into 4 sub-forms (Personal, Salary, Annuity & SS, TSP)
+- **Phase E.2**: Split `SimulationForm` into 4 sub-forms (Core Parameters, TSP, Expenses, Rates)
 
 ---
 
@@ -72,15 +76,33 @@ Managed by `useFormSections.ts`. Each tab tracks completion via its storage key.
 
 | Component             | File                       | Purpose                                          |
 |-----------------------|----------------------------|--------------------------------------------------|
-| `FERSEstimateForm`    | FERSEstimateForm.tsx       | Birth date, SCD, retirement age, grade/step, locality, raise rate, High-3 override, sick leave credit, TSP config, SS benefit |
+| `FERSEstimateForm`    | FERSEstimateForm.tsx       | Container: Tabs for Personal/Salary/Annuity & SS/TSP (Phase E.1) |
 | `FERSEstimateResults` | FERSEstimateResults.tsx    | Display-only results from `useFERSEstimate` hook |
 | `CareerEventsForm`    | CareerEventsForm.tsx       | Career timeline: hire, promotion, step-increase, locality-change, separation, rehire |
 | `ExpensesForm`        | ExpensesForm.tsx           | 10 expense categories with defaults, totals banner, dual inflation rates, smile curve toggle |
-| `SimulationForm`      | SimulationForm.tsx         | Post-retirement projection: dual-pot TSP, RMD, smile curve phases (GoGo/GoSlow/NoGo), year-by-year results table |
+| `SimulationForm`      | SimulationForm.tsx         | Container: Tabs for Core Parameters/TSP/Expenses/Rates (Phase E.2); live results panel |
 | `LeaveBalanceForm`    | LeaveBalanceForm.tsx       | Leave calendar orchestrator (toolbar + summary + grid + modal) |
 | `FormShell`           | FormShell.tsx              | Tab bar container with completion indicators     |
 | `FormSection`         | FormSection.tsx            | Reusable section wrapper with save/clear actions |
 | `FieldGroup`          | FieldGroup.tsx             | Label + input wrapper                            |
+
+### FERS Estimate Sub-Components (`components/forms/fers/`, Phase E.1)
+
+| Component                | Purpose                                            |
+|--------------------------|-----------------------------------------------------|
+| `PersonalSubForm`        | Birth date, SCD, retirement age, pay system         |
+| `SalarySubForm`          | Grade/step, locality, raise rate, High-3 override   |
+| `AnnuitySocialSubForm`   | Annuity reduction, Social Security benefit          |
+| `TSPSubForm`             | TSP balance, contribution rates, growth rate, withdrawal config |
+
+### Simulation Sub-Components (`components/forms/simulation/`, Phase E.2)
+
+| Component                      | Purpose                                                  |
+|--------------------------------|-------------------------------------------------------|
+| `CoreParametersSubForm`        | Retirement age, end age, birth year, annuity, supplement, SS claiming |
+| `TSPSimulationSubForm`         | TSP balance, allocation, ROI, withdrawal strategy (conditional custom split) |
+| `ExpensesSimulationSubForm`    | Base expenses, GoGo/GoSlow/NoGo phase configuration      |
+| `RatesSubForm`                 | COLA, inflation, healthcare inflation, healthcare expense |
 
 ### Leave Calendar Sub-Components (`components/forms/leave-calendar/`)
 

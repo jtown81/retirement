@@ -12,7 +12,23 @@ A retirement planning simulation app for U.S. federal employees. Runs locally on
 
 ## Current Status
 
-**Phases 1-9 are complete.** The app has a working UI with three top-level views (My Plan, Leave, Dashboard), four form tabs within My Plan (FERS Estimate, Career, Expenses, Simulation), a full leave calendar with federal holidays, and a modern Dashboard with 6 projection charts + expanded summary cards.
+**Phases 1-9 complete.** **Phases A-E (post-Phase-9 refinement) in progress.**
+
+The app has a working UI with three top-level views (My Plan, Leave, Dashboard), nested form tabs within My Plan with sub-form components (FERS Estimate E.1, Career, Expenses, Simulation E.2), a full leave calendar with federal holidays, and a modern Dashboard with 6 projection charts + expanded summary cards.
+
+### Phase E.2 Completion (SimulationForm Split - Feb 2026)
+- ✅ Created 4 simulation sub-forms (CoreParameters, TSP, Expenses, Rates)
+- ✅ Refactored SimulationForm.tsx from 966 → 143 lines (container pattern)
+- ✅ Implemented merge-on-save pattern with SIM_CONFIG_DEFAULTS
+- ✅ Removed draft system (retire:simulation-form-draft deprecated)
+- ✅ Auto-population hints from FERS estimate and expense profile
+- ✅ All 732 tests passing with zero changes needed
+
+### Phase E.1 Completion (FERSEstimateForm Split - Feb 2026)
+- ✅ Created 4 FERS sub-forms (Personal, Salary, Annuity & SS, TSP)
+- ✅ Refactored FERSEstimateForm to container (Tabs with 4 sub-tabs)
+- ✅ Auto-population from default inputs fixture
+- ✅ All 732 tests passing
 
 ### Phase 9 Completion (Dashboard Replacement - Feb 2026)
 - Fixed Roth TSP bug (was always 0 in pre-retirement charts)
@@ -123,6 +139,47 @@ Configured in both `tsconfig.json` and `vitest.config.ts`:
 
 Always import from barrel exports (`@modules/career`) — never import sub-files directly.
 
+## Sub-Form Pattern (Phase E.1 & E.2)
+
+When a form grows large (600+ lines) with logically distinct sections, split it using the **Container + Sub-Forms** pattern:
+
+1. **Container component** (form name, e.g., `SimulationForm.tsx`):
+   - Manages `activeSubTab` state (string)
+   - Reads all storage keys with `useLocalStorage`
+   - Computes live data (e.g., simulation results) using `useMemo`
+   - Renders `<Tabs>` with `<TabsList>` + 4-6 `<TabsContent>` sections
+   - Mounts each sub-form component
+   - Shows live results panel (read-only, driven by stored state)
+
+2. **Each sub-form component** (e.g., `CoreParametersSubForm.tsx`):
+   - Manages local form state (strings for controlled inputs)
+   - Loads from storage on mount via `formStateFromStored()`
+   - Wrapped in `<FormSection>` (Save/Clear/Defaults buttons + Saved badge)
+   - Save handler: merge-on-save pattern:
+     ```typescript
+     const saved = storedConfig ?? {};
+     const merged = { ...DEFAULTS, ...saved, ...myFields };
+     const result = Schema.safeParse(merged);
+     saveConfig(result.data);
+     ```
+   - No draft system (state lost on unmount)
+   - Auto-population hints from related forms (e.g., FERS estimate, expense profile)
+
+3. **Reusable components**:
+   - `FormSection` — Save/Clear/Defaults buttons + Saved badge
+   - `FieldGroup` — Label + Input + Error/Hint wrapper
+   - `Tabs` / `TabsList` / `TabsTrigger` / `TabsContent` — shadcn tabs
+   - `useLocalStorage` — Typed storage reads/writes
+   - Schema.safeParse — Atomic validation on save
+
+4. **Storage & merge strategy**:
+   - Define `*_DEFAULTS` constant (all required fields with defaults)
+   - Each sub-form saves to the same storage key
+   - Merge: `{ ...DEFAULTS, ...saved, ...myFields }` ensures all fields present
+   - No partial updates; each sub-form is atomic
+
+See `app/src/components/forms/simulation/` for Phase E.2 example, `app/src/components/forms/fers/` for Phase E.1.
+
 ## Key Domain Notes
 
 - Flag all regulatory ambiguities explicitly rather than silently assuming.
@@ -137,6 +194,8 @@ app/
     components/
       layout/          — AppShell (top-level nav)
       forms/           — FERSEstimateForm, CareerEventsForm, ExpensesForm, SimulationForm, FormShell, etc.
+        fers/          — PersonalSubForm, SalarySubForm, AnnuitySocialSubForm, TSPSubForm (Phase E.1)
+        simulation/    — CoreParametersSubForm, TSPSimulationSubForm, ExpensesSimulationSubForm, RatesSubForm (Phase E.2)
         leave-calendar/ — LeaveCalendarGrid, DayCell, MonthCalendar, LeaveEntryModal, etc.
       cards/           — MetricCard, SummaryPanel
       charts/          — IncomeWaterfallChart, TSPLifecycleChart, ExpensePhasesChart, RMDComplianceChart, PayGrowthChart, LeaveBalancesChart, ChartContainer, ChartTooltip
