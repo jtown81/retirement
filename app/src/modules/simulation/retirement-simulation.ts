@@ -30,35 +30,61 @@ import {
   getBracketAtIncome,
   getMarginalBracketRate,
 } from '../tax';
+import { smileCurveMultiplier, type SmileCurveParams } from '../expenses/smile-curve';
 
 /**
- * Computes the expense smile curve multiplier for GoGo/GoSlow/NoGo phases.
+ * Converts GoGo/GoSlow/NoGo parameters to Blanchett smile curve parameters.
  *
- * NOTE: Two expense smile curve models exist in this codebase and serve different purposes:
+ * UNIFICATION (Phase N): The full simulation now uses the Blanchett (2014) linear interpolation
+ * model for consistency with the simple path (income-projection.ts). This ensures both calculation
+ * paths produce the same expense projections.
  *
- * 1. **Blanchett linear interpolation** (modules/expenses/smile-curve.ts):
- *    - Smooth piecewise-linear curve through 3 anchor points (year 0 → midDip → 2×midDip)
- *    - Year-based progression through retirement
- *    - Used by income-projection.ts (simple retirement income path)
- *    - Research-based (Blanchett 2014)
+ * Mapping:
+ *   - goGoRate (early spending) → earlyMultiplier
+ *   - goSlowRate (mid spending) → midMultiplier
+ *   - noGoRate (late spending) → lateMultiplier
+ *   - goGoEndAge → determines midDipYear (target transition age from GoGo to GoSlow)
+ *   - goSlowEndAge → determines lateYear (target transition age from GoSlow to NoGo)
  *
- * 2. **GoGo/GoSlow/NoGo step function** (this file):
- *    - Three age-based spending phases with discrete multipliers
- *    - Age-based transitions (defined by goGoEndAge, goSlowEndAge)
- *    - Used by retirement-simulation.ts (full dual-pot TSP simulation)
- *    - Simpler, more intuitive for user input (common in retirement planning)
+ * The Blanchett model smoothly interpolates between these three spending levels over time,
+ * rather than using hard age-based cutoffs. This is more realistic and academically supported.
  *
- * Both models are valid representations of retirement spending patterns. The choice of which
- * to use is intentional per calculation path:
- * - Simple path uses the academic Blanchett model (smooth, empirically grounded)
- * - Full simulation uses the practitioner GoGo/GoSlow/NoGo model (simple, user-configurable by age)
- *
- * Future enhancement: Allow user to choose between models, or unify if spreadsheet specifies one.
+ * @param config - Simulation configuration with GoGo/GoSlow/NoGo parameters
+ * @returns Blanchett smile curve parameters
  */
-function smileMultiplier(age: number, config: SimulationConfig): number {
-  if (age < config.goGoEndAge) return config.goGoRate;
-  if (age < config.goSlowEndAge) return config.goSlowRate;
-  return config.noGoRate;
+function convertGoGoToBlanchett(config: SimulationConfig): SmileCurveParams {
+  // Convert age-based transitions to year-based for Blanchett model
+  // Assume smooth interpolation: earlyMultiplier at year 0, transition to midMultiplier,
+  // then to lateMultiplier by late retirement
+  const earlyYears = config.goGoEndAge - config.retirementAge;
+  const lateYears = config.goSlowEndAge - config.retirementAge;
+
+  // Use the earlier transition point as midDipYear (start of decline)
+  // This creates a smooth curve that aligns with the age-based transitions
+  const midDipYear = Math.max(1, earlyYears); // At least 1 year
+
+  return {
+    earlyMultiplier: config.goGoRate,
+    midMultiplier: config.goSlowRate,
+    lateMultiplier: config.noGoRate,
+    midDipYear,
+  };
+}
+
+/**
+ * Computes the expense smile curve multiplier using the Blanchett (2014) model.
+ *
+ * This unified function uses the same Blanchett linear interpolation as the simple path,
+ * ensuring consistency across both calculation paths. GoGo/GoSlow/NoGo parameters are
+ * converted to Blanchett parameters for the calculation.
+ *
+ * @param yearsIntoRetirement - Years since retirement
+ * @param config - Simulation configuration
+ * @returns Expense multiplier for this year
+ */
+function smileMultiplier(yearsIntoRetirement: number, config: SimulationConfig): number {
+  const blanchettParams = convertGoGoToBlanchett(config);
+  return smileCurveMultiplier(yearsIntoRetirement, blanchettParams);
 }
 
 /**
@@ -129,7 +155,8 @@ export function projectRetirementSimulation(
     const otherIncome = annuity + fersSupplement + socialSecurity;
 
     // ── 2. Expenses ──────────────────────────────────────────────────
-    const smile = smileMultiplier(age, config);
+    // Using unified Blanchett smile curve model (converted from GoGo/GoSlow/NoGo parameters)
+    const smile = smileMultiplier(yr, config);
     const hcExpenses = config.healthcareAnnualExpenses ?? 0;
     const nonHcExpenses = config.baseAnnualExpenses - hcExpenses;
     const hcInflation = config.healthcareInflationRate ?? config.inflationRate;

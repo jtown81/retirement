@@ -8,7 +8,16 @@ export function ChartContainer({
   minHeight,
   children,
 }: ChartContainerProps) {
-  const height = minHeight ?? 300;
+  // Note: Charts should NOT use inner ResponsiveContainer wrappers.
+  // ChartContainer's ResponsiveContainer will handle all responsive sizing.
+  // If a chart needs custom height on specific breakpoints, add a className prop.
+  const heightClass = minHeight
+    ? minHeight <= 300
+      ? 'h-[250px] lg:h-[350px]'
+      : minHeight <= 400
+        ? 'h-[300px] lg:h-[400px]'
+        : 'h-[350px] lg:h-[450px]'
+    : 'h-[250px] lg:h-[350px]';
 
   return (
     <Card>
@@ -17,7 +26,7 @@ export function ChartContainer({
         {subtitle && <CardDescription>{subtitle}</CardDescription>}
       </CardHeader>
       <CardContent>
-        <div style={{ minHeight: height }} className="h-[250px] lg:h-[350px]">
+        <div className={heightClass}>
           <ResponsiveContainer width="100%" height="100%">
             {children as React.ReactElement}
           </ResponsiveContainer>

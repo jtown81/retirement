@@ -23,7 +23,7 @@ function StatItem({
 }) {
   return (
     <div className="text-center min-w-0">
-      <div className="text-[10px] text-muted-foreground whitespace-normal break-words">{label}</div>
+      <div className="text-xs text-muted-foreground whitespace-normal break-words">{label}</div>
       <div
         className={cn(
           'text-sm font-semibold',
@@ -41,8 +41,8 @@ export function LeaveBalanceSummaryPanel({ summary }: LeaveBalanceSummaryPanelPr
     <div className="space-y-2">
       {/* Annual Leave Row */}
       <div className="bg-blue-50 dark:bg-blue-950 border border-blue-100 dark:border-blue-800 rounded-md px-3 py-2">
-        <div className="text-xs font-medium text-blue-800 dark:text-blue-200 mb-1">Annual Leave</div>
-        <div className="flex justify-between gap-2 overflow-x-auto">
+        <div className="text-xs font-medium text-blue-800 dark:text-blue-200 mb-2">Annual Leave</div>
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
           <StatItem label="Carry-over" value={summary.annualCarryOver} />
           <StatItem label="Accrued" value={summary.annualAccrued} color="text-green-700 dark:text-green-400" />
           <StatItem label="Planned" value={summary.plannedAnnualUsed} color="text-blue-600 dark:text-blue-400" />
@@ -58,8 +58,8 @@ export function LeaveBalanceSummaryPanel({ summary }: LeaveBalanceSummaryPanelPr
 
       {/* Sick Leave Row */}
       <div className="bg-orange-50 dark:bg-orange-950 border border-orange-100 dark:border-orange-800 rounded-md px-3 py-2">
-        <div className="text-xs font-medium text-orange-800 dark:text-orange-200 mb-1">Sick Leave</div>
-        <div className="flex justify-between gap-2 overflow-x-auto">
+        <div className="text-xs font-medium text-orange-800 dark:text-orange-200 mb-2">Sick Leave</div>
+        <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
           <StatItem label="Carry-over" value={summary.sickCarryOver} />
           <StatItem label="Accrued" value={summary.sickAccrued} color="text-green-700 dark:text-green-400" />
           <StatItem label="LS Planned" value={summary.plannedSickLS} color="text-orange-600 dark:text-orange-400" />

@@ -199,4 +199,58 @@ describe('useSimulation', () => {
       expect(lastAccumYear.rothBalance).toBeCloseTo(lastTspBalance.rothBalance, 0);
     }
   });
+
+  it('produces full simulation data when SimulationConfig is provided', () => {
+    // Create a minimal SimulationConfig
+    const simConfig = {
+      proposedRetirementDate: '2025-01-01',
+      retirementAge: 62,
+      retirementYear: 2025,
+      endAge: 95,
+      birthYear: 1963,
+      tspGrowthRate: 0.07,
+      fersAnnuity: 30000,
+      fersSupplement: 12000,
+      ssMonthlyAt62: 1800,
+      ssClaimingAge: 62 as const,
+      tspBalanceAtRetirement: 500000,
+      traditionalPct: 0.70,
+      highRiskPct: 0.60,
+      highRiskROI: 0.08,
+      lowRiskROI: 0.03,
+      withdrawalRate: 0.04,
+      timeStepYears: 2 as const,
+      baseAnnualExpenses: 60000,
+      goGoEndAge: 72,
+      goGoRate: 1.0,
+      goSlowEndAge: 82,
+      goSlowRate: 0.85,
+      noGoRate: 0.75,
+      colaRate: 0.02,
+      inflationRate: 0.025,
+      healthcareInflationRate: 0.055,
+      healthcareAnnualExpenses: 8000,
+    };
+
+    const { result } = renderHook(() => useSimulation(DEMO_INPUT, simConfig));
+    const data = result.current!;
+
+    // With fullSimulation config, should have full simulation data
+    expect(data.fullSimulation).toBeDefined();
+    expect(data.fullSimulation?.years.length).toBeGreaterThan(0);
+
+    // Income waterfall should include Social Security when fullSimulation available
+    expect(data.incomeWaterfall[0]?.socialSecurity).toBeGreaterThan(0);
+
+    // TSP lifecycle should have both accumulation and distribution phases
+    const hasDistribution = data.tspLifecycle.some((d) => d.phase === 'distribution');
+    expect(hasDistribution).toBe(true);
+
+    // Expense phases should be populated
+    expect(data.expensePhases.length).toBeGreaterThan(0);
+
+    // RMD timeline should be populated for age 73+
+    const rmdYears = data.rmdTimeline.filter((d) => d.age >= 73);
+    expect(rmdYears.length).toBeGreaterThan(0);
+  });
 });

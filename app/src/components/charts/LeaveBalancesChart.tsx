@@ -8,6 +8,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { useChartTheme } from '@hooks/useChartTheme';
+import { useResponsiveChartFontSize } from '@hooks/useResponsiveChartFontSize';
 import { ChartContainer } from './ChartContainer';
 import { ChartTooltip } from './ChartTooltip';
 import type { LeaveBalancesChartProps } from './chart-types';
@@ -33,6 +34,7 @@ function LeaveTooltip({ active, payload, theme }: { active?: boolean; payload?: 
 
 export function LeaveBalancesChart({ data }: LeaveBalancesChartProps) {
   const theme = useChartTheme();
+  const fontConfig = useResponsiveChartFontSize();
 
   // Calculate final sick leave retirement credit
   const finalSickHours = data[data.length - 1]?.sickLeaveHours ?? 0;
@@ -45,10 +47,10 @@ export function LeaveBalancesChart({ data }: LeaveBalancesChartProps) {
     >
       <AreaChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 20 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={theme.gridColor} />
-        <XAxis dataKey="year" tick={{ fontSize: 12, fill: theme.textColor }} />
+        <XAxis dataKey="year" tick={{ fontSize: fontConfig.fontSize, fill: theme.textColor }} interval={fontConfig.interval} />
         <YAxis
           tickFormatter={(v: number) => `${v} hrs`}
-          tick={{ fontSize: 12, fill: theme.textColor }}
+          tick={{ fontSize: fontConfig.fontSize, fill: theme.textColor }}
         />
         <Tooltip content={<LeaveTooltip theme={theme} />} />
         <ReferenceLine

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useLocalStorage } from '@hooks/useLocalStorage';
 import {
   STORAGE_KEYS,
@@ -67,10 +67,11 @@ function buildFERSEstimateInput(personal: PersonalInfo | null, fers: FERSEstimat
 
 export function SimulationForm() {
   const [activeSubTab, setActiveSubTab] = useState('core');
-  const [storedConfig] = useLocalStorage(STORAGE_KEYS.SIMULATION_CONFIG, SimulationConfigSchema);
+  const [storedConfig, saveConfig] = useLocalStorage(STORAGE_KEYS.SIMULATION_CONFIG, SimulationConfigSchema);
   const [storedPersonal] = useLocalStorage(STORAGE_KEYS.PERSONAL_INFO, PersonalInfoSchema);
   const [storedFERS] = useLocalStorage(STORAGE_KEYS.FERS_ESTIMATE, FERSEstimateSchema);
   const [storedExpenses] = useLocalStorage(STORAGE_KEYS.EXPENSE_PROFILE, ExpenseProfileSchema);
+  const isFirstRender = useRef(true);
 
   // Compute FERS estimate from saved data for auto-population hints in sub-forms
   const fersInput = useMemo(
@@ -78,6 +79,67 @@ export function SimulationForm() {
     [storedPersonal, storedFERS],
   );
   const fersEstimate = useFERSEstimate(fersInput!);
+
+  // ── Auto-initialize SimulationConfig with defaults on first load ──────────────────
+  // This ensures the full simulation is available (not null) in the Dashboard
+  useEffect(() => {
+    if (isFirstRender.current && !storedConfig && fersEstimate?.canCompute) {
+      isFirstRender.current = false;
+
+      // Build default config with values from FERS estimate where available
+      const now = new Date();
+      const retirementYear = new Date(storedFERS?.retirementDate || now).getFullYear();
+      const birthYear = storedPersonal?.birthDate ? new Date(storedPersonal.birthDate).getFullYear() : 1962;
+      const retirementAge = Math.round(fersEstimate.ageAtRetirement);
+      const endAge = Math.max(95, retirementAge + 30); // At least 30 years of projection
+
+      const defaultConfig: SimulationConfig = {
+        // Core retirement parameters from FERS estimate
+        proposedRetirementDate: storedFERS?.retirementDate || now.toISOString().slice(0, 10),
+        retirementAge,
+        retirementYear,
+        birthYear,
+        endAge,
+        tspGrowthRate: storedFERS?.tspGrowthRate ?? 0.07,
+        ssClaimingAge: 62,
+
+        // Annuity values from FERS estimate
+        fersAnnuity: Math.round(fersEstimate.netAnnuity),
+        fersSupplement: Math.round(fersEstimate.supplementAnnual),
+        ssMonthlyAt62: storedFERS?.ssaBenefitAt62 ?? 0,
+
+        // TSP parameters (reasonable defaults based on FERS data)
+        tspBalanceAtRetirement: storedFERS?.currentTspBalance ?? 500000,
+        traditionalPct: 0.70,
+        highRiskPct: 0.60,
+        highRiskROI: 0.08,
+        lowRiskROI: 0.03,
+        withdrawalRate: 0.04, // 4% rule
+        timeStepYears: 2,
+        withdrawalStrategy: 'proportional',
+
+        // Expense parameters from expense profile or defaults
+        baseAnnualExpenses: storedExpenses?.categories.reduce((sum, c) => sum + c.annualAmount, 0) ?? 60000,
+        goGoEndAge: 72,
+        goGoRate: 1.0,
+        goSlowEndAge: 82,
+        goSlowRate: 0.85,
+        noGoRate: 0.75,
+
+        // Rate assumptions
+        colaRate: 0.02,
+        inflationRate: 0.025,
+        healthcareInflationRate: 0.055,
+        healthcareAnnualExpenses: 8000,
+      };
+
+      // Validate and save
+      const validation = SimulationConfigSchema.safeParse(defaultConfig);
+      if (validation.success) {
+        saveConfig(defaultConfig);
+      }
+    }
+  }, [storedConfig, fersEstimate, storedFERS, storedPersonal, storedExpenses, saveConfig]);
 
   // ── Live simulation (read-only, driven by stored config) ──────────────────
   const simulation = useMemo<FullSimulationResult | null>(() => {

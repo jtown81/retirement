@@ -1,4 +1,4 @@
-import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
 import { ChartContainer } from './ChartContainer';
 import type { TSPAccountSnapshot } from '@models/tsp';
 
@@ -25,6 +25,11 @@ interface TSPFundDonutProps {
 }
 
 export function TSPFundDonut({ snapshot }: TSPFundDonutProps) {
+  // Scale donut size for mobile devices
+  const isSmallScreen = typeof window !== 'undefined' && window.innerWidth < 400;
+  const innerRadius = isSmallScreen ? 60 : 80;
+  const outerRadius = isSmallScreen ? 100 : 120;
+
   if (!snapshot || snapshot.fundAllocations.length === 0) {
     return (
       <ChartContainer title="Fund Allocation" subtitle="Latest snapshot">
@@ -56,14 +61,13 @@ export function TSPFundDonut({ snapshot }: TSPFundDonutProps) {
 
   return (
     <ChartContainer title="Fund Allocation" subtitle={`As of ${snapshot.asOf}`}>
-      <ResponsiveContainer width="100%" height={320}>
-        <PieChart>
+      <PieChart>
           <Pie
             data={data}
             cx="50%"
             cy="50%"
-            innerRadius={80}
-            outerRadius={120}
+            innerRadius={innerRadius}
+            outerRadius={outerRadius}
             paddingAngle={2}
             dataKey="value"
             label={({ name, value }) => `${name} ${value.toFixed(0)}%`}
@@ -78,7 +82,6 @@ export function TSPFundDonut({ snapshot }: TSPFundDonutProps) {
           <Tooltip formatter={(value) => `${(value as number).toFixed(1)}%`} />
           <Legend />
         </PieChart>
-      </ResponsiveContainer>
     </ChartContainer>
   );
 }

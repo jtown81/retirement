@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocalStorage } from '@hooks/useLocalStorage';
-import { STORAGE_KEYS, FERSEstimateSchema, LeaveBalanceSchema } from '@storage/index';
+import { STORAGE_KEYS, FERSEstimateSchema, LeaveBalanceSchema, CareerProfileSchema } from '@storage/index';
 import { getAvailableLocalityCodes } from '@data/locality-rates';
+import { buildSalaryHistory, computeHigh3Salary } from '@modules/career';
 import type { z } from 'zod';
 import { FieldGroup } from '../FieldGroup';
 import { FormSection } from '../FormSection';
@@ -20,6 +21,8 @@ interface SalaryFormState {
   high3Override: string;
   sickLeaveHours: string;
   averageAnnualSickLeaveUsage: string;
+  computedHigh3?: number;
+  high3Source?: 'computed' | 'override';
 }
 
 const LOCALITY_CODES = getAvailableLocalityCodes(new Date().getFullYear());
@@ -55,6 +58,7 @@ function loadFromDefaults(): SalaryFormState {
 export function SalarySubForm() {
   const [storedFERS, saveFERS] = useLocalStorage(STORAGE_KEYS.FERS_ESTIMATE, FERSEstimateSchema);
   const [storedLeaveBalance, saveLeaveBalance] = useLocalStorage(STORAGE_KEYS.LEAVE_BALANCE, LeaveBalanceSchema);
+  const [storedCareer] = useLocalStorage(STORAGE_KEYS.CAREER_PROFILE, CareerProfileSchema);
   const [form, setForm] = useState<SalaryFormState>(() => {
     const hasStoredData = storedFERS !== null;
     if (hasStoredData) return formStateFromStored(storedFERS, storedLeaveBalance);
@@ -66,8 +70,24 @@ export function SalarySubForm() {
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
+      // Auto-compute High-3 from career events if available and no manual override
+      if (storedCareer && storedCareer.events && storedCareer.events.length > 0 && !form.high3Override) {
+        try {
+          const history = buildSalaryHistory(storedCareer as any, new Date().getFullYear());
+          if (history.length > 0) {
+            const computed = computeHigh3Salary(history);
+            setForm((prev) => ({
+              ...prev,
+              computedHigh3: computed,
+              high3Source: 'computed',
+            }));
+          }
+        } catch {
+          // Silently fail if career data invalid; user can enter manual override
+        }
+      }
     }
-  }, []);
+  }, [storedCareer, form.high3Override]);
 
   const set = (key: keyof SalaryFormState, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -215,17 +235,32 @@ export function SalarySubForm() {
         </FieldGroup>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FieldGroup label="High-3 Override ($)" htmlFor="fe-high3" error={errors.high3Override}
-          hint="Leave blank to calculate from grade/step">
-          <Input
-            id="fe-high3"
-            type="number"
-            min="0"
-            step="1"
-            placeholder="Auto from grade/step"
-            value={form.high3Override}
-            onChange={(e) => set('high3Override', e.target.value)}
-          />
+        <FieldGroup
+          label="High-3 Override ($)"
+          htmlFor="fe-high3"
+          error={errors.high3Override}
+          hint={
+            form.computedHigh3 && !form.high3Override
+              ? `Computed from career: $${form.computedHigh3.toLocaleString()}`
+              : 'Leave blank to use career events'
+          }
+        >
+          <div className="space-y-2">
+            <Input
+              id="fe-high3"
+              type="number"
+              min="0"
+              step="1"
+              placeholder={form.computedHigh3 ? `$${form.computedHigh3.toLocaleString()}` : 'Auto from career'}
+              value={form.high3Override}
+              onChange={(e) => set('high3Override', e.target.value)}
+            />
+            {form.computedHigh3 && !form.high3Override && storedCareer?.events && (
+              <p className="text-xs text-blue-600 dark:text-blue-400">
+                Based on {buildSalaryHistory(storedCareer as any, new Date().getFullYear()).length} years of salary history
+              </p>
+            )}
+          </div>
         </FieldGroup>
         <FieldGroup label="Sick Leave Hours" htmlFor="fe-sickHours" error={errors.sickLeaveHours}>
           <Input

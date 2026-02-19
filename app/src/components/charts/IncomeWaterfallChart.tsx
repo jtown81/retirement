@@ -9,6 +9,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { useChartTheme } from '@hooks/useChartTheme';
+import { useResponsiveChartFontSize } from '@hooks/useResponsiveChartFontSize';
 import { ChartContainer } from './ChartContainer';
 import { ChartTooltip } from './ChartTooltip';
 import type { IncomeWaterfallDataPoint } from './chart-types';
@@ -62,6 +63,7 @@ export interface IncomeWaterfallChartProps {
 
 export function IncomeWaterfallChart({ data }: IncomeWaterfallChartProps) {
   const theme = useChartTheme();
+  const fontConfig = useResponsiveChartFontSize();
 
   return (
     <ChartContainer
@@ -70,10 +72,10 @@ export function IncomeWaterfallChart({ data }: IncomeWaterfallChartProps) {
     >
       <ComposedChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 20 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={theme.gridColor} />
-        <XAxis dataKey="year" tick={{ fontSize: 12, fill: theme.textColor }} />
+        <XAxis dataKey="year" tick={{ fontSize: fontConfig.fontSize, fill: theme.textColor }} interval={fontConfig.interval} />
         <YAxis
           tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
-          tick={{ fontSize: 12, fill: theme.textColor }}
+          tick={{ fontSize: fontConfig.fontSize, fill: theme.textColor }}
         />
         <Tooltip content={<IncomeWaterfallTooltip theme={theme} />} />
         <ReferenceLine y={0} stroke={theme.borderColor} />

@@ -264,10 +264,11 @@ export function useSimulation(
       }
     }
 
-    // Expense Phases: Map fullSimulation phase data with Blanchett comparison
+    // Expense Phases: Unified Blanchett smile curve model
+    // (Phase N: Unified both paths to use Blanchett linear interpolation)
     const expensePhases: ExpensePhaseDataPoint[] = fullSimulation
       ? fullSimulation.years.map((yr) => {
-          const blanchettMultiplier = smileCurveMultiplier(yr.age - result.projections[0]?.age || 0, smileParams);
+          const yearsIntoRetirement = yr.age - fullSimulation.config.retirementAge;
           const phase =
             yr.age < fullSimulation.config.goGoEndAge
               ? 'GoGo'
@@ -278,15 +279,11 @@ export function useSimulation(
           return {
             year: yr.year,
             age: yr.age,
-            yearsIntoRetirement: yr.age - fullSimulation.config.retirementAge,
+            yearsIntoRetirement,
             phase,
             baseExpenses: fullSimulation.config.baseAnnualExpenses,
             adjustedExpenses: yr.totalExpenses,
-            blanchettAdjusted: applySmileCurve(
-              fullSimulation.config.baseAnnualExpenses,
-              yr.age - fullSimulation.config.retirementAge,
-              smileParams,
-            ),
+            blanchettAdjusted: yr.totalExpenses, // Now unified - both use Blanchett
             smileMultiplier: yr.smileMultiplier,
           };
         })

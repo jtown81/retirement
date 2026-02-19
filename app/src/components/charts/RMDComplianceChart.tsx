@@ -9,6 +9,7 @@ import {
   Legend,
 } from 'recharts';
 import { useChartTheme } from '@hooks/useChartTheme';
+import { useResponsiveChartFontSize } from '@hooks/useResponsiveChartFontSize';
 import { ChartContainer } from './ChartContainer';
 import { ChartTooltip } from './ChartTooltip';
 import type { RMDDataPoint } from './chart-types';
@@ -61,6 +62,7 @@ export interface RMDComplianceChartProps {
 
 export function RMDComplianceChart({ data }: RMDComplianceChartProps) {
   const theme = useChartTheme();
+  const fontConfig = useResponsiveChartFontSize();
 
   if (data.length === 0) {
     return (
@@ -92,19 +94,20 @@ export function RMDComplianceChart({ data }: RMDComplianceChartProps) {
         <CartesianGrid strokeDasharray="3 3" stroke={theme.gridColor} />
         <XAxis
           dataKey="year"
-          tick={{ fontSize: 12, fill: theme.textColor }}
+          tick={{ fontSize: fontConfig.fontSize, fill: theme.textColor }}
+          interval={fontConfig.interval}
         />
         <YAxis
           yAxisId="left"
           tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
-          tick={{ fontSize: 12, fill: theme.textColor }}
+          tick={{ fontSize: fontConfig.fontSize, fill: theme.textColor }}
           label={{ value: 'RMD / Withdrawal', angle: -90, position: 'insideLeft', fill: theme.textColor }}
         />
         <YAxis
           yAxisId="right"
           orientation="right"
           tickFormatter={(v: number) => `$${(v / 1000000).toFixed(1)}M`}
-          tick={{ fontSize: 12, fill: theme.textColor }}
+          tick={{ fontSize: fontConfig.fontSize, fill: theme.textColor }}
           label={{ value: 'TSP Balance', angle: 90, position: 'insideRight', fill: theme.textColor }}
         />
         <Tooltip content={<RMDTooltip theme={theme} />} />

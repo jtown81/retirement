@@ -8,6 +8,7 @@ import {
   ComposedChart,
 } from 'recharts';
 import { useChartTheme } from '@hooks/useChartTheme';
+import { useResponsiveChartFontSize } from '@hooks/useResponsiveChartFontSize';
 import { ChartContainer } from './ChartContainer';
 import { ChartTooltip } from './ChartTooltip';
 import type { PayGrowthChartProps, PayGrowthDataPoint } from './chart-types';
@@ -34,6 +35,7 @@ function PayTooltip({ active, payload, theme, isHigh3 }: { active?: boolean; pay
 
 export function PayGrowthChart({ data, retirementYear }: PayGrowthChartProps) {
   const theme = useChartTheme();
+  const fontConfig = useResponsiveChartFontSize();
 
   // Calculate High-3 average (3 highest consecutive annual salaries)
   const high3Salary = (() => {
@@ -61,10 +63,10 @@ export function PayGrowthChart({ data, retirementYear }: PayGrowthChartProps) {
     >
       <ComposedChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 20 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={theme.gridColor} />
-        <XAxis dataKey="year" tick={{ fontSize: 12, fill: theme.textColor }} />
+        <XAxis dataKey="year" tick={{ fontSize: fontConfig.fontSize, fill: theme.textColor }} interval={fontConfig.interval} />
         <YAxis
           tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
-          tick={{ fontSize: 12, fill: theme.textColor }}
+          tick={{ fontSize: fontConfig.fontSize, fill: theme.textColor }}
         />
         <Tooltip content={<PayTooltip theme={theme} isHigh3={false} />} />
 

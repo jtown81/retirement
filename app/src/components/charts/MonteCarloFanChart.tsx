@@ -10,7 +10,6 @@ import {
   Tooltip,
   ReferenceLine,
   Legend,
-  ResponsiveContainer,
 } from 'recharts';
 import { useChartTheme } from '@hooks/useChartTheme';
 import { ChartContainer } from './ChartContainer';
@@ -86,8 +85,7 @@ export function MonteCarloFanChart({ data, overallSuccessRate, successRateAt85 }
       minHeight={400}
     >
       <div className="space-y-4">
-        <ResponsiveContainer width="100%" height={350}>
-          <ComposedChart data={dataWithBands} margin={{ top: 5, right: 20, bottom: 5, left: 20 }}>
+        <ComposedChart data={dataWithBands} margin={{ top: 5, right: 20, bottom: 5, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={theme.gridColor} />
             <XAxis
               dataKey="age"
@@ -157,7 +155,6 @@ export function MonteCarloFanChart({ data, overallSuccessRate, successRateAt85 }
               }}
             />
           </ComposedChart>
-        </ResponsiveContainer>
 
         {/* Success rate summary card */}
         <div className="rounded-lg border border-border bg-muted p-4">

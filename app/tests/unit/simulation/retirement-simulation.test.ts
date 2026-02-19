@@ -77,26 +77,37 @@ describe('projectRetirementSimulation', () => {
     expect(result.years[2].socialSecurity).toBeGreaterThan(0); // age 62
   });
 
-  it('uses GoGo/GoSlow/NoGo smile curve multipliers', () => {
+  it('uses Blanchett smile curve (unified from GoGo/GoSlow/NoGo parameters)', () => {
+    // PHASE N: Unified smile curve to use Blanchett (2014) model
+    // GoGo/GoSlow/NoGo parameters are converted to Blanchett parameters:
+    // - earlyMultiplier = goGoRate
+    // - midMultiplier = goSlowRate
+    // - lateMultiplier = noGoRate
+    // - midDipYear = goGoEndAge - retirementAge
     const config = makeConfig({
       retirementAge: 60,
-      goGoEndAge: 72,
-      goGoRate: 1.0,
+      goGoEndAge: 72,  // → midDipYear = 12
+      goGoRate: 1.0,   // earlyMultiplier
       goSlowEndAge: 82,
-      goSlowRate: 0.85,
-      noGoRate: 0.75,
+      goSlowRate: 0.85, // midMultiplier
+      noGoRate: 0.75,  // lateMultiplier
     });
     const result = projectRetirementSimulation(config);
 
-    // GoGo: age 60-71
-    expect(result.years[0].smileMultiplier).toBe(1.0);
-    expect(result.years[11].smileMultiplier).toBe(1.0);
+    // Blanchett smooth interpolation (not step function):
+    // Year 0 (age 60, yr=0): at earlyMultiplier
+    expect(result.years[0].smileMultiplier).toBeCloseTo(1.0, 2);
 
-    // GoSlow: age 72-81
-    expect(result.years[12].smileMultiplier).toBe(0.85);
+    // Year 11 (age 71, yr=11): smooth transition toward midMultiplier
+    // t = 11/12, multiplier = 1.0 - 0.15 * (11/12) ≈ 0.8625
+    expect(result.years[11].smileMultiplier).toBeCloseTo(0.8625, 2);
 
-    // NoGo: age 82+
-    expect(result.years[22].smileMultiplier).toBe(0.75);
+    // Year 12 (age 72, yr=12): at midMultiplier (transition point)
+    expect(result.years[12].smileMultiplier).toBeCloseTo(0.85, 2);
+
+    // Year 22 (age 82, yr=22): smooth transition toward lateMultiplier
+    // t = (22-12)/12 = 10/12, multiplier = 0.85 - 0.1 * (10/12) ≈ 0.7667
+    expect(result.years[22].smileMultiplier).toBeCloseTo(0.7667, 2);
   });
 
   it('tracks Traditional and Roth balances separately', () => {
