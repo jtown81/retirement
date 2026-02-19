@@ -12,9 +12,17 @@ A retirement planning simulation app for U.S. federal employees. Runs locally on
 
 ## Current Status
 
-**Phases 1-9 complete.** **Phases A-E (post-Phase-9 refinement) in progress.**
+**Phases 1-9 complete.** **Phases A-F (post-Phase-9 refinement) complete. Phase F (UX) in progress.**
 
-The app has a working UI with three top-level views (My Plan, Leave, Dashboard), nested form tabs within My Plan with sub-form components (FERS Estimate E.1, Career E.4, Expenses E.5, Simulation E.2, Tax E.3), a full leave calendar with federal holidays, and a modern Dashboard with 6 projection charts + expanded summary cards.
+The app has a working UI with three top-level views (My Plan, Leave, Dashboard), nested form tabs within My Plan with sub-form components (FERS Estimate E.1, Career E.4, Expenses E.5, Simulation E.2, Tax E.3), a full leave calendar with federal holidays, and a modern Dashboard with 6 projection charts + expanded summary cards. Enhanced form UX with animations, keyboard shortcuts, and better error feedback.
+
+### Phase F Completion (Form UX Enhancements - Feb 2026)
+- ✅ FieldGroup enhancements: required field indicator (*), error animations, AlertCircle icons, better accessibility
+- ✅ FormSection enhancements: error summary banner, save button loading state (spinner), Ctrl+S keyboard shortcut, disabled button states
+- ✅ New utility components: FormErrorSummary, TabCompletionBadge, FormStateIndicator
+- ✅ Better visual feedback: animated error messages, smoother transitions, improved Saved badge animation (exit + entry)
+- ✅ Accessibility improvements: ARIA roles for errors, better semantic HTML, keyboard support
+- ✅ All 732 tests passing with zero changes needed
 
 ### Phase E.5 Completion (ExpensesForm Split - Feb 2026)
 - ✅ Created 2 expense sub-forms (Categories, Settings)
@@ -188,9 +196,12 @@ When a form grows large (600+ lines) with logically distinct sections, split it 
    - No draft system (state lost on unmount)
    - Auto-population hints from related forms (e.g., FERS estimate, expense profile)
 
-3. **Reusable components**:
-   - `FormSection` — Save/Clear/Defaults buttons + Saved badge
-   - `FieldGroup` — Label + Input + Error/Hint wrapper
+3. **Reusable components** (Phase F UX enhancements included):
+   - `FormSection` — Save/Clear/Defaults buttons + Saved badge; **includes error summary, save loading state, Ctrl+S keyboard shortcut, animated state transitions**
+   - `FieldGroup` — Label + Input + Error/Hint wrapper; **includes required field indicator, animated error display, better accessibility**
+   - `FormErrorSummary` — Displays validation error summary for multi-field forms
+   - `TabCompletionBadge` — Visual indicator for tab/section completion status
+   - `FormStateIndicator` — Shows form state (idle, saving, saved, error, unsaved)
    - `Tabs` / `TabsList` / `TabsTrigger` / `TabsContent` — shadcn tabs
    - `useLocalStorage` — Typed storage reads/writes
    - Schema.safeParse — Atomic validation on save
