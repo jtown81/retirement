@@ -2,11 +2,13 @@
  * useLeaveCalendar Hook
  *
  * Reads/writes LEAVE_CALENDAR storage, provides CRUD operations for entries,
- * computes year summary via the bridge, and writes a derived LeaveBalance
- * to LEAVE_BALANCE for simulation compatibility.
+ * and computes year summary via the bridge.
+ *
+ * D-2: Removed dual writes to LEAVE_BALANCE. Calendar is the single source of truth;
+ * balance is now derived by useAssembleInput from the calendar data.
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useLocalStorage } from '@hooks/useLocalStorage';
 import { STORAGE_KEYS, LeaveCalendarDataSchema, LeaveBalanceSchema } from '@storage/index';
 import type {
@@ -16,11 +18,7 @@ import type {
   AccrualRate,
   LeaveCarryOver,
 } from '@models/leave-calendar';
-import type { LeaveBalance } from '@models/leave';
-import {
-  computeCalendarYearSummary,
-  calendarToLeaveBalance,
-} from '@modules/leave/calendar-bridge';
+import { computeCalendarYearSummary } from '@modules/leave/calendar-bridge';
 import type { CalendarYearSummary } from '@modules/leave/calendar-bridge';
 
 const currentYear = new Date().getFullYear();
@@ -62,12 +60,8 @@ export function useLeaveCalendar(): UseLeaveCalendarResult {
     STORAGE_KEYS.LEAVE_CALENDAR,
     LeaveCalendarDataSchema,
   );
-  const [, saveLeaveBalance] = useLocalStorage(
-    STORAGE_KEYS.LEAVE_BALANCE,
-    LeaveBalanceSchema,
-  );
 
-  // Seed from existing LEAVE_BALANCE if calendar data doesn't exist yet
+  // Seed from existing LEAVE_BALANCE if calendar data doesn't exist yet (backward compat)
   const [existingBalance] = useLocalStorage(STORAGE_KEYS.LEAVE_BALANCE, LeaveBalanceSchema);
 
   const [data, setData] = useState<LeaveCalendarData>(() => {
@@ -90,34 +84,16 @@ export function useLeaveCalendar(): UseLeaveCalendarResult {
   const summary = computeCalendarYearSummary(activeYearData);
 
   // Persist to storage whenever data changes
+  // D-2: Calendar is now the single source of truth; balance is derived by useAssembleInput
   const persist = useCallback(
     (newData: LeaveCalendarData) => {
       setData(newData);
       saveCalendar(newData);
-      // Also update LEAVE_BALANCE for simulation compatibility
-      const yearData = newData.years[newData.activeYear];
-      if (yearData) {
-        const balance = calendarToLeaveBalance(yearData);
-        // Preserve averageAnnualSickLeaveUsage from existing balance if present
-        if (existingBalance?.averageAnnualSickLeaveUsage !== undefined) {
-          balance.averageAnnualSickLeaveUsage = existingBalance.averageAnnualSickLeaveUsage;
-        }
-        saveLeaveBalance(balance);
-      }
     },
-    [saveCalendar, saveLeaveBalance, existingBalance],
+    [saveCalendar],
   );
 
-  // Write derived balance on first mount
-  useEffect(() => {
-    const balance = calendarToLeaveBalance(activeYearData);
-    // Preserve averageAnnualSickLeaveUsage from existing balance if present
-    if (existingBalance?.averageAnnualSickLeaveUsage !== undefined) {
-      balance.averageAnnualSickLeaveUsage = existingBalance.averageAnnualSickLeaveUsage;
-    }
-    saveLeaveBalance(balance);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // D-2: Removed balance write on mount; calendar is the single source of truth
 
   const setActiveYear = useCallback(
     (year: number) => {

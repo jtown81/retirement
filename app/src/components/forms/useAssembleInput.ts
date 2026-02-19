@@ -4,7 +4,7 @@ import {
   STORAGE_KEYS,
   PersonalInfoSchema,
   CareerProfileSchema,
-  LeaveBalanceSchema,
+  LeaveCalendarDataSchema,
   TSPBalancesSchema,
   TSPContributionEventSchema,
   TSPAccountSnapshotSchema,
@@ -15,6 +15,7 @@ import {
   SimulationConfigSchema,
 } from '@storage/index';
 import { calculateAnnualPay } from '@modules/career';
+import { calendarToLeaveBalance } from '@modules/leave/calendar-bridge';
 import { z } from 'zod';
 import type { SimulationInput, SimulationConfig } from '@models/simulation';
 import type { CareerProfile } from '@models/career';
@@ -32,7 +33,8 @@ const MilitaryServiceListSchema = z.array(MilitaryServiceSchema);
 export function useAssembleInput(): SimulationInput | null {
   const [personal] = useLocalStorage(STORAGE_KEYS.PERSONAL_INFO, PersonalInfoSchema);
   const [career] = useLocalStorage(STORAGE_KEYS.CAREER_PROFILE, CareerProfileSchema);
-  const [leave] = useLocalStorage(STORAGE_KEYS.LEAVE_BALANCE, LeaveBalanceSchema);
+  // D-2: Read leave calendar; derive balance from calendar data
+  const [leaveCalendar] = useLocalStorage(STORAGE_KEYS.LEAVE_CALENDAR, LeaveCalendarDataSchema);
   const [tspSnapshots] = useLocalStorage(STORAGE_KEYS.TSP_SNAPSHOTS, TSPSnapshotListSchema);
   const [tspContributions] = useLocalStorage(STORAGE_KEYS.TSP_CONTRIBUTIONS, TSPContributionListSchema);
   const [expenses] = useLocalStorage(STORAGE_KEYS.EXPENSE_PROFILE, ExpenseProfileSchema);
@@ -61,12 +63,25 @@ export function useAssembleInput(): SimulationInput | null {
       return null;
     }
 
-    const effectiveLeave = leave ?? {
-      asOf: new Date().toISOString().slice(0, 10),
-      annualLeaveHours: 0,
-      sickLeaveHours: 0,
-      familyCareUsedCurrentYear: 0,
-    };
+    // D-2: Derive leave balance from calendar or create empty default
+    const effectiveLeave = leaveCalendar
+      ? (() => {
+          const activeYearData = leaveCalendar.years[leaveCalendar.activeYear];
+          return activeYearData
+            ? calendarToLeaveBalance(activeYearData)
+            : {
+                asOf: new Date().toISOString().slice(0, 10),
+                annualLeaveHours: 0,
+                sickLeaveHours: 0,
+                familyCareUsedCurrentYear: 0,
+              };
+        })()
+      : {
+          asOf: new Date().toISOString().slice(0, 10),
+          annualLeaveHours: 0,
+          sickLeaveHours: 0,
+          familyCareUsedCurrentYear: 0,
+        };
 
     // Build career profile: use saved career if available, otherwise
     // synthesize a minimal one from personal info + FERS estimate
@@ -125,7 +140,7 @@ export function useAssembleInput(): SimulationInput | null {
     };
 
     return input;
-  }, [personal, career, leave, tspSnapshots, tspContributions, expenses, assumptions, military, fersEstimate]);
+  }, [personal, career, leaveCalendar, tspSnapshots, tspContributions, expenses, assumptions, military, fersEstimate]);
 }
 
 /**

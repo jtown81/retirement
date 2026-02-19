@@ -8,13 +8,15 @@
  * How to add a new migration:
  *   1. Create `migrations/vN.ts` with a `migrate(data: unknown): unknown`
  *      function and a `VERSION = N` constant.
- *   2. Import it here and add an entry to the `MIGRATIONS` table.
+ *   2. Import it here and add an entry to the `MIGRATIONS` table (sorted by version).
  *   3. Increment `CURRENT_SCHEMA_VERSION` in `schema.ts`.
- *   4. Add a unit test in `tests/unit/storage/`.
+ *   4. Add a unit test in `tests/unit/storage/migrations/`.
+ *   5. Update version history in `schema.ts` comments.
  */
 
 import { migrate as v1Migrate, VERSION as V1 } from './v1';
 import { migrate as v2Migrate, VERSION as V2 } from './v2';
+import { migrate as v3Migrate, VERSION as V3 } from './v3';
 
 interface Migration {
   version: number;
@@ -28,6 +30,7 @@ interface Migration {
 const MIGRATIONS: Migration[] = [
   { version: V1, migrate: v1Migrate },
   { version: V2, migrate: v2Migrate },
+  { version: V3, migrate: v3Migrate },
 ];
 
 /**

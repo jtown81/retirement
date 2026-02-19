@@ -7,9 +7,10 @@
  * Version history:
  *   1 — initial schema (Phase 2)
  *   2 — add tax module, TSP snapshots, named scenarios (Phase 10 / PR-001/002)
+ *   3 — D-2: retire:leave (balance) deprecated; calendar is single source of truth (Phase D.2)
  */
 
-export const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 3;
 
 export interface StoredRecord<T> {
   schemaVersion: number;
@@ -25,6 +26,9 @@ export const STORAGE_KEYS = {
   MILITARY_SERVICE: 'retire:military',
 
   // Leave
+  // DEPRECATED (v3): LEAVE_BALANCE was replaced by LEAVE_CALENDAR.
+  // Kept for backward compat; useLeaveCalendar seeds from this if calendar doesn't exist yet.
+  // After v3 migration, this key may be safely deleted from localStorage.
   LEAVE_BALANCE: 'retire:leave',
   LEAVE_CALENDAR: 'retire:leave-calendar',
 
