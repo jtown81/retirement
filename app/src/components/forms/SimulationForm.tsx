@@ -428,13 +428,6 @@ export function SimulationForm() {
     }
   };
 
-  const handlePullFromEstimate = () => {
-    if (Object.keys(fersDefaults.patch).length === 0) {
-      alert('No saved FERS Estimate or Expenses data found. Save those tabs first.');
-      return;
-    }
-    setForm((prev) => ({ ...prev, ...fersDefaults.patch }));
-  };
 
   return (
     <FormSection
@@ -443,23 +436,6 @@ export function SimulationForm() {
       onSave={handleSave}
       onClear={handleClear}
     >
-      {/* Pull from other tabs */}
-      <div className="flex gap-3 mb-4 items-center flex-wrap">
-        <Button
-          type="button"
-          variant="link"
-          size="sm"
-          onClick={handlePullFromEstimate}
-          className="p-0"
-        >
-          Pull values from FERS Estimate &amp; Expenses
-        </Button>
-        {fersDefaults.sourceFields.size > 0 && (
-          <span className="text-xs bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-200 px-2 py-1 rounded">
-            {fersDefaults.sourceFields.size} fields available
-          </span>
-        )}
-      </div>
 
       {/* ── Core Parameters ─────────────────────────────── */}
       <Collapsible
