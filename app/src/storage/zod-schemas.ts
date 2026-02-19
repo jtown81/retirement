@@ -346,6 +346,9 @@ export const CustomWithdrawalSplitSchema = z
 export const SSClaimingAgeSchema = z.union([z.literal(62), z.literal(67), z.literal(70)]);
 
 export const SimulationConfigSchema = z.object({
+  // D-3: Consolidated Assumptions (merged from RetirementAssumptions)
+  proposedRetirementDate: ISODateSchema,
+  tspGrowthRate: RateSchema.min(-0.5).max(0.5),
   // Core
   retirementAge: z.number().int().min(50).max(90),
   retirementYear: z.number().int().min(2000).max(2100),
@@ -373,11 +376,14 @@ export const SimulationConfigSchema = z.object({
   goSlowEndAge: z.number().int().min(50).max(104),
   goSlowRate: RateSchema.min(0).max(2),
   noGoRate: RateSchema.min(0).max(2),
-  // Rates
+  // Rates (D-3: merged from RetirementAssumptions)
+  retirementHorizonYears: z.number().int().min(0).max(100).optional(),
   colaRate: RateSchema.min(0).max(0.1),
   inflationRate: RateSchema.min(0).max(0.2),
   healthcareInflationRate: RateSchema.min(0).max(0.2).optional(),
   healthcareAnnualExpenses: USDSchema.optional(),
+  tspWithdrawalRate: RateSchema.min(0).max(1).optional(),
+  estimatedSSMonthlyAt62: USDSchema.optional(),
 });
 
 // ---------------------------------------------------------------------------

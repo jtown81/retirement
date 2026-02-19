@@ -123,7 +123,11 @@ function removeDraft(): void {
 
 // ── Convert form → SimulationConfig ──────────────────────────────────────────
 
-function toConfig(f: FormState, proposedRetirementDate?: string): SimulationConfig {
+function toConfig(
+  f: FormState,
+  proposedRetirementDate?: string,
+  tspGrowthRate?: number,
+): SimulationConfig {
   const n = (s: string) => (s === '' ? 0 : Number(s));
   const strategy = (f.withdrawalStrategy || 'proportional') as 'proportional' | 'traditional-first' | 'roth-first' | 'custom' | 'tax-bracket-fill';
   const customTrad = n(f.customTradPct) / 100;
@@ -136,7 +140,14 @@ function toConfig(f: FormState, proposedRetirementDate?: string): SimulationConf
     retirementYear = new Date(proposedRetirementDate).getFullYear();
   }
 
+  // D-3: Include consolidated assumptions in config
   return {
+    // Merged from RetirementAssumptions (Phase D-3)
+    proposedRetirementDate: proposedRetirementDate ?? new Date().toISOString().slice(0, 10),
+    tspGrowthRate: tspGrowthRate ?? 0.07,
+    retirementHorizonYears: Math.round(n(f.endAge)) - Math.round(n(f.retirementAge)),
+
+    // Core config
     retirementAge: Math.round(n(f.retirementAge)),
     retirementYear,
     endAge: Math.round(n(f.endAge)),
@@ -309,7 +320,7 @@ export function SimulationForm() {
     STORAGE_KEYS.SIMULATION_CONFIG,
     SimulationConfigSchema,
   );
-  const [, saveAssumptions] = useLocalStorage(STORAGE_KEYS.ASSUMPTIONS, RetirementAssumptionsFullSchema);
+  // D-3: No longer save to retire:assumptions; all data in retire:simulation-config
   const [storedPersonal] = useLocalStorage(STORAGE_KEYS.PERSONAL_INFO, PersonalInfoSchema);
   const [storedFERS] = useLocalStorage(STORAGE_KEYS.FERS_ESTIMATE, FERSEstimateSchema);
   const [storedExpenses] = useLocalStorage(STORAGE_KEYS.EXPENSE_PROFILE, ExpenseProfileSchema);
@@ -389,7 +400,11 @@ export function SimulationForm() {
       proposedRetirementDate = `${now.getFullYear() + Number(form.retirementAge) - 62}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
     }
 
-    const config = toConfig(form, proposedRetirementDate);
+    // D-3: Compute tspGrowthRate for inclusion in config
+    const tspGrowthRate = storedFERS?.tspGrowthRate
+      ?? (Number(form.highRiskROI) * Number(form.highRiskPct) + Number(form.lowRiskROI) * (100 - Number(form.highRiskPct))) / 10000;
+
+    const config = toConfig(form, proposedRetirementDate, tspGrowthRate);
     const result = SimulationConfigSchema.safeParse(config);
     if (!result.success) {
       const flat = result.error.flatten().fieldErrors;
@@ -399,22 +414,8 @@ export function SimulationForm() {
       return;
     }
     setErrors({});
+    // D-3: Save only to retire:simulation-config; retire:assumptions is deprecated
     saveConfig(result.data);
-
-    // tspGrowthRate: prefer FERS estimate, fall back to weighted average of form ROI rates
-    const tspGrowthRate = storedFERS?.tspGrowthRate
-      ?? (Number(form.highRiskROI) * Number(form.highRiskPct) + Number(form.lowRiskROI) * (100 - Number(form.highRiskPct))) / 10000;
-
-    saveAssumptions({
-      proposedRetirementDate,
-      tspGrowthRate,
-      colaRate: Number(form.colaRate) / 100,
-      retirementHorizonYears: Number(form.endAge) - Number(form.retirementAge),
-      ...(storedFERS?.withdrawalRate != null ? { tspWithdrawalRate: storedFERS.withdrawalRate } : {}),
-      ...((storedFERS?.ssaBenefitAt62 ?? Number(form.ssMonthlyAt62)) > 0
-        ? { estimatedSSMonthlyAt62: storedFERS?.ssaBenefitAt62 ?? Number(form.ssMonthlyAt62) }
-        : {}),
-    });
 
     removeDraft();
   };

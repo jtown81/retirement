@@ -8,9 +8,10 @@
  *   1 — initial schema (Phase 2)
  *   2 — add tax module, TSP snapshots, named scenarios (Phase 10 / PR-001/002)
  *   3 — D-2: retire:leave (balance) deprecated; calendar is single source of truth (Phase D.2)
+ *   4 — D-3: retire:assumptions deprecated; merged into retire:simulation-config (Phase D.3)
  */
 
-export const CURRENT_SCHEMA_VERSION = 3;
+export const CURRENT_SCHEMA_VERSION = 4;
 
 export interface StoredRecord<T> {
   schemaVersion: number;
@@ -46,6 +47,8 @@ export const STORAGE_KEYS = {
   TAX_PROFILE: 'retire:tax-profile',
 
   // Assumptions & simulation
+  // DEPRECATED (v4): ASSUMPTIONS was merged into SIMULATION_CONFIG in D-3.
+  // Kept for backward compat; v4 migration consolidates both keys.
   ASSUMPTIONS: 'retire:assumptions',
   SIMULATION_CONFIG: 'retire:simulation-config',
 

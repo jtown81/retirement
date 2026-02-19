@@ -91,8 +91,18 @@ export interface RetirementScenario {
  * Configuration for the full retirement simulation engine.
  * Drives the year-by-year post-retirement projection with dual-pot TSP,
  * RMD compliance, and expense smile curve (GoGo/GoSlow/NoGo).
+ *
+ * D-3: Merged RetirementAssumptions into this single canonical config.
+ * Consolidates all planning parameters: retirement timing, annuity, TSP, rates.
+ * retire:simulation-config is now the sole source of truth.
  */
 export interface SimulationConfig {
+  // ── Consolidated Assumptions (merged from RetirementAssumptions, Phase D-3) ──
+  /** Proposed retirement date for scenario planning */
+  proposedRetirementDate: ISODate;
+  /** Assumed annual TSP portfolio growth rate (e.g., 0.07 = 7%) */
+  tspGrowthRate: Rate;
+
   // ── Core (drawn from FERS Estimate results) ──
   /** Age at retirement (integer) */
   retirementAge: number;
@@ -160,7 +170,9 @@ export interface SimulationConfig {
   /** Spending multiplier during NoGo phase (e.g. 0.75) */
   noGoRate: Rate;
 
-  // ── Rates ──
+  // ── Rates (consolidated assumptions, Phase D-3) ──
+  /** Number of years to project post-retirement (derived from endAge - retirementAge) */
+  retirementHorizonYears?: number;
   /** Annual COLA rate for annuity and FERS supplement */
   colaRate: Rate;
   /** Annual inflation rate for general expense adjustment */
@@ -169,6 +181,17 @@ export interface SimulationConfig {
   healthcareInflationRate?: Rate;
   /** Annual healthcare expense amount (split from baseAnnualExpenses for separate inflation) */
   healthcareAnnualExpenses?: USD;
+  /**
+   * Annual TSP withdrawal as a fraction of initial balance (e.g. 0.04 = 4% rule).
+   * D-3: Moved from RetirementAssumptions.tspWithdrawalRate for consolidation.
+   * Note: Also have withdrawalRate at line 126; consider consolidating further.
+   */
+  tspWithdrawalRate?: Rate;
+  /**
+   * Estimated monthly Social Security benefit at age 62 (in today's dollars).
+   * D-3: Moved from RetirementAssumptions.estimatedSSMonthlyAt62 for consolidation.
+   */
+  estimatedSSMonthlyAt62?: USD;
 }
 
 /**

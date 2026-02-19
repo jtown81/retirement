@@ -58,8 +58,20 @@ export function useAssembleInput(): SimulationInput | null {
         }
       : null;
 
-    // personal, tspBalances, expenses, assumptions are always required
-    if (!personal || !tspBalances || !expenses || !assumptions) {
+    // D-3: Derive assumptions from SimulationConfig first, then fall back to assumptions key
+    const effectiveAssumptions = simConfig
+      ? {
+          proposedRetirementDate: simConfig.proposedRetirementDate ?? new Date().toISOString().slice(0, 10),
+          tspGrowthRate: simConfig.tspGrowthRate ?? 0.07,
+          colaRate: simConfig.colaRate,
+          retirementHorizonYears: simConfig.retirementHorizonYears ?? 30,
+          ...(simConfig.tspWithdrawalRate != null ? { tspWithdrawalRate: simConfig.tspWithdrawalRate } : {}),
+          ...(simConfig.estimatedSSMonthlyAt62 != null ? { estimatedSSMonthlyAt62: simConfig.estimatedSSMonthlyAt62 } : {}),
+        }
+      : assumptions;
+
+    // personal, tspBalances, expenses, effective assumptions are always required
+    if (!personal || !tspBalances || !expenses || !effectiveAssumptions) {
       return null;
     }
 
@@ -130,17 +142,17 @@ export function useAssembleInput(): SimulationInput | null {
         ...(military && military.length > 0 ? { militaryService: military } : {}),
       },
       assumptions: {
-        proposedRetirementDate: assumptions.proposedRetirementDate,
-        tspGrowthRate: assumptions.tspGrowthRate,
-        colaRate: assumptions.colaRate,
-        retirementHorizonYears: assumptions.retirementHorizonYears,
-        ...(assumptions.tspWithdrawalRate != null ? { tspWithdrawalRate: assumptions.tspWithdrawalRate } : {}),
-        ...(assumptions.estimatedSSMonthlyAt62 != null ? { estimatedSSMonthlyAt62: assumptions.estimatedSSMonthlyAt62 } : {}),
+        proposedRetirementDate: effectiveAssumptions.proposedRetirementDate,
+        tspGrowthRate: effectiveAssumptions.tspGrowthRate,
+        colaRate: effectiveAssumptions.colaRate,
+        retirementHorizonYears: effectiveAssumptions.retirementHorizonYears,
+        ...(effectiveAssumptions.tspWithdrawalRate != null ? { tspWithdrawalRate: effectiveAssumptions.tspWithdrawalRate } : {}),
+        ...(effectiveAssumptions.estimatedSSMonthlyAt62 != null ? { estimatedSSMonthlyAt62: effectiveAssumptions.estimatedSSMonthlyAt62 } : {}),
       },
     };
 
     return input;
-  }, [personal, career, leaveCalendar, tspSnapshots, tspContributions, expenses, assumptions, military, fersEstimate]);
+  }, [personal, career, leaveCalendar, tspSnapshots, tspContributions, expenses, assumptions, simConfig, military, fersEstimate]);
 }
 
 /**
