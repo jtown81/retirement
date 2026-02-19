@@ -98,7 +98,7 @@ export function ProjectionTable({ years }: ProjectionTableProps) {
   return (
     <div className="space-y-4">
       {/* Controls */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-wrap">
         <div className="flex flex-col sm:flex-row gap-2">
           <Button
             variant="outline"
@@ -143,8 +143,8 @@ export function ProjectionTable({ years }: ProjectionTableProps) {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto rounded-lg border border-border">
+      {/* Table: Hidden on mobile, visible on sm+ breakpoint */}
+      <div className="hidden sm:block overflow-x-auto rounded-lg border border-border">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="bg-muted border-b border-border">
@@ -280,6 +280,72 @@ export function ProjectionTable({ years }: ProjectionTableProps) {
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View: Visible only on small screens */}
+      <div className="sm:hidden space-y-3">
+        {visibleYears.map((year, idx) => {
+          const deficitRow = year.surplus < 0;
+          const tspGrowthRow =
+            idx > 0 && year.totalTSPBalance > visibleYears[idx - 1].totalTSPBalance;
+
+          const bgClass = deficitRow
+            ? 'bg-red-50 dark:bg-red-950'
+            : tspGrowthRow
+              ? 'bg-green-50 dark:bg-green-950'
+              : 'bg-muted/30';
+
+          return (
+            <div
+              key={year.year}
+              className={`rounded-lg border border-border p-3 space-y-2 ${bgClass}`}
+            >
+              {/* Header: Year and Age */}
+              <div className="flex justify-between items-center font-semibold">
+                <span className="text-foreground">Year {year.year}</span>
+                <span className="text-sm text-muted-foreground">Age {Math.round(year.age)}</span>
+              </div>
+
+              {/* Income Row */}
+              <div className="grid grid-cols-2 gap-2 text-sm pt-2 border-t border-border/30">
+                <div>
+                  <span className="text-xs text-muted-foreground">Gross Income</span>
+                  <p className="font-medium tabular-nums">${fmt(year.totalIncome)}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground">After-Tax</span>
+                  <p className="font-medium tabular-nums">${fmt(year.afterTaxIncome)}</p>
+                </div>
+              </div>
+
+              {/* Expenses & Surplus Row */}
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="text-xs text-muted-foreground">Expenses</span>
+                  <p className="tabular-nums">${fmt(year.totalExpenses)}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground">Surplus</span>
+                  <p
+                    className={`font-semibold tabular-nums ${
+                      deficitRow
+                        ? 'text-red-700 dark:text-red-300'
+                        : 'text-green-700 dark:text-green-300'
+                    }`}
+                  >
+                    ${fmt(year.surplus)}
+                  </p>
+                </div>
+              </div>
+
+              {/* TSP Balance Row */}
+              <div className="text-sm pt-2 border-t border-border/30">
+                <span className="text-xs text-muted-foreground">TSP Balance</span>
+                <p className="font-medium tabular-nums">${fmt(year.totalTSPBalance)}</p>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Pagination info */}

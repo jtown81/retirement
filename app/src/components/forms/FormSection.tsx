@@ -81,8 +81,8 @@ export function FormSection({
 
       <Separator />
 
-      <CardFooter className="flex items-center justify-between gap-3 mt-0">
-        <div className="flex gap-3">
+      <CardFooter className="flex flex-wrap items-center justify-between gap-3 mt-0">
+        <div className="flex flex-wrap gap-3">
           <Button
             onClick={handleSave}
             disabled={isSaving || hasErrors}
