@@ -1,8 +1,8 @@
 # Project To-Do List
 
-**Last Updated**: 2026-02-19 (Phase O-2 Priority 1 in progress)
-**Status**: 753/754 tests passing, all Phases A-N complete
-**Current Work**: Phase O: Mobile UX Polish (Priority 1 fixes deployed)
+**Last Updated**: 2026-02-19 (Phase O Complete!)
+**Status**: 754/754 tests passing, all Phases A-O complete ✅
+**Current Work**: Phase O: Mobile UX Polish — COMPLETE (3 priorities done)
 **Maintainer**: Claude Code
 
 ---
@@ -44,10 +44,22 @@
     - Files: `button.tsx`, `input.tsx`, `DayCell.tsx`, `LeaveCalendarToolbar.tsx`, `MetricCard.tsx`
   - 🟡 TODO: Priority 3 (chart responsive sizing, double-nesting fixes) — 3 items pending
 
-- [ ] **O-3**: Mobile breakpoint audit
-  - 🟡 TODO: Chart responsive sizing (font sizes, axis label thinning)
-  - 🟡 TODO: Chart double-nesting removal (MonteCarloFanChart, TSPFundDonut)
-  - 🟡 TODO: LeaveBalanceSummaryPanel grid conversion
+- [x] **O-3**: Mobile breakpoint audit (COMPLETE)
+  - ✅ DONE: **Chart responsive sizing** — New useResponsiveChartFontSize hook provides fontSize (10-12px) and label thinning (interval 0-4) based on viewport
+    - Mobile: fontSize=10, interval=4 (show every 5th year label)
+    - Tablet: fontSize=11, interval=1 (show every other label)
+    - Desktop: fontSize=12, interval=0 (show all labels)
+  - ✅ DONE: **Chart double-nesting removal** — Removed inner ResponsiveContainer from MonteCarloFanChart and TSPFundDonut
+    - Charts now properly scale via ChartContainer (outer ResponsiveContainer only)
+    - Single height management, no conflicting sizing rules
+  - ✅ DONE: **TSPFundDonut radii scaling** — Donut now responsive (60/100 on mobile < 400px, 80/120 on desktop)
+  - ✅ DONE: **LeaveBalanceSummaryPanel grid conversion** — Replaced horizontal scroll with responsive grid
+    - Annual: grid-cols-3 on mobile, grid-cols-6 on tablet+
+    - Sick: grid-cols-3 on mobile, grid-cols-4 on tablet+
+    - Increased label size: text-[10px] → text-xs for readability
+    - All metrics visible without scroll on mobile
+  - ✅ Applied hook to 6 charts: IncomeWaterfall, TSPLifecycle, PayGrowth, ExpensePhases, RMDCompliance, LeaveBalances
+  - ✅ 754 tests passing, no regressions
 
 ---
 
