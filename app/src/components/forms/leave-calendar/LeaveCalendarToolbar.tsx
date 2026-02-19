@@ -112,7 +112,7 @@ export function LeaveCalendarToolbar({
                 annualLeaveHours: Math.max(0, Number(e.target.value)),
               })
             }
-            className="w-20 h-8 text-xs"
+            className="w-20 h-9 text-xs"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -130,7 +130,7 @@ export function LeaveCalendarToolbar({
                 sickLeaveHours: Math.max(0, Number(e.target.value)),
               })
             }
-            className="w-20 h-8 text-xs"
+            className="w-20 h-9 text-xs"
           />
         </div>
       </div>

@@ -17,7 +17,7 @@ export function MetricCard({ label, value, variant = 'default' }: MetricCardProp
     >
       <CardContent className="pt-4">
         <p className="text-sm text-muted-foreground truncate">{label}</p>
-        <p className={cn('mt-1 text-lg font-semibold', VARIANT_STYLES[variant])}>
+        <p className={cn('mt-1 text-lg font-semibold break-words line-clamp-2', VARIANT_STYLES[variant])}>
           {value}
         </p>
       </CardContent>

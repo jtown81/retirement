@@ -45,7 +45,7 @@ export function DayCell({
   onClick,
 }: DayCellProps) {
   if (day === 0) {
-    return <div className="h-10 sm:h-12" />;
+    return <div className="h-11 sm:h-12" />;
   }
 
   const isOff = isWeekend || !!holidayName;
@@ -59,7 +59,7 @@ export function DayCell({
       onClick={(e) => onClick(dateStr, e.shiftKey)}
       title={holidayName}
       className={cn(
-        'h-10 sm:h-12 relative flex flex-col items-center justify-center rounded text-xs transition-colors',
+        'h-11 sm:h-12 relative flex flex-col items-center justify-center rounded text-xs transition-colors',
         isOff ? 'cursor-default' : 'hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer',
         isWeekend && 'bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground',
         holidayName && !isWeekend && 'bg-amber-50 dark:bg-amber-950 text-amber-800 dark:text-amber-200',
