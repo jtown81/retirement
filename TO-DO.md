@@ -26,16 +26,23 @@
   - Identified 8 critical issues, prioritized by impact
   - Full report in implementation plan
 
-- [x] **O-2**: Touch-friendly interactions (Priority 1 - BLOCKING)
-  - ✅ DONE: **FormSection button wrapping** — Added `flex-wrap` to allow buttons to stack on mobile
+- [x] **O-2**: Touch-friendly interactions (Priority 1 & 2 COMPLETE)
+  - ✅ DONE Priority 1: **FormSection button wrapping** — Added `flex-wrap` to allow buttons to stack on mobile
     - File: `app/src/components/forms/FormSection.tsx:84-85`
     - Impact: Buttons now wrap vertically on small screens instead of overflowing
-  - ✅ DONE: **ProjectionTable mobile card view** — Added `sm:hidden` mobile card layout with key metrics
+  - ✅ DONE Priority 1: **ProjectionTable mobile card view** — Added `sm:hidden` mobile card layout with key metrics
     - File: `app/src/components/charts/ProjectionTable.tsx:147+`
-    - Impact: Mobile users see card-per-row format (date, income, expenses, surplus, balance); tablet+ see full table
-    - Metrics displayed: Year, Age, Gross Income, After-Tax Income, Expenses, Surplus, TSP Balance
-    - Color-coded: Red for deficit, green for growth
-  - 🟡 TODO: Priority 2 fixes (button/input tap targets, calendar cell height) — 5 items pending
+    - Impact: Mobile users see card-per-row format; tablet+ see full table
+    - Metrics: Year, Age, Gross Income, After-Tax Income, Expenses, Surplus, TSP Balance
+  - ✅ DONE Priority 2: **Tap target improvements** (5 fixes)
+    - Button height: h-9 → h-10 (36px → 40px) globally
+    - Input height: h-9 → h-10 (36px → 40px) globally
+    - Icon buttons: size-9 → size-10 (36px → 40px)
+    - Calendar DayCell: h-10 → h-11 sm:h-12 (40px → 44px on mobile, meets Apple guideline)
+    - Carry-over inputs: h-8 → h-9 (32px → 36px)
+    - MetricCard: Added break-words line-clamp-2 for value overflow
+    - Files: `button.tsx`, `input.tsx`, `DayCell.tsx`, `LeaveCalendarToolbar.tsx`, `MetricCard.tsx`
+  - 🟡 TODO: Priority 3 (chart responsive sizing, double-nesting fixes) — 3 items pending
 
 - [ ] **O-3**: Mobile breakpoint audit
   - 🟡 TODO: Chart responsive sizing (font sizes, axis label thinning)
