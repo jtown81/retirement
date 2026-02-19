@@ -1,16 +1,15 @@
 import { useState, useMemo } from 'react';
 import { useLocalStorage } from '@hooks/useLocalStorage';
 import { STORAGE_KEYS, ExpenseProfileSchema } from '@storage/index';
-import { FieldGroup } from './FieldGroup';
-import { FormSection } from './FormSection';
-import { Input } from '@components/ui/input';
-import { Checkbox } from '@components/ui/checkbox';
-import { Card, CardContent, CardHeader } from '@components/ui/card';
+import { Card, CardContent } from '@components/ui/card';
 import { Badge } from '@components/ui/badge';
 import { Alert, AlertDescription } from '@components/ui/alert';
-import type { ExpenseProfile, ExpenseCategoryName } from '@models/expenses';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@components/ui/tabs';
+import { ExpenseCategoriesSubForm } from './expenses/ExpenseCategoriesSubForm';
+import { ExpenseSettingsSubForm } from './expenses/ExpenseSettingsSubForm';
+import type { ExpenseProfile } from '@models/expenses';
 
-const CATEGORY_LABELS: Record<ExpenseCategoryName, string> = {
+const CATEGORY_LABELS = {
   'housing': 'Housing',
   'transportation': 'Transportation',
   'food': 'Food',
@@ -21,98 +20,25 @@ const CATEGORY_LABELS: Record<ExpenseCategoryName, string> = {
   'personal-care': 'Personal Care',
   'gifts-charitable': 'Gifts & Charitable',
   'other': 'Other',
-};
-
-const ALL_CATEGORIES: ExpenseCategoryName[] = [
-  'housing', 'transportation', 'food', 'healthcare', 'insurance',
-  'travel-leisure', 'utilities', 'personal-care', 'gifts-charitable', 'other',
-];
-
-const DEFAULT_AMOUNTS: Record<ExpenseCategoryName, number> = {
-  'housing': 18000,
-  'transportation': 8000,
-  'food': 7200,
-  'healthcare': 8000,
-  'insurance': 3000,
-  'travel-leisure': 5000,
-  'utilities': 4800,
-  'personal-care': 2400,
-  'gifts-charitable': 2400,
-  'other': 2400,
-};
-
-function makeDefaults(): ExpenseProfile {
-  return {
-    id: typeof crypto !== 'undefined' && crypto.randomUUID
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    baseYear: new Date().getFullYear(),
-    categories: ALL_CATEGORIES.map((name) => ({ name, annualAmount: DEFAULT_AMOUNTS[name] })),
-    inflationRate: 0.025,
-    healthcareInflationRate: 0.055,
-    smileCurveEnabled: true,
-  };
-}
+} as const;
 
 function formatUSD(amount: number): string {
   return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 }
 
 export function ExpensesForm() {
-  const [stored, save, remove] = useLocalStorage(STORAGE_KEYS.EXPENSE_PROFILE, ExpenseProfileSchema);
-  const [form, setForm] = useState<ExpenseProfile>(() => stored ?? makeDefaults());
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [activeSubTab, setActiveSubTab] = useState('categories');
+  const [storedConfig] = useLocalStorage(STORAGE_KEYS.EXPENSE_PROFILE, ExpenseProfileSchema);
 
   const totalAnnual = useMemo(
-    () => form.categories.reduce((sum, c) => sum + c.annualAmount, 0),
-    [form.categories],
+    () => storedConfig?.categories?.reduce((sum, c) => sum + c.annualAmount, 0) ?? 0,
+    [storedConfig?.categories],
   );
   const totalMonthly = totalAnnual / 12;
 
-  const setCategoryAmount = (name: ExpenseCategoryName, amount: number) => {
-    setForm((prev) => ({
-      ...prev,
-      categories: prev.categories.map((c) =>
-        c.name === name ? { ...c, annualAmount: amount } : c,
-      ),
-    }));
-  };
-
-  const handleSave = () => {
-    const result = ExpenseProfileSchema.safeParse(form);
-    if (!result.success) {
-      const flat = result.error.flatten().fieldErrors;
-      setErrors(
-        Object.fromEntries(Object.entries(flat).map(([k, v]) => [k, v?.[0] ?? ''])),
-      );
-      return;
-    }
-    setErrors({});
-    save(result.data);
-  };
-
-  const handleClear = () => {
-    if (window.confirm('Clear expense data? This cannot be undone.')) {
-      remove();
-      setForm(makeDefaults());
-      setErrors({});
-    }
-  };
-
-  const handleResetDefaults = () => {
-    setForm(makeDefaults());
-    setErrors({});
-  };
-
   return (
-    <FormSection
-      title="Annual Expenses"
-      description="Estimated annual expenses in retirement, by category. Used for income-vs-expense projections."
-      onSave={handleSave}
-      onClear={handleClear}
-      onLoadDefaults={handleResetDefaults}
-    >
-      {/* ── Totals banner ─────────────────────────────────────────────── */}
+    <div className="space-y-4">
+      {/* ── Totals banner (always visible, read-only) ───────────────────── */}
       <Card className="bg-muted/50">
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-6 items-center">
@@ -136,102 +62,33 @@ export function ExpensesForm() {
         </CardContent>
       </Card>
 
-      {/* ── Settings ──────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FieldGroup label="Base Year" htmlFor="expBaseYear" error={errors.baseYear}>
-          <Input
-            id="expBaseYear"
-            type="number"
-            min="2000"
-            max="2100"
-            value={form.baseYear}
-            onChange={(e) => setForm((prev) => ({ ...prev, baseYear: Number(e.target.value) }))}
-          />
-        </FieldGroup>
-
-        <FieldGroup label="Inflation Rate (%)" htmlFor="inflRate" error={errors.inflationRate} hint="Annual inflation for general expenses">
-          <Input
-            id="inflRate"
-            type="number"
-            min="0"
-            max="20"
-            step="0.1"
-            value={(form.inflationRate * 100).toFixed(1)}
-            onChange={(e) => setForm((prev) => ({ ...prev, inflationRate: Number(e.target.value) / 100 }))}
-          />
-        </FieldGroup>
-        <FieldGroup label="Healthcare Inflation (%)" htmlFor="hcInflRate" error={errors.healthcareInflationRate}
-          hint="Healthcare costs typically rise faster (~5.5%)">
-          <Input
-            id="hcInflRate"
-            type="number"
-            min="0"
-            max="20"
-            step="0.1"
-            value={((form.healthcareInflationRate ?? 0.055) * 100).toFixed(1)}
-            onChange={(e) => setForm((prev) => ({ ...prev, healthcareInflationRate: Number(e.target.value) / 100 }))}
-          />
-        </FieldGroup>
-      </div>
-
-      <div>
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="smile-curve"
-            checked={form.smileCurveEnabled}
-            onCheckedChange={(checked) => setForm((prev) => ({ ...prev, smileCurveEnabled: !!checked }))}
-          />
-          <label htmlFor="smile-curve" className="text-sm cursor-pointer">
-            Enable expense smile curve (Blanchett 2014)
-          </label>
-        </div>
-        {form.smileCurveEnabled && (
-          <p className="text-xs text-muted-foreground mt-2 ml-6">
-            Spending typically starts high (travel/activities), dips mid-retirement, then rises again (healthcare).
+      {/* ── Sub-tabs for categories and settings ──────────────────────── */}
+      <div className="bg-white rounded-lg border">
+        <div className="p-6 border-b">
+          <h2 className="text-lg font-semibold">Expense Settings</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Configure your annual expense categories and inflation assumptions.
           </p>
-        )}
-      </div>
-
-      {/* ── Category amounts ──────────────────────────────────────────── */}
-      <div>
-        <h4 className="text-sm font-medium text-foreground mb-3">Category Amounts ($/year)</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {ALL_CATEGORIES.map((name) => {
-            const cat = form.categories.find((c) => c.name === name);
-            const amount = cat?.annualAmount ?? 0;
-            return (
-              <div
-                key={name}
-                className={`flex items-center gap-2 rounded-md px-2 py-2 ${
-                  amount > 0 ? 'bg-primary/5' : ''
-                }`}
-              >
-                <label htmlFor={`exp-${name}`} className="text-sm text-muted-foreground w-36 shrink-0">
-                  {CATEGORY_LABELS[name]}
-                </label>
-                <div className="flex-1">
-                  <Input
-                    id={`exp-${name}`}
-                    type="number"
-                    min="0"
-                    step="100"
-                    value={amount}
-                    onChange={(e) => setCategoryAmount(name, Number(e.target.value))}
-                    className="h-8"
-                  />
-                </div>
-                {amount > 0 && (
-                  <span className="text-xs text-muted-foreground w-16 text-right shrink-0">
-                    {formatUSD(amount / 12)}/mo
-                  </span>
-                )}
-              </div>
-            );
-          })}
         </div>
-      </div>
 
-      {errors.categories && <Alert variant="destructive"><AlertDescription>{errors.categories}</AlertDescription></Alert>}
-    </FormSection>
+        <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="w-full">
+          <TabsList className="w-full justify-start border-b rounded-none bg-muted p-0 h-auto">
+            <TabsTrigger value="categories" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
+              Categories
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
+              Settings
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="categories" className="p-6 border-none">
+            <ExpenseCategoriesSubForm />
+          </TabsContent>
+          <TabsContent value="settings" className="p-6 border-none">
+            <ExpenseSettingsSubForm />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
   );
 }
