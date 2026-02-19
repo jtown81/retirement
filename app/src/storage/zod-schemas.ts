@@ -334,10 +334,14 @@ export const WithdrawalStrategySchema = z.enum([
   'tax-bracket-fill',
 ]);
 
-export const CustomWithdrawalSplitSchema = z.object({
-  traditionalPct: RateSchema.min(0).max(1),
-  rothPct: RateSchema.min(0).max(1),
-});
+export const CustomWithdrawalSplitSchema = z
+  .object({
+    traditionalPct: RateSchema.min(0).max(1),
+    rothPct: RateSchema.min(0).max(1),
+  })
+  .refine((d) => Math.abs(d.traditionalPct + d.rothPct - 1.0) < 0.001, {
+    message: 'traditionalPct + rothPct must equal 1.0',
+  });
 
 export const SSClaimingAgeSchema = z.union([z.literal(62), z.literal(67), z.literal(70)]);
 

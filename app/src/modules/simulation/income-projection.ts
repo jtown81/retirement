@@ -83,13 +83,11 @@ export function projectRetirementIncome(input: SimulationInput): SimulationResul
 
   // ── Step 3: military — total creditable service ──────────────────────────────
   const militaryServices = profile.militaryService ?? [];
-  const totalMilitaryYears = militaryServices
-    .filter((m) => m.militaryRetirementWaived || !m.militaryRetirementWaived)
-    .reduce((sum, m) => {
-      const start = new Date(m.startDate).getFullYear();
-      const end = new Date(m.endDate).getFullYear();
-      return sum + (end - start);
-    }, 0);
+  const totalMilitaryYears = militaryServices.reduce((sum, m) => {
+    const start = new Date(m.startDate).getFullYear();
+    const end = new Date(m.endDate).getFullYear();
+    return sum + (end - start);
+  }, 0);
   const totalMilitaryBuybackCompleted = militaryServices.every(
     (m) => m.buybackDepositPaid > 0,
   );

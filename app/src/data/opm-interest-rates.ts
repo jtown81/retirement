@@ -52,7 +52,8 @@ export const OPM_INTEREST_RATES: readonly OPMInterestRate[] = [
   { year: 2023, rate: 0.0400 },
   { year: 2024, rate: 0.0450 },
   { year: 2025, rate: 0.0425 },
-  // ASSUMPTION: 2026+ uses most recent published rate until updated
+  { year: 2026, rate: 0.0425 },  // Source: OPM BAL 26-301
+  // ASSUMPTION: 2027+ uses most recent published rate until updated
 ] as const;
 
 /**

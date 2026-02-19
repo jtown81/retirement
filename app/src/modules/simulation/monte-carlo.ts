@@ -263,16 +263,13 @@ export function runMonteCarlo(
   const finalAgeBalances = balancesByAge.get(config.endAge) ?? [];
   const overallSuccess = finalAgeBalances.filter((b) => b > 0).length / iterations;
 
-  // Median depletion age
-  let medianDepletionAge: number | null = null;
-  if (depletionAges.length > 0) {
-    medianDepletionAge = percentile(depletionAges, 0.5);
-  }
+  // Median depletion age: null when no trials depleted, otherwise the 50th percentile age
+  const medianDepletionAge = depletionAges.length > 0 ? percentile(depletionAges, 0.5) : null;
 
   return {
     bands,
     overallSuccessRate: overallSuccess,
     successRateAt85: successfulTrialsAt85 / iterations,
-    medianDepletionAge: medianDepletionAge === 0 ? null : medianDepletionAge,
+    medianDepletionAge,
   };
 }

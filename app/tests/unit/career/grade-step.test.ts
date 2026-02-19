@@ -22,11 +22,11 @@ describe('gradeStepToSalary', () => {
     expect(gradeStepToSalary(1, 1, 2024)).toBe(21_621);
   });
 
-  it('projects 2026 salary as approximately 2024 × 1.0177 × 1.02 (known + 1 projected year)', () => {
+  it('projects 2026 salary as approximately 2024 × 1.0390 × 1.02 (known + 1 projected year)', () => {
     const base = gradeStepToSalary(13, 1, 2024);
     const projected = gradeStepToSalary(13, 1, 2026, 0.02);
-    // 2025 factor: 1.0177; 2026 = 1.0177 × 1.02
-    const expectedFactor = 1.0177 * 1.02;
+    // 2025 factor: 1.0390 (actual avg GS table increase 2024→2025); 2026 = 1.0390 × 1.02
+    const expectedFactor = 1.0390 * 1.02;
     expect(projected).toBeCloseTo(base * expectedFactor, -2);  // within $100
   });
 

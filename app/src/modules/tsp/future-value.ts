@@ -10,6 +10,7 @@
 
 import { registerFormula } from '../../registry/index';
 import { computeRMD } from './rmd';
+import { clampToContributionLimit } from '../../data/tsp-limits';
 
 registerFormula({
   id: 'tsp/future-value',
@@ -33,6 +34,7 @@ registerFormula({
   changelog: [
     { date: '2026-02-10', author: 'system', description: 'Initial implementation' },
     { date: '2026-02-18', author: 'system', description: 'Added RMD floor enforcement and Traditional/Roth tracking' },
+    { date: '2026-02-18', author: 'system', description: 'Fix T-1: Track prior-year Traditional balance directly before growth for exact RMD basis per IRC § 401(a)(9)' },
   ],
 });
 
@@ -163,14 +165,16 @@ export function projectTSPDepletion(
       rothBalance = balance * (1 - tradFraction);
     }
 
-    // Grow balance (before RMD/withdrawal calculation)
+    // Capture prior year-end Traditional balance BEFORE growing (correct per IRC § 401(a)(9):
+    // RMD is calculated on the Dec 31 prior-year balance, not the post-growth balance)
+    const priorYearTradBalance = tradBalance;
+
+    // Grow balance
     balance = balance * (1 + growthRate);
     tradBalance = tradBalance * (1 + growthRate);
     rothBalance = rothBalance * (1 + growthRate);
 
-    // Compute RMD on prior year-end Traditional balance (before growth for this year)
-    // Using the balance from the previous iteration's end (which is now before growth)
-    const priorYearTradBalance = tradBalance / (1 + growthRate); // Reverse growth to get prior year-end
+    // Compute RMD on prior year-end Traditional balance per IRC § 401(a)(9)
     const rmdAmount = birthYear ? computeRMD(priorYearTradBalance, age, birthYear) : 0;
 
     // Actual withdrawal is the maximum of planned and RMD
@@ -264,6 +268,8 @@ export interface PreRetirementTSPProjection {
  * @param rothContribPct - Employee Roth contribution % of salary (e.g., 0.05 = 5%)
  * @param annualGrowthRate - Annual growth rate for TSP (e.g., 0.07 = 7%)
  * @param yearsToRetirement - Number of years to project
+ * @param startYear - Optional starting calendar year; enables IRS 402(g) cap enforcement when provided with startAge
+ * @param startAge - Optional employee age at projection start; enables IRS 402(g) cap enforcement when provided with startYear
  * @returns Year-by-year projection with final balances
  */
 export function projectPreRetirementTSP(
@@ -275,6 +281,8 @@ export function projectPreRetirementTSP(
   rothContribPct: number,
   annualGrowthRate: number,
   yearsToRetirement: number,
+  startYear?: number,
+  startAge?: number,
 ): PreRetirementTSPProjection {
   const years: PreRetirementTSPYear[] = [];
   let traditionalBalance = currentBalance * traditionalPct;
@@ -288,7 +296,12 @@ export function projectPreRetirementTSP(
 
     // Total employee contribution based on combined Traditional + Roth %
     const totalContribPct = Math.min(traditionalContribPct + rothContribPct, 1.0);
-    const annualEmployeeContrib = currentSalary * totalContribPct;
+    const rawEmployeeContrib = currentSalary * totalContribPct;
+    // Enforce IRS 402(g) elective deferral limit when calendar year and age are provided (T-2 fix)
+    const annualEmployeeContrib =
+      startYear !== undefined && startAge !== undefined
+        ? clampToContributionLimit(rawEmployeeContrib, startYear + year, startAge + year)
+        : rawEmployeeContrib;
 
     // Agency automatic contribution: 1% of salary (always Traditional)
     const agencyAuto = currentSalary * 0.01;

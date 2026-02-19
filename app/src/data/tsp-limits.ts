@@ -34,28 +34,31 @@ export const TSP_LIMITS_BY_YEAR: readonly TSPLimits[] = [
   { year: 2023, electiveDeferralLimit: 22500, catchUpLimit: 7500, enhancedCatchUpLimit: 7500 },
   { year: 2024, electiveDeferralLimit: 23000, catchUpLimit: 7500, enhancedCatchUpLimit: 7500 },
   { year: 2025, electiveDeferralLimit: 23500, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  // SECURE 2.0 Act § 109: Ages 60–63 get enhanced catch-up ($11,250) starting 2025
+  // SECURE 2.0 Act § 109: Ages 60–63 get enhanced catch-up starting 2025.
+  // Enhanced limit = 150% × standard catch-up per SECURE 2.0 Act § 109.
+  // 2026 values confirmed: IRS Notice 2025-67. Enhanced = 150% × $8,000 = $12,000.
   // Update this table annually when IRS publishes new limits.
-  { year: 2026, electiveDeferralLimit: 24000, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2027, electiveDeferralLimit: 24500, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2028, electiveDeferralLimit: 25000, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2029, electiveDeferralLimit: 25500, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2030, electiveDeferralLimit: 26000, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2031, electiveDeferralLimit: 26500, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2032, electiveDeferralLimit: 27000, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2033, electiveDeferralLimit: 27500, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2034, electiveDeferralLimit: 28000, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2035, electiveDeferralLimit: 28500, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2036, electiveDeferralLimit: 29000, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2037, electiveDeferralLimit: 29500, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2038, electiveDeferralLimit: 30000, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2039, electiveDeferralLimit: 30500, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2040, electiveDeferralLimit: 31000, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2041, electiveDeferralLimit: 31500, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2042, electiveDeferralLimit: 32000, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2043, electiveDeferralLimit: 32500, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2044, electiveDeferralLimit: 33000, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
-  { year: 2045, electiveDeferralLimit: 33500, catchUpLimit: 7500, enhancedCatchUpLimit: 11250 },
+  { year: 2026, electiveDeferralLimit: 24500, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  // ASSUMPTION: 2027+ projected at +$500/year elective deferral; catch-up held flat.
+  { year: 2027, electiveDeferralLimit: 25000, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2028, electiveDeferralLimit: 25500, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2029, electiveDeferralLimit: 26000, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2030, electiveDeferralLimit: 26500, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2031, electiveDeferralLimit: 27000, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2032, electiveDeferralLimit: 27500, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2033, electiveDeferralLimit: 28000, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2034, electiveDeferralLimit: 28500, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2035, electiveDeferralLimit: 29000, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2036, electiveDeferralLimit: 29500, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2037, electiveDeferralLimit: 30000, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2038, electiveDeferralLimit: 30500, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2039, electiveDeferralLimit: 31000, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2040, electiveDeferralLimit: 31500, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2041, electiveDeferralLimit: 32000, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2042, electiveDeferralLimit: 32500, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2043, electiveDeferralLimit: 33000, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2044, electiveDeferralLimit: 33500, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
+  { year: 2045, electiveDeferralLimit: 34000, catchUpLimit: 8000, enhancedCatchUpLimit: 12000 },
 ] as const;
 
 /**
