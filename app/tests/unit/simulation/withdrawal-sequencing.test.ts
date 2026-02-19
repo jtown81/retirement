@@ -15,6 +15,8 @@ import type { TaxProfile } from '@models/tax';
  * Base config for a single GS employee retiring at 62 with 30 years of service
  */
 const baseConfig: SimulationConfig = {
+  proposedRetirementDate: '2025-06-01',
+  tspGrowthRate: 0.07,
   retirementAge: 62,
   retirementYear: 2025,
   endAge: 95,

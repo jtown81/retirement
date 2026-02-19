@@ -33,7 +33,7 @@ export function useFormSections(): SectionStatus[] {
     { id: 'personal', label: 'FERS Estimate', complete: personal !== null, required: true },
     { id: 'career', label: 'Career', complete: career !== null, required: false },
     { id: 'expenses', label: 'Expenses', complete: expenses !== null, required: true },
-    { id: 'simulation', label: 'Simulation', complete: simConfig !== null && assumptions !== null, required: true },
+    { id: 'simulation', label: 'Simulation', complete: simConfig !== null, required: true },
     { id: 'tax', label: 'Tax Profile', complete: taxProfile !== null, required: false },
     { id: 'tsp-monitor', label: 'TSP Monitor', complete: tspSnapshotList.length > 0, required: false },
   ];

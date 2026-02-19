@@ -4,6 +4,8 @@ import type { SimulationConfig } from '../../../src/models/simulation';
 
 function makeConfig(overrides: Partial<SimulationConfig> = {}): SimulationConfig {
   return {
+    proposedRetirementDate: '2025-06-01',
+    tspGrowthRate: 0.07,
     retirementAge: 60,
     retirementYear: 2025,
     endAge: 95,

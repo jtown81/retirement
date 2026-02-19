@@ -17,6 +17,8 @@ import type { SimulationConfig } from '@models/simulation';
 // Helper: Create a baseline SimulationConfig for testing
 function baselineConfig(): SimulationConfig {
   return {
+    proposedRetirementDate: '2025-06-01',
+    tspGrowthRate: 0.07,
     retirementAge: 62,
     retirementYear: 2025,
     endAge: 95,

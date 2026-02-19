@@ -12,6 +12,8 @@ import type { FullSimulationResult } from '@models/simulation';
 // Mock data
 const mockSimulationResult: FullSimulationResult = {
   config: {
+    proposedRetirementDate: '2027-05-15',
+    tspGrowthRate: 0.07,
     retirementAge: 57,
     retirementYear: 2027,
     endAge: 95,
