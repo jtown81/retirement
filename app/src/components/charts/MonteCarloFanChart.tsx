@@ -91,20 +91,20 @@ export function MonteCarloFanChart({ data, overallSuccessRate, successRateAt85 }
             <CartesianGrid strokeDasharray="3 3" stroke={theme.gridColor} />
             <XAxis
               dataKey="age"
-              label={{ value: 'Age', position: 'insideBottomRight', offset: -5 }}
+              label={{ value: 'Age', position: 'insideBottomRight', offset: -5, fill: theme.textColor }}
               tick={{ fontSize: 12, fill: theme.textColor }}
             />
             <YAxis
               tickFormatter={(v: number) => `$${(v / 1000000).toFixed(1)}M`}
               tick={{ fontSize: 12, fill: theme.textColor }}
-              label={{ value: 'TSP Balance', angle: -90, position: 'insideLeft' }}
+              label={{ value: 'TSP Balance', angle: -90, position: 'insideLeft', fill: theme.textColor }}
             />
             <Tooltip content={<MonteCarloTooltip theme={theme} />} />
 
             {/* Age 85 milestone marker */}
             <ReferenceLine
               x={85}
-              stroke="rgba(100, 100, 100, 0.5)"
+              stroke={theme.borderColor}
               strokeDasharray="5 5"
               label={{
                 value: 'Age 85',
@@ -114,33 +114,35 @@ export function MonteCarloFanChart({ data, overallSuccessRate, successRateAt85 }
               }}
             />
 
-            {/* P10–P50 confidence band (lower, semi-transparent blue) */}
+            {/* P10–P50 confidence band (lower, semi-transparent) */}
             <Area
               type="monotone"
               dataKey="lowerBandValue"
               stackId="confidence"
-              fill="rgba(59, 130, 246, 0.2)"
+              fill={theme.traditional}
               stroke="none"
+              fillOpacity={0.2}
               isAnimationActive={false}
               name="P10–P50 Band"
             />
 
-            {/* P50–P90 confidence band (upper, slightly darker semi-transparent blue) */}
+            {/* P50–P90 confidence band (upper, slightly darker) */}
             <Area
               type="monotone"
               dataKey="upperBandValue"
               stackId="confidence"
-              fill="rgba(59, 130, 246, 0.3)"
+              fill={theme.traditional}
               stroke="none"
+              fillOpacity={0.3}
               isAnimationActive={false}
               name="P50–P90 Band"
             />
 
-            {/* Median line (P50, solid dark blue) */}
+            {/* Median line (P50, solid) */}
             <Line
               type="monotone"
               dataKey="p50_balance"
-              stroke="#1e3a8a"
+              stroke={theme.traditional}
               strokeWidth={2.5}
               dot={false}
               isAnimationActive={false}

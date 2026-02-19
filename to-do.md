@@ -149,16 +149,35 @@ All Phase J tasks finished and tested. L.1 scenario snapshot foundation complete
 
 ---
 
+## Phase M: Dark Mode Chart Fixes ✅ COMPLETE
+
+**Changes Made:**
+1. ✅ Fixed RMDComplianceChart YAxis labels - added `fill: theme.textColor` to both left and right axis labels
+2. ✅ Fixed MonteCarloFanChart YAxis label - added `fill: theme.textColor` to axis label
+3. ✅ Fixed MonteCarloFanChart XAxis label - added `fill: theme.textColor` to axis label
+4. ✅ Fixed MonteCarloFanChart hardcoded colors:
+   - Age 85 milestone marker: `rgba(100, 100, 100, 0.5)` → `theme.borderColor` with proper opacity
+   - P10-P50 confidence band: `rgba(59, 130, 246, 0.2)` → `theme.traditional` with `fillOpacity={0.2}`
+   - P50-P90 confidence band: `rgba(59, 130, 246, 0.3)` → `theme.traditional` with `fillOpacity={0.3}`
+   - Median line: `#1e3a8a` → `theme.traditional`
+
+**All 6 Charts Verified for Dark Mode:**
+- ✅ IncomeWaterfallChart — All labels use `theme.textColor`
+- ✅ TSPLifecycleChart — All labels use `theme.textColor`
+- ✅ ExpensePhasesChart — All labels use `theme.textColor`
+- ✅ RMDComplianceChart — Fixed (added fill colors to axis labels)
+- ✅ PayGrowthChart — All labels use `theme.textColor`
+- ✅ LeaveBalancesChart — All labels use `theme.textColor`
+- ✅ MonteCarloFanChart — Fixed (added fill colors + replaced hardcoded colors)
+
+---
+
 ## Remaining Work (Not Implemented)
 
 ### Phase K: Simulation Tab Refocus
 - **K.1**: Make FERS-derived fields read-only in simulation (requires UX changes to CoreParametersSubForm, TSPSimulationSubForm)
 - **K.2**: Simplify simulation tab layout (significant refactoring, focus on post-retirement scenario params only)
 - **Status**: ⏳ Deferred (would require substantial UX review with user)
-
-### Phase M: Dark Mode Chart Fixes
-- **Status**: ⏳ Deferred (requires manual testing in dark mode, no automated tests available)
-- **Notes**: Charts already use `useChartTheme()` hook for dark mode theming. User reports specific visibility issues that would need investigation.
 
 ---
 

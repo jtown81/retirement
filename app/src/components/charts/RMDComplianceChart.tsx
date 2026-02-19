@@ -98,14 +98,14 @@ export function RMDComplianceChart({ data }: RMDComplianceChartProps) {
           yAxisId="left"
           tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
           tick={{ fontSize: 12, fill: theme.textColor }}
-          label={{ value: 'RMD / Withdrawal', angle: -90, position: 'insideLeft' }}
+          label={{ value: 'RMD / Withdrawal', angle: -90, position: 'insideLeft', fill: theme.textColor }}
         />
         <YAxis
           yAxisId="right"
           orientation="right"
           tickFormatter={(v: number) => `$${(v / 1000000).toFixed(1)}M`}
           tick={{ fontSize: 12, fill: theme.textColor }}
-          label={{ value: 'TSP Balance', angle: 90, position: 'insideRight' }}
+          label={{ value: 'TSP Balance', angle: 90, position: 'insideRight', fill: theme.textColor }}
         />
         <Tooltip content={<RMDTooltip theme={theme} />} />
         <Legend />
