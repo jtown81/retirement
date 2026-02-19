@@ -47,13 +47,13 @@ function formStateFromStored(config: SimulationConfig | null): TSPSimulationForm
   if (!config) return DEFAULTS;
   return {
     tspBalanceAtRetirement: String(config.tspBalanceAtRetirement ?? 500000),
-    traditionalPct: String(config.traditionalPct * 100 ?? 70),
-    highRiskPct: String(config.highRiskPct * 100 ?? 60),
-    highRiskROI: String(config.highRiskROI * 100 ?? 8),
-    lowRiskROI: String(config.lowRiskROI * 100 ?? 3),
-    withdrawalRate: String(config.withdrawalRate * 100 ?? 4),
+    traditionalPct: String((config.traditionalPct ?? 0.7) * 100),
+    highRiskPct: String((config.highRiskPct ?? 0.6) * 100),
+    highRiskROI: String((config.highRiskROI ?? 0.08) * 100),
+    lowRiskROI: String((config.lowRiskROI ?? 0.03) * 100),
+    withdrawalRate: String((config.withdrawalRate ?? 0.04) * 100),
     timeStepYears: String(config.timeStepYears ?? 2),
-    withdrawalStrategy: config.withdrawalStrategy ?? 'proportional',
+    withdrawalStrategy: config.withdrawalStrategy || 'proportional',
     customTradPct: String((config.customWithdrawalSplit?.traditionalPct ?? 0.5) * 100),
     customRothPct: String((config.customWithdrawalSplit?.rothPct ?? 0.5) * 100),
   };
@@ -122,7 +122,7 @@ export function TSPSimulationSubForm() {
   const fersInput = buildFERSEstimateInput(storedPersonal, storedFERS);
   const fersEstimate = useFERSEstimate(fersInput!);
 
-  const [form, setForm] = useState<TSPSimulationFormState>(() => formStateFromStored(storedConfig));
+  const [form, setForm] = useState<TSPSimulationFormState>(() => formStateFromStored(storedConfig as SimulationConfig | null));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const isFirstRender = useRef(true);
 
@@ -131,10 +131,17 @@ export function TSPSimulationSubForm() {
       isFirstRender.current = false;
       // Auto-populate from FERS estimate on mount
       if (fersEstimate && fersEstimate.canCompute) {
+        // Derive Traditional % from FERS balances if available
+        const trad = storedFERS?.traditionalTspBalance ?? 0;
+        const roth = storedFERS?.rothTspBalance ?? 0;
+        const total = storedFERS?.currentTspBalance ?? (trad + roth);
+        const derivedTradPct = total > 0 ? Math.round((trad / total) * 100) : 70;
+
         setForm((prev) => ({
           ...prev,
           tspBalanceAtRetirement: String(Math.round(fersEstimate.tspFutureValue)),
-          withdrawalRate: String(storedFERS?.withdrawalRate ?? 4),
+          withdrawalRate: String(((storedFERS?.withdrawalRate ?? 0.04) * 100).toFixed(1)),
+          traditionalPct: String(derivedTradPct),
         }));
       }
     }
@@ -227,6 +234,28 @@ export function TSPSimulationSubForm() {
             onChange={(e) => set('traditionalPct', e.target.value)}
           />
         </FieldGroup>
+        {/* Derived balance display */}
+        <div className="p-3 bg-muted rounded border border-border">
+          <div className="text-xs font-semibold text-muted-foreground mb-2">Projected at Retirement</div>
+          {(() => {
+            const total = Number(form.tspBalanceAtRetirement) || 0;
+            const tradPct = Number(form.traditionalPct) || 0;
+            const tradBal = Math.round(total * tradPct / 100);
+            const rothBal = Math.round(total - tradBal);
+            return (
+              <div className="space-y-1 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Traditional:</span>{' '}
+                  <span className="font-semibold">${tradBal.toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Roth:</span>{' '}
+                  <span className="font-semibold">${rothBal.toLocaleString()}</span>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
         <FieldGroup label="High-Risk %" htmlFor="tsp-hrPct" error={errors.highRiskPct}
           hint="C/S/I funds; remainder in G/F">
           <Input

@@ -5,6 +5,27 @@
 
 import type { ISODate, USD } from './common';
 import type { SimulationInput, SimulationConfig, SimulationYearResult, FullSimulationResult } from './simulation';
+import type { ExpenseProfile } from './expenses';
+import type { TSPContributionEvent, TSPAccountSnapshot } from './tsp';
+import { z } from 'zod';
+import { PersonalInfoSchema, FERSEstimateSchema, TaxProfileSchema } from '@storage/zod-schemas';
+
+type PersonalInfo = z.infer<typeof PersonalInfoSchema>;
+type FERSEstimate = z.infer<typeof FERSEstimateSchema>;
+type TaxProfile = z.infer<typeof TaxProfileSchema>;
+
+/**
+ * Complete snapshot of all form data from localStorage.
+ * Used to restore a scenario to its exact state at save time.
+ */
+export interface FormSnapshot {
+  personal?: PersonalInfo;
+  fersEstimate?: FERSEstimate;
+  expenses?: ExpenseProfile;
+  taxProfile?: TaxProfile;
+  tspContributions?: TSPContributionEvent[];
+  tspSnapshots?: TSPAccountSnapshot[];
+}
 
 /**
  * A user-saved retirement plan scenario.
@@ -23,6 +44,8 @@ export interface NamedScenario {
   inputs: SimulationInput;
   /** Snapshot of full simulation result at time of save */
   result: FullSimulationResult;
+  /** Snapshot of raw form data from all localStorage keys (optional for backward compat) */
+  formSnapshot?: FormSnapshot;
   /** Whether this is the "baseline" scenario for comparison */
   isBaseline: boolean;
   /** ISO date when scenario was last modified */

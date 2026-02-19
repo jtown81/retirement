@@ -12,9 +12,12 @@ import { ScenarioListDialog } from '@components/dialogs/ScenarioListDialog';
 import { ExportPanel } from '@components/charts/ExportPanel';
 import { Save, FolderOpen } from 'lucide-react';
 import { useScenarioManager } from '@hooks/useScenarioManager';
+import { useLocalStorage } from '@hooks/useLocalStorage';
+import { STORAGE_KEYS, PersonalInfoSchema, FERSEstimateSchema, ExpenseProfileSchema, TaxProfileSchema, TSPContributionEventSchema, TSPAccountSnapshotSchema } from '@storage/index';
 import type { SimulationInput } from '@models/simulation';
 import type { FullSimulationResult } from '@models/simulation';
-import type { NamedScenario } from '@models/scenario';
+import type { NamedScenario, FormSnapshot } from '@models/scenario';
+import { z } from 'zod';
 
 interface DashboardActionsProps {
   inputs: SimulationInput | null;
@@ -33,6 +36,24 @@ export function DashboardActions({
   const [isListDialogOpen, setIsListDialogOpen] = useState(false);
   const { scenarios } = useScenarioManager();
   const scenarioCount = scenarios.length;
+
+  // Load all form data from localStorage for scenario snapshot
+  const [personal] = useLocalStorage(STORAGE_KEYS.PERSONAL_INFO, PersonalInfoSchema);
+  const [fersEstimate] = useLocalStorage(STORAGE_KEYS.FERS_ESTIMATE, FERSEstimateSchema);
+  const [expenses] = useLocalStorage(STORAGE_KEYS.EXPENSE_PROFILE, ExpenseProfileSchema);
+  const [taxProfile] = useLocalStorage(STORAGE_KEYS.TAX_PROFILE, TaxProfileSchema);
+  const [tspContributions] = useLocalStorage(STORAGE_KEYS.TSP_CONTRIBUTIONS, z.array(TSPContributionEventSchema));
+  const [tspSnapshots] = useLocalStorage(STORAGE_KEYS.TSP_SNAPSHOTS, z.array(TSPAccountSnapshotSchema));
+
+  // Build FormSnapshot object
+  const formSnapshot: FormSnapshot = {
+    personal: personal ?? undefined,
+    fersEstimate: fersEstimate ?? undefined,
+    expenses: expenses ?? undefined,
+    taxProfile: taxProfile ?? undefined,
+    tspContributions: (Array.isArray(tspContributions) ? tspContributions : undefined),
+    tspSnapshots: (Array.isArray(tspSnapshots) ? tspSnapshots : undefined),
+  };
 
   return (
     <>
@@ -81,6 +102,7 @@ export function DashboardActions({
         onOpenChange={setIsSaveDialogOpen}
         inputs={inputs}
         result={result}
+        formSnapshot={formSnapshot}
         onScenarioSaved={() => {
           // Refresh scenario count if needed
         }}

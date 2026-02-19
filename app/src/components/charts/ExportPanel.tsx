@@ -24,7 +24,7 @@ export function ExportPanel({ projectionYears }: ExportPanelProps) {
     if (scenarios.length === 0) {
       return;
     }
-    exportScenariosJSON(scenarios);
+    exportScenariosJSON(scenarios as any);
   };
 
   return (

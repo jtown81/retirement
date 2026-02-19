@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   extractScenarioMetrics,
   computePresentValue,
+  computeStreamPV,
   computePresentValueMetrics,
 } from '../../../src/modules/simulation/scenario-comparison';
 import type { SimulationYearResult } from '../../../src/models/simulation';
@@ -170,6 +171,54 @@ describe('computePresentValue', () => {
   });
 });
 
+describe('computeStreamPV', () => {
+  it('handles empty stream', () => {
+    const pv = computeStreamPV([], 0.02);
+    expect(pv).toBe(0);
+  });
+
+  it('returns identity at zero discount rate', () => {
+    const values = [100, 100, 100];
+    const pv = computeStreamPV(values, 0);
+    expect(pv).toBe(300);
+  });
+
+  it('discounts multi-year stream correctly (2-year example)', () => {
+    // [100, 100] at 2%: year 0 = 100, year 1 = 100/1.02
+    // Expected: 100 + 98.0392... ≈ 198.04
+    const values = [100, 100];
+    const pv = computeStreamPV(values, 0.02);
+    expect(pv).toBeCloseTo(198.04, 1);
+  });
+
+  it('handles single-element stream', () => {
+    const pv = computeStreamPV([100], 0.02);
+    expect(pv).toBe(100); // year 0, no discount
+  });
+
+  it('discounts stream with increasing values', () => {
+    const values = [100, 110, 120];
+    const pv = computeStreamPV(values, 0.05);
+    // year 0: 100, year 1: 110/1.05, year 2: 120/(1.05^2)
+    const expected = 100 + 110 / 1.05 + 120 / 1.1025;
+    expect(pv).toBeCloseTo(expected, 2);
+  });
+
+  it('stream PV is less than sum when discount rate > 0', () => {
+    const values = [100, 100, 100, 100, 100];
+    const sum = values.reduce((a, b) => a + b, 0);
+    const pv = computeStreamPV(values, 0.02);
+    expect(pv).toBeLessThan(sum);
+  });
+
+  it('higher discount rate produces lower PV', () => {
+    const values = [100, 100, 100];
+    const pv2pct = computeStreamPV(values, 0.02);
+    const pv5pct = computeStreamPV(values, 0.05);
+    expect(pv5pct).toBeLessThan(pv2pct);
+  });
+});
+
 describe('computePresentValueMetrics', () => {
   it('adds PV adjustments to base metrics', () => {
     const years = makeMockYears(60, 89);
@@ -190,5 +239,79 @@ describe('computePresentValueMetrics', () => {
     // 25 years of discounting (age 60 to 85)
     const expectedPV = computePresentValue(baseMetrics.balanceAt85, 25, 0.02);
     expect(pvMetrics.balanceAt85PV).toBeCloseTo(expectedPV, 0);
+  });
+
+  it('discounts lifetime income stream properly (not using midpoint)', () => {
+    const years = makeMockYears(60, 89);
+    const baseMetrics = extractScenarioMetrics('income-pv-test', years);
+    const pvMetrics = computePresentValueMetrics(baseMetrics, years, 0.02);
+
+    // PV should be less than total when discount rate > 0
+    expect(pvMetrics.totalLifetimeIncomePV).toBeLessThan(
+      pvMetrics.totalLifetimeIncome,
+    );
+
+    // Verify it matches stream-based calculation
+    const incomeStream = years.map((yr) => yr.totalIncome);
+    const expectedPV = computeStreamPV(incomeStream, 0.02);
+    expect(pvMetrics.totalLifetimeIncomePV).toBeCloseTo(expectedPV, 0);
+  });
+
+  it('discounts lifetime expenses stream properly', () => {
+    const years = makeMockYears(60, 89);
+    const baseMetrics = extractScenarioMetrics('expense-pv-test', years);
+    const pvMetrics = computePresentValueMetrics(baseMetrics, years, 0.02);
+
+    // PV should be less than total when discount rate > 0
+    expect(pvMetrics.totalLifetimeExpensesPV).toBeLessThan(
+      pvMetrics.totalLifetimeExpenses,
+    );
+
+    // Verify it matches stream-based calculation
+    const expenseStream = years.map((yr) => yr.totalExpenses);
+    const expectedPV = computeStreamPV(expenseStream, 0.02);
+    expect(pvMetrics.totalLifetimeExpensesPV).toBeCloseTo(expectedPV, 0);
+  });
+
+  it('discounts surplus milestones using stream method', () => {
+    const years = makeMockYears(60, 89);
+    const baseMetrics = extractScenarioMetrics('surplus-pv-test', years);
+    const pvMetrics = computePresentValueMetrics(baseMetrics, years, 0.02);
+
+    // Year 10: sum of first 10 years' surpluses, each discounted
+    const surplusYear10Stream = years.slice(0, 10).map((yr) => yr.surplus);
+    const expectedYear10PV = computeStreamPV(surplusYear10Stream, 0.02);
+    expect(pvMetrics.surplusYear10PV).toBeCloseTo(expectedYear10PV, 0);
+
+    // Year 20: sum of first 20 years' surpluses, each discounted
+    const surplusYear20Stream = years.slice(0, 20).map((yr) => yr.surplus);
+    const expectedYear20PV = computeStreamPV(surplusYear20Stream, 0.02);
+    expect(pvMetrics.surplusYear20PV).toBeCloseTo(expectedYear20PV, 0);
+
+    // Year 30: sum of all 30 years' surpluses, each discounted
+    const surplusYear30Stream = years.slice(0, 30).map((yr) => yr.surplus);
+    const expectedYear30PV = computeStreamPV(surplusYear30Stream, 0.02);
+    expect(pvMetrics.surplusYear30PV).toBeCloseTo(expectedYear30PV, 0);
+  });
+
+  it('milestone PVs are less than milestone cumulative sums', () => {
+    const years = makeMockYears(60, 89);
+    const baseMetrics = extractScenarioMetrics('milestone-test', years);
+    const pvMetrics = computePresentValueMetrics(baseMetrics, years, 0.02);
+
+    // PV should be less than cumulative sum when discount rate > 0
+    expect(pvMetrics.surplusYear10PV).toBeLessThan(pvMetrics.surplusYear10);
+    expect(pvMetrics.surplusYear20PV).toBeLessThan(pvMetrics.surplusYear20);
+    expect(pvMetrics.surplusYear30PV).toBeLessThan(pvMetrics.surplusYear30);
+  });
+
+  it('handles short projections gracefully for PV calculations', () => {
+    const years = makeMockYears(60, 65); // only 6 years
+    const baseMetrics = extractScenarioMetrics('short-pv-test', years);
+    const pvMetrics = computePresentValueMetrics(baseMetrics, years, 0.02);
+
+    // Should not throw and should properly discount short streams
+    expect(pvMetrics.surplusYear10PV).toBeGreaterThan(0);
+    expect(pvMetrics.surplusYear10PV).toBeLessThan(pvMetrics.surplusYear10);
   });
 });

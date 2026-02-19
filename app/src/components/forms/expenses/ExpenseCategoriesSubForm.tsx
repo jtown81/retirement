@@ -88,7 +88,7 @@ export function ExpenseCategoriesSubForm() {
   }, []);
 
   const handleSave = () => {
-    const saved = storedConfig ?? {};
+    const saved = storedConfig ?? ({} as Partial<ExpenseProfileModel>);
     const categories = ALL_CATEGORIES.map((name) => ({
       name,
       annualAmount: Number(form.categoryAmounts[name]) || 0,

@@ -473,6 +473,15 @@ export const SimulationInputSchema = z.object({
   assumptions: RetirementAssumptionsFullSchema,
 });
 
+export const FormSnapshotSchema = z.object({
+  personal: PersonalInfoSchema.optional(),
+  fersEstimate: FERSEstimateSchema.optional(),
+  expenses: ExpenseProfileSchema.optional(),
+  taxProfile: TaxProfileSchema.optional(),
+  tspContributions: z.array(TSPContributionEventSchema).optional(),
+  tspSnapshots: z.array(TSPAccountSnapshotSchema).optional(),
+});
+
 export const NamedScenarioSchema = z.object({
   id: z.string().uuid(),
   label: z.string().min(1).max(200),
@@ -480,6 +489,7 @@ export const NamedScenarioSchema = z.object({
   description: z.string().optional(),
   inputs: SimulationInputSchema,
   result: FullSimulationResultSchema,
+  formSnapshot: FormSnapshotSchema.optional(),
   isBaseline: z.boolean(),
   updatedAt: ISODateSchema.optional(),
 });

@@ -59,7 +59,7 @@ export function ExpenseSettingsSubForm() {
   }, []);
 
   const handleSave = () => {
-    const saved = storedConfig ?? {};
+    const saved = storedConfig ?? ({} as Partial<ExpenseProfileModel>);
     const merged = {
       ...EXPENSE_DEFAULTS,
       ...saved,

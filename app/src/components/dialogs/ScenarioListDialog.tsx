@@ -131,7 +131,7 @@ export function ScenarioListDialog({
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        onLoadScenario?.(scenario);
+                        onLoadScenario?.(scenario as any);
                         onOpenChange(false);
                       }}
                       className="gap-1"
@@ -142,7 +142,7 @@ export function ScenarioListDialog({
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleExport(scenario)}
+                      onClick={() => handleExport(scenario as any)}
                       className="gap-1"
                     >
                       <Download className="w-3 h-3" />

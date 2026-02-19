@@ -30,8 +30,8 @@ const DEFAULTS: RatesFormState = {
 function formStateFromStored(config: SimulationConfig | null): RatesFormState {
   if (!config) return DEFAULTS;
   return {
-    colaRate: String(config.colaRate * 100 ?? 2),
-    inflationRate: String(config.inflationRate * 100 ?? 2.5),
+    colaRate: String((config.colaRate ?? 0.02) * 100),
+    inflationRate: String((config.inflationRate ?? 0.025) * 100),
     healthcareInflationRate: String((config.healthcareInflationRate ?? 0.055) * 100),
     healthcareAnnualExpenses: String(config.healthcareAnnualExpenses ?? 8000),
   };
@@ -74,7 +74,7 @@ export function RatesSubForm() {
   const [form, setForm] = useState<RatesFormState>(() => {
     // Prefer stored config, but if not available, derive from expense profile
     if (storedConfig) {
-      return formStateFromStored(storedConfig);
+      return formStateFromStored(storedConfig as SimulationConfig);
     }
     if (storedExpenses) {
       const hcCat = storedExpenses.categories.find((c) => c.name === 'healthcare');

@@ -113,7 +113,7 @@ export function CoreParametersSubForm() {
   const fersInput = buildFERSEstimateInput(storedPersonal, storedFERS);
   const fersEstimate = useFERSEstimate(fersInput!);
 
-  const [form, setForm] = useState<CoreParametersFormState>(() => formStateFromStored(storedConfig));
+  const [form, setForm] = useState<CoreParametersFormState>(() => formStateFromStored(storedConfig as SimulationConfig | null));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const isFirstRender = useRef(true);
 

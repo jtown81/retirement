@@ -6,7 +6,7 @@
 import { useCallback, useMemo } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 import { STORAGE_KEYS, NamedScenariosArraySchema } from '@storage/index';
-import type { NamedScenario, ScenarioComparisonMetrics } from '@models/scenario';
+import type { NamedScenario, ScenarioComparisonMetrics, FormSnapshot } from '@models/scenario';
 import type { FullSimulationResult } from '@models/simulation';
 
 /**
@@ -29,6 +29,7 @@ export function useScenarioManager() {
       inputs: any, // SimulationInput
       result: FullSimulationResult,
       description?: string,
+      formSnapshot?: FormSnapshot,
     ): string | null => {
       if (!scenarios) return null;
 
@@ -39,6 +40,7 @@ export function useScenarioManager() {
         description,
         inputs,
         result,
+        formSnapshot,
         isBaseline: scenarios.length === 0, // first scenario is baseline
       };
 

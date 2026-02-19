@@ -24,6 +24,11 @@ interface TSPFormState {
   withdrawalStartAge: string;
   oneTimeWithdrawalAmount: string;
   oneTimeWithdrawalAge: string;
+  fundG: string;
+  fundF: string;
+  fundC: string;
+  fundS: string;
+  fundI: string;
 }
 
 const DEFAULTS: TSPFormState = {
@@ -39,9 +44,17 @@ const DEFAULTS: TSPFormState = {
   withdrawalStartAge: '62',
   oneTimeWithdrawalAmount: '',
   oneTimeWithdrawalAge: '',
+  fundG: '20',
+  fundF: '20',
+  fundC: '20',
+  fundS: '20',
+  fundI: '20',
 };
 
-function formStateFromStored(fers: FERSEstimate | null): TSPFormState {
+function formStateFromStored(fers: FERSEstimate | null, snapshot?: any): TSPFormState {
+  // Load fund allocations from latest snapshot if available
+  const fundAllocMap = new Map((snapshot?.fundAllocations ?? []).map((a: any) => [a.fund, a.percentage * 100]));
+
   return {
     currentTspBalance: fers ? String(fers.currentTspBalance) : '0',
     traditionalTspBalance: fers?.traditionalTspBalance != null ? String(fers.traditionalTspBalance) : '',
@@ -50,11 +63,16 @@ function formStateFromStored(fers: FERSEstimate | null): TSPFormState {
     rothContribPct: fers?.rothContribPct != null ? String(fers.rothContribPct * 100) : '0',
     catchUpEligible: fers?.catchUpEligible ?? false,
     agencyMatchTrueUp: fers?.agencyMatchTrueUp ?? false,
-    tspGrowthRate: fers ? String(fers.tspGrowthRate * 100) : '7',
+    tspGrowthRate: fers ? parseFloat((fers.tspGrowthRate * 100).toFixed(2)) + '' : '7',
     withdrawalRate: fers ? String(fers.withdrawalRate * 100) : '4',
     withdrawalStartAge: fers ? String(fers.withdrawalStartAge) : '62',
     oneTimeWithdrawalAmount: fers?.oneTimeWithdrawalAmount != null ? String(fers.oneTimeWithdrawalAmount) : '',
     oneTimeWithdrawalAge: fers?.oneTimeWithdrawalAge != null ? String(fers.oneTimeWithdrawalAge) : '',
+    fundG: String(fundAllocMap.get('G') ?? 20),
+    fundF: String(fundAllocMap.get('F') ?? 20),
+    fundC: String(fundAllocMap.get('C') ?? 20),
+    fundS: String(fundAllocMap.get('S') ?? 20),
+    fundI: String(fundAllocMap.get('I') ?? 20),
   };
 }
 
@@ -71,7 +89,12 @@ export function TSPSubForm() {
   const [, saveTSPContributions] = useLocalStorage(STORAGE_KEYS.TSP_CONTRIBUTIONS, TSPContributionListSchema);
   const [form, setForm] = useState<TSPFormState>(() => {
     const hasStoredData = storedFERS !== null;
-    if (hasStoredData) return formStateFromStored(storedFERS);
+    if (hasStoredData) {
+      const latestSnapshot = Array.isArray(storedSnapshots) && storedSnapshots.length > 0
+        ? storedSnapshots[storedSnapshots.length - 1]
+        : undefined;
+      return formStateFromStored(storedFERS, latestSnapshot);
+    }
     return loadFromDefaults();
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -159,19 +182,35 @@ export function TSPSubForm() {
     });
     saveFERS(merged);
 
+    // Validate fund allocations sum (warning, not blocking)
+    const fundTotal = num(form.fundG) + num(form.fundF) + num(form.fundC) + num(form.fundS) + num(form.fundI);
+    if (Math.abs(fundTotal - 100) > 0.1) {
+      console.warn(`Fund allocations sum to ${fundTotal.toFixed(1)}% instead of 100%`);
+    }
+
     // Save TSP balance as snapshot
     const asOfDate = new Date().toISOString().slice(0, 10);
     const traditionalBal =
       optNum(form.traditionalTspBalance) ??
       Math.max(0, num(form.currentTspBalance) - (optNum(form.rothTspBalance) ?? 0));
     const snapshots = Array.isArray(storedSnapshots) ? storedSnapshots : [];
+
+    // Build fund allocations array
+    const fundAllocations = [
+      { fund: 'G' as const, percentage: num(form.fundG) / 100 },
+      { fund: 'F' as const, percentage: num(form.fundF) / 100 },
+      { fund: 'C' as const, percentage: num(form.fundC) / 100 },
+      { fund: 'S' as const, percentage: num(form.fundS) / 100 },
+      { fund: 'I' as const, percentage: num(form.fundI) / 100 },
+    ].filter((f) => f.percentage > 0);
+
     const newSnapshot = {
       id: `snapshot-${asOfDate}`,
       asOf: asOfDate,
       source: 'manual' as const,
       traditionalBalance: traditionalBal,
       rothBalance: optNum(form.rothTspBalance) ?? 0,
-      fundAllocations: [] as any[],
+      fundAllocations,
       notes: 'Created from FERS Estimate form',
     };
     const updated = snapshots.filter((s) => s.asOf !== asOfDate);
@@ -274,13 +313,13 @@ export function TSPSubForm() {
           />
         </FieldGroup>
         <FieldGroup label="Growth Rate (%)" htmlFor="fe-tspGrowth" error={errors.tspGrowthRate}
-          hint="Annual rate, e.g. 7">
+          hint="Annual rate, e.g. 7.00">
           <Input
             id="fe-tspGrowth"
             type="number"
             min="0"
             max="100"
-            step="0.1"
+            step="0.01"
             value={form.tspGrowthRate}
             onChange={(e) => set('tspGrowthRate', e.target.value)}
           />
@@ -292,12 +331,109 @@ export function TSPSubForm() {
         const total = trad + roth;
         const maxAgency = Math.min(total, 5);
         return (
-          <p className="text-xs text-muted-foreground">
-            Employee: {trad}% Traditional + {roth}% Roth = {total}% total.{' '}
-            Agency match: up to {maxAgency.toFixed(1)}% (always Traditional). Grand total: up to {(total + maxAgency).toFixed(1)}% of salary.
-          </p>
+          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded">
+            <div className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">Agency Match Summary</div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div>
+                <div className="text-muted-foreground">Your Contribution</div>
+                <div className="font-semibold">{total.toFixed(1)}%</div>
+                <div className="text-xs text-muted-foreground">({trad.toFixed(1)}% Trad + {roth.toFixed(1)}% Roth)</div>
+              </div>
+              <div>
+                <div className="text-muted-foreground">Auto (1%)</div>
+                <div className="font-semibold">1.0%</div>
+                <div className="text-xs text-muted-foreground">Traditional</div>
+              </div>
+              <div>
+                <div className="text-muted-foreground">Match (up to 4%)</div>
+                <div className="font-semibold">{(maxAgency - 1).toFixed(1)}%</div>
+                <div className="text-xs text-muted-foreground">Traditional</div>
+              </div>
+              <div>
+                <div className="text-muted-foreground">Total Possible</div>
+                <div className="font-semibold">{(total + maxAgency).toFixed(1)}%</div>
+                <div className="text-xs text-muted-foreground">of salary</div>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Note: Agency match (auto + match) always goes to Traditional TSP, regardless of your Roth election.
+            </p>
+          </div>
         );
       })()}
+      {/* Fund Allocation Section */}
+      <div className="mt-6 pt-6 border-t border-border">
+        <h3 className="text-sm font-semibold mb-3">Fund Allocation</h3>
+        <p className="text-xs text-muted-foreground mb-3">Allocate contributions across TSP investment funds (total must equal 100%):</p>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <FieldGroup label="Government (G)" htmlFor="fe-fundG" error={errors.fundG}>
+            <Input
+              id="fe-fundG"
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              value={form.fundG}
+              onChange={(e) => set('fundG', e.target.value)}
+            />
+          </FieldGroup>
+          <FieldGroup label="Fixed Income (F)" htmlFor="fe-fundF" error={errors.fundF}>
+            <Input
+              id="fe-fundF"
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              value={form.fundF}
+              onChange={(e) => set('fundF', e.target.value)}
+            />
+          </FieldGroup>
+          <FieldGroup label="Common (C)" htmlFor="fe-fundC" error={errors.fundC}>
+            <Input
+              id="fe-fundC"
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              value={form.fundC}
+              onChange={(e) => set('fundC', e.target.value)}
+            />
+          </FieldGroup>
+          <FieldGroup label="Small Cap (S)" htmlFor="fe-fundS" error={errors.fundS}>
+            <Input
+              id="fe-fundS"
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              value={form.fundS}
+              onChange={(e) => set('fundS', e.target.value)}
+            />
+          </FieldGroup>
+          <FieldGroup label="Intl Stock (I)" htmlFor="fe-fundI" error={errors.fundI}>
+            <Input
+              id="fe-fundI"
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              value={form.fundI}
+              onChange={(e) => set('fundI', e.target.value)}
+            />
+          </FieldGroup>
+        </div>
+        {(() => {
+          const toNum = (s: string) => (s === '' ? 0 : Number(s));
+          const total = toNum(form.fundG) + toNum(form.fundF) + toNum(form.fundC) + toNum(form.fundS) + toNum(form.fundI);
+          const remainder = Math.max(0, 100 - total);
+          return (
+            <div className="text-xs text-muted-foreground mt-2">
+              Total allocated: {total.toFixed(1)}% • Lifecycle (L): {remainder.toFixed(1)}%
+            </div>
+          );
+        })()}
+      </div>
+
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-2">
           <Checkbox

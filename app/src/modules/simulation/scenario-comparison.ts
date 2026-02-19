@@ -116,6 +116,31 @@ export function computePresentValue(
   return futureValue / Math.pow(1 + discountRate, yearsInFuture);
 }
 
+/**
+ * Computes the net present value of an annual cash-flow stream.
+ *
+ * Properly discounts each value by its index (year 0, year 1, ..., year n-1).
+ * Each value is discounted independently: Σ(value_i / (1 + r)^i) for i = 0..n-1
+ *
+ * This is more accurate than using a single midpoint year, especially for
+ * long-duration streams where timing of cash flows significantly affects
+ * present value.
+ *
+ * @param values - Array of annual cash flows
+ * @param discountRate - Annual discount rate (e.g., 0.02 = 2%)
+ * @returns Net present value of the stream
+ */
+export function computeStreamPV(
+  values: number[],
+  discountRate: number,
+): number {
+  if (discountRate === 0) return values.reduce((sum, v) => sum + v, 0);
+  return values.reduce(
+    (sum, value, idx) => sum + value / Math.pow(1 + discountRate, idx),
+    0,
+  );
+}
+
 export interface PresentValueMetrics extends ScenarioMetrics {
   /** Balance at 85 in present value (today's dollars) */
   balanceAt85PV: number;
@@ -148,18 +173,6 @@ export function computePresentValueMetrics(
   years: SimulationYearResult[],
   discountRate: number = 0.02,
 ): PresentValueMetrics {
-  // Find years at key milestones
-  let yr10: SimulationYearResult | undefined;
-  let yr20: SimulationYearResult | undefined;
-  let yr30: SimulationYearResult | undefined;
-
-  for (const yr of years) {
-    const yearsFromStart = yr.age - years[0].age;
-    if (yearsFromStart === 9) yr10 = yr;
-    if (yearsFromStart === 19) yr20 = yr;
-    if (yearsFromStart === 29) yr30 = yr;
-  }
-
   // Compute PV of balance at 85
   const age85Year = years.find((yr) => yr.age === 85);
   const yearsTo85 = age85Year ? age85Year.age - years[0].age : null;
@@ -167,29 +180,32 @@ export function computePresentValueMetrics(
     ? computePresentValue(metrics.balanceAt85, yearsTo85, discountRate)
     : metrics.balanceAt85;
 
-  // Compute PV of surplus milestones
-  const surplusYear10PV = yr10
-    ? computePresentValue(metrics.surplusYear10, 9, discountRate)
-    : metrics.surplusYear10;
-
-  const surplusYear20PV = yr20
-    ? computePresentValue(metrics.surplusYear20, 19, discountRate)
-    : metrics.surplusYear20;
-
-  const surplusYear30PV = yr30
-    ? computePresentValue(metrics.surplusYear30, 29, discountRate)
-    : metrics.surplusYear30;
-
-  // Compute PV of lifetime totals (use middle year as approximation)
-  const midpointYear = Math.floor(years.length / 2);
-  const totalLifetimeIncomePV = computePresentValue(
-    metrics.totalLifetimeIncome,
-    midpointYear,
+  // Compute PV of surplus milestones using stream discounting
+  // Each cumulative total is the sum of individual annual flows,
+  // so we discount each year's contribution separately.
+  const surplusYear10PV = computeStreamPV(
+    years.slice(0, 10).map((yr) => yr.surplus),
     discountRate,
   );
-  const totalLifetimeExpensesPV = computePresentValue(
-    metrics.totalLifetimeExpenses,
-    midpointYear,
+
+  const surplusYear20PV = computeStreamPV(
+    years.slice(0, 20).map((yr) => yr.surplus),
+    discountRate,
+  );
+
+  const surplusYear30PV = computeStreamPV(
+    years.slice(0, 30).map((yr) => yr.surplus),
+    discountRate,
+  );
+
+  // Compute PV of lifetime totals using stream discounting
+  // Each annual income/expense is discounted by its year index
+  const totalLifetimeIncomePV = computeStreamPV(
+    years.map((yr) => yr.totalIncome),
+    discountRate,
+  );
+  const totalLifetimeExpensesPV = computeStreamPV(
+    years.map((yr) => yr.totalExpenses),
     discountRate,
   );
 

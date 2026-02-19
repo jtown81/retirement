@@ -14,12 +14,14 @@ import { Alert, AlertDescription } from '@components/ui/alert';
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import type { SimulationInput } from '@models/simulation';
 import type { FullSimulationResult } from '@models/simulation';
+import type { FormSnapshot } from '@models/scenario';
 
 interface SaveScenarioDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   inputs: SimulationInput | null;
   result: FullSimulationResult | null;
+  formSnapshot?: FormSnapshot;
   onScenarioSaved?: (scenarioId: string) => void;
 }
 
@@ -28,6 +30,7 @@ export function SaveScenarioDialog({
   onOpenChange,
   inputs,
   result,
+  formSnapshot,
   onScenarioSaved,
 }: SaveScenarioDialogProps) {
   const { saveScenario } = useScenarioManager();
@@ -57,6 +60,7 @@ export function SaveScenarioDialog({
         inputs,
         result,
         description || undefined,
+        formSnapshot,
       );
 
       if (scenarioId) {
@@ -125,7 +129,7 @@ export function SaveScenarioDialog({
                   id="scenario-desc"
                   placeholder="Add notes about this scenario..."
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
                   disabled={isSaving}
                   rows={3}
                   className="resize-none"

@@ -26,12 +26,14 @@ show_menu() {
     echo "  7) Clean Build (delete dist/ and rebuild)"
     echo "  8) Full Build Pipeline (test + typecheck + build)"
     echo "  9) Full Build Pipeline + Start Server"
+    echo "  10) Kill Existing Instance on Port 2222"
     echo ""
-    read -p "Enter your choice (1-9): " choice
+    read -p "Enter your choice (1-10): " choice
 }
 
 # Function to run dev server
 run_dev() {
+    kill_existing_instance
     echo ""
     echo "Starting development server on port 2222..."
     echo "Visit: http://localhost:2222"
@@ -51,6 +53,7 @@ run_build() {
 
 # Function to build and preview
 run_build_and_preview() {
+    kill_existing_instance
     echo ""
     echo "Building for production..."
     pnpm build
@@ -129,8 +132,39 @@ run_full_pipeline() {
     echo "Output directory: dist/"
 }
 
+# Function to kill existing instance
+kill_existing_instance() {
+    echo ""
+    echo "Checking for existing instances on port 2222..."
+
+    local pid=""
+
+    # Try lsof first (most reliable)
+    if command -v lsof &> /dev/null; then
+        pid=$(lsof -ti :2222 2>/dev/null | head -1)
+    # Fallback to ss if available (Linux)
+    elif command -v ss &> /dev/null; then
+        pid=$(ss -ltnp 2>/dev/null | grep :2222 | grep -oP 'pid=\K[0-9]+' | head -1)
+    # Fallback to netstat (older systems)
+    elif command -v netstat &> /dev/null; then
+        pid=$(netstat -ltnp 2>/dev/null | grep :2222 | awk '{print $NF}' | cut -d/ -f1 | head -1)
+    fi
+
+    if [ -z "$pid" ] || [ "$pid" = "-" ]; then
+        echo "✓ No existing instance found on port 2222"
+    else
+        echo "Found existing process (PID: $pid) on port 2222"
+        echo "Killing process..."
+        kill -9 "$pid" 2>/dev/null || true
+        sleep 1
+        echo "✓ Process killed successfully"
+    fi
+}
+
 # Function to run full pipeline and start server
 run_full_pipeline_and_serve() {
+    kill_existing_instance
+    echo ""
     run_full_pipeline
     echo ""
     echo "Starting preview server on port 2222..."
@@ -170,8 +204,11 @@ case $choice in
     9)
         run_full_pipeline_and_serve
         ;;
+    10)
+        kill_existing_instance
+        ;;
     *)
-        echo "Invalid choice. Please enter a number between 1-9."
+        echo "Invalid choice. Please enter a number between 1-10."
         exit 1
         ;;
 esac

@@ -39,10 +39,10 @@ function formStateFromStored(config: SimulationConfig | null): ExpensesSimulatio
   return {
     baseAnnualExpenses: String(config.baseAnnualExpenses ?? 60000),
     goGoEndAge: String(config.goGoEndAge ?? 72),
-    goGoRate: String(config.goGoRate * 100 ?? 100),
+    goGoRate: String((config.goGoRate ?? 1.0) * 100),
     goSlowEndAge: String(config.goSlowEndAge ?? 82),
-    goSlowRate: String(config.goSlowRate * 100 ?? 85),
-    noGoRate: String(config.noGoRate * 100 ?? 75),
+    goSlowRate: String((config.goSlowRate ?? 0.85) * 100),
+    noGoRate: String((config.noGoRate ?? 0.75) * 100),
   };
 }
 
@@ -83,7 +83,7 @@ export function ExpensesSimulationSubForm() {
   const [form, setForm] = useState<ExpensesSimulationFormState>(() => {
     // Prefer stored config, but if not available, derive from expense profile
     if (storedConfig) {
-      return formStateFromStored(storedConfig);
+      return formStateFromStored(storedConfig as SimulationConfig);
     }
     if (storedExpenses) {
       const total = storedExpenses.categories.reduce((s, c) => s + c.annualAmount, 0);
