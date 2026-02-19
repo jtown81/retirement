@@ -139,7 +139,7 @@ export function PlannerApp() {
           <ScenarioComparison />
         </div>
       ) : (
-        <Dashboard data={data} mode={mode} />
+        <Dashboard data={data} mode={mode} inputs={assembledInput} />
       )}
     </AppShell>
   );

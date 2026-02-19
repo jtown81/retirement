@@ -13,8 +13,10 @@ import { ExpensePhasesChart } from './charts/ExpensePhasesChart';
 import { RMDComplianceChart } from './charts/RMDComplianceChart';
 import { ChartSkeleton } from './charts/ChartSkeleton';
 import { ProjectionTable } from './charts/ProjectionTable';
+import { DashboardActions } from './dashboard/DashboardActions';
 import { useMonteCarloWorker } from '@hooks/useMonteCarloWorker';
 import type { SimulationData } from '@hooks/useSimulation';
+import type { SimulationInput, FullSimulationResult } from '@models/simulation';
 
 const USD_FORMAT = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -25,9 +27,10 @@ const USD_FORMAT = new Intl.NumberFormat('en-US', {
 interface DashboardProps {
   data: SimulationData | null;
   mode: 'demo' | 'user';
+  inputs?: SimulationInput | null;
 }
 
-export function Dashboard({ data, mode }: DashboardProps) {
+export function Dashboard({ data, mode, inputs }: DashboardProps) {
   if (!data) {
     return (
       <div className="space-y-6">
@@ -207,6 +210,18 @@ export function Dashboard({ data, mode }: DashboardProps) {
       </section>
 
       <Separator />
+
+      {/* Scenario Management & Export */}
+      {mode !== 'demo' && (
+        <>
+          <DashboardActions
+            inputs={inputs ?? null}
+            result={fullSimulation ? (fullSimulation as unknown as FullSimulationResult) : null}
+            projectionYears={fullSimulation?.years ?? null}
+          />
+          <Separator />
+        </>
+      )}
 
       {/* Hero Chart: Income Waterfall */}
       <section className="space-y-4">
