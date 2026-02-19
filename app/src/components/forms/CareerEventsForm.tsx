@@ -108,37 +108,7 @@ export function CareerEventsForm() {
       onSave={handleSave}
       onClear={handleClear}
     >
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-        <FieldGroup label="SCD — Leave" htmlFor="careerScdLeave" error={errors.scdLeave}>
-          <Input
-            id="careerScdLeave"
-            type="date"
-            value={form.scdLeave}
-            onChange={(e) => setField('scdLeave', e.target.value)}
-          />
-        </FieldGroup>
-        <FieldGroup label="SCD — Retirement" htmlFor="careerScdRetire" error={errors.scdRetirement}>
-          <Input
-            id="careerScdRetire"
-            type="date"
-            value={form.scdRetirement}
-            onChange={(e) => setField('scdRetirement', e.target.value)}
-          />
-        </FieldGroup>
-        <FieldGroup label="Pay System" htmlFor="careerPaySystem" error={errors.paySystem}>
-          <Select value={form.paySystem} onValueChange={(value) => setField('paySystem', value as CareerProfile['paySystem'])}>
-            <SelectTrigger id="careerPaySystem">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="GS">GS</SelectItem>
-              <SelectItem value="LEO">LEO</SelectItem>
-              <SelectItem value="Title38">Title 38</SelectItem>
-            </SelectContent>
-          </Select>
-        </FieldGroup>
-      </div>
-
+      {/* SCD and paySystem are read from FERS Estimate (PersonalInfo) — not entered here */}
       {errors.events && <Alert variant="destructive" className="mb-4"><AlertDescription>{errors.events}</AlertDescription></Alert>}
 
       <div className="space-y-4">
