@@ -36,6 +36,7 @@ export {
   formatDate,
   parseDate,
 } from './calendar-utils';
+export { getFederalHolidays } from './data-federal-holidays';
 export type { CalendarYearSummary } from './calendar-bridge';
 export {
   computeCalendarYearSummary,

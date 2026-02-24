@@ -1,6 +1,6 @@
 import type { ReactNode, ReactElement } from 'react';
 import { Children, isValidElement, cloneElement } from 'react';
-import { Label } from '../ui/label';
+import { Label } from './ui/label';
 import { cn } from '@lib/utils';
 import { AlertCircle } from 'lucide-react';
 
