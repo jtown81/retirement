@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@components/ui/card';
-import { Button } from '@components/ui/button';
-import { Badge } from '@components/ui/badge';
-import { Separator } from '@components/ui/separator';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../ui/card';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
+import { Separator } from '../ui/separator';
 import { Check, AlertCircle, Loader2 } from 'lucide-react';
-import { Alert, AlertDescription } from '@components/ui/alert';
+import { Alert, AlertDescription } from '../ui/alert';
 
 interface FormSectionProps {
   title: string;

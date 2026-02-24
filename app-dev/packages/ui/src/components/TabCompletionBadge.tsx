@@ -1,5 +1,5 @@
 import { Check, Circle } from 'lucide-react';
-import { Badge } from '@components/ui/badge';
+import { Badge } from '../ui/badge';
 
 interface TabCompletionBadgeProps {
   isComplete: boolean;
