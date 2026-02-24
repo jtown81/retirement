@@ -4,7 +4,7 @@
  * to reduce redundant hook instantiations (MutationObservers, resize listeners)
  */
 
-import { createContext, ReactNode, useContext } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
 import { useChartTheme, type ChartTheme } from '@hooks/useChartTheme';
 import { useResponsiveChartFontSize, type ResponsiveChartConfig } from '@hooks/useResponsiveChartFontSize';
 

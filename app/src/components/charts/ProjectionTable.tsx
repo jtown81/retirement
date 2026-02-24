@@ -6,7 +6,7 @@
 import { memo, useState, useMemo } from 'react';
 import { exportProjectionCSV, triggerPrint } from '@utils/export';
 import { Button } from '@components/ui/button';
-import { ArrowUpDown, Download, Printer, AlertTriangle } from 'lucide-react';
+import { Download, Printer, AlertTriangle } from 'lucide-react';
 import type { SimulationYearResult } from '@models/simulation';
 
 export interface ProjectionTableProps {
