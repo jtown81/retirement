@@ -6,7 +6,7 @@
  */
 
 import { DayCell } from './DayCell';
-import { formatDate } from '@fedplan/leave/calendar-utils';
+import { formatDate } from '@fedplan/leave';
 import { Card } from '@components/ui/card';
 import type { CalendarLeaveEntry } from '@fedplan/models';
 

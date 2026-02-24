@@ -15,7 +15,7 @@ import {
   SimulationConfigSchema,
 } from '@storage/index';
 import { calculateAnnualPay } from '@fedplan/career';
-import { calendarToLeaveBalance } from '@fedplan/leave/calendar-bridge';
+import { calendarToLeaveBalance } from '@fedplan/leave';
 import { z } from 'zod';
 import type { SimulationInput, SimulationConfig } from '@fedplan/models';
 import type { CareerProfile } from '@fedplan/models';

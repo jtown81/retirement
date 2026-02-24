@@ -7,7 +7,7 @@ import {
   ExpenseProfileSchema,
   PersonalInfoSchema,
 } from '@storage/index';
-import { projectRetirementSimulation } from '@fedplan/simulation/retirement-simulation';
+import { projectRetirementSimulation } from '@fedplan/simulation';
 import type { SimulationConfig, FullSimulationResult } from '@fedplan/models';
 import { useFERSEstimate, type FERSEstimateInput } from './useFERSEstimate';
 import { CoreParametersSubForm } from './simulation/CoreParametersSubForm';

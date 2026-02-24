@@ -4,7 +4,7 @@
  */
 
 import { cn } from '@lib/utils';
-import type { CalendarYearSummary } from '@fedplan/leave/calendar-bridge';
+import type { CalendarYearSummary } from '@fedplan/leave';
 
 interface LeaveBalanceSummaryPanelProps {
   summary: CalendarYearSummary;

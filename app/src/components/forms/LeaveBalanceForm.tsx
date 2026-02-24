@@ -13,7 +13,7 @@ import { LeaveCalendarToolbar } from './leave-calendar/LeaveCalendarToolbar';
 import { LeaveBalanceSummaryViewer } from './leave-calendar/LeaveBalanceSummaryViewer';
 import { LeaveCalendarGrid } from './leave-calendar/LeaveCalendarGrid';
 import { LeaveEntryModal } from './leave-calendar/LeaveEntryModal';
-import { weekdaysInRange, parseDate } from '@fedplan/leave/calendar-utils';
+import { weekdaysInRange, parseDate } from '@fedplan/leave';
 import type { CalendarLeaveType, SickLeaveCode, CalendarLeaveEntry } from '@fedplan/models';
 
 function generateId(): string {

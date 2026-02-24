@@ -19,7 +19,7 @@ import {
   TableRow,
 } from '@components/ui/table';
 import { AlertCircle, Upload } from 'lucide-react';
-import { parseTSPCSV, extractSnapshotFromRows } from '@fedplan/tsp/import';
+import { parseTSPCSV, extractSnapshotFromRows } from '@fedplan/tsp';
 import type { TSPAccountSnapshot, TSPTransactionRow, TSPImportError } from '@fedplan/models';
 
 interface TSPImportModalProps {

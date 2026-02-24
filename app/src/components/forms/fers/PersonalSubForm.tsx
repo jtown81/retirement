@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useLocalStorage } from '@hooks/useLocalStorage';
 import { STORAGE_KEYS, PersonalInfoSchema, FERSEstimateSchema } from '@storage/index';
-import { getMRA } from '@fedplan/simulation/eligibility';
+import { getMRA } from '@fedplan/simulation';
 import type { z } from 'zod';
 import { FieldGroup } from '../FieldGroup';
 import { FormSection } from '../FormSection';

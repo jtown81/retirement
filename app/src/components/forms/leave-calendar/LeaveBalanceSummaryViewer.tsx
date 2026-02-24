@@ -15,7 +15,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { cn } from '@lib/utils';
-import type { CalendarYearSummary } from '@fedplan/leave/calendar-bridge';
+import type { CalendarYearSummary } from '@fedplan/leave';
 
 interface LeaveBalanceSummaryViewerProps {
   summary: CalendarYearSummary;
