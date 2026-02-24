@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "removeComments": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@fedplan/models": ["./packages/models/src"],
+      "@fedplan/career": ["./packages/career/src"],
+      "@fedplan/leave": ["./packages/leave/src"],
+      "@fedplan/tsp": ["./packages/tsp/src"],
+      "@fedplan/expenses": ["./packages/expenses/src"],
+      "@fedplan/tax": ["./packages/tax/src"],
+      "@fedplan/military": ["./packages/military/src"],
+      "@fedplan/simulation": ["./packages/simulation/src"],
+      "@fedplan/validation": ["./packages/validation/src"],
+      "@fedplan/utils": ["./packages/utils/src"],
+      "@fedplan/ui": ["./packages/ui/src"],
+      "@fedplan/core": ["./packages/core/src"]
+    }
+  }
+}
