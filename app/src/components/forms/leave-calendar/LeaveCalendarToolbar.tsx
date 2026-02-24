@@ -46,7 +46,7 @@ export function LeaveCalendarToolbar({
             onClick={() => onYearChange(year - 1)}
             aria-label="Previous year"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           </Button>
           <span className="text-sm font-semibold text-foreground w-12 text-center">
             {year}
@@ -57,7 +57,7 @@ export function LeaveCalendarToolbar({
             onClick={() => onYearChange(year + 1)}
             aria-label="Next year"
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
 
@@ -89,7 +89,7 @@ export function LeaveCalendarToolbar({
           }}
           className="ml-auto"
         >
-          <Trash2 className="h-4 w-4 mr-2" />
+          <Trash2 className="h-4 w-4 mr-2" aria-hidden="true" />
           Clear Year
         </Button>
       </div>

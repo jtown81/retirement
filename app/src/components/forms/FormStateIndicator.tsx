@@ -18,8 +18,8 @@ export function FormStateIndicator({
   if (state === 'idle' || state === 'unsaved') {
     if (compact) return null;
     return (
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Zap className="w-3 h-3" />
+      <div role="status" aria-live="polite" className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Zap className="w-3 h-3" aria-hidden="true" />
         Unsaved changes
       </div>
     );
@@ -27,8 +27,8 @@ export function FormStateIndicator({
 
   if (state === 'saving') {
     return (
-      <div className="flex items-center gap-2 text-xs text-foreground">
-        <Loader2 className="w-3 h-3 animate-spin" />
+      <div role="status" aria-live="polite" className="flex items-center gap-2 text-xs text-foreground">
+        <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" />
         Saving...
       </div>
     );
@@ -36,8 +36,8 @@ export function FormStateIndicator({
 
   if (state === 'saved') {
     return (
-      <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
-        <CheckCircle2 className="w-3 h-3" />
+      <div role="status" aria-live="polite" className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+        <CheckCircle2 className="w-3 h-3" aria-hidden="true" />
         Saved {message ? `- ${message}` : ''}
       </div>
     );
@@ -45,8 +45,8 @@ export function FormStateIndicator({
 
   if (state === 'error') {
     return (
-      <div className="flex items-center gap-2 text-xs text-destructive">
-        <AlertCircle className="w-3 h-3" />
+      <div role="status" aria-live="assertive" className="flex items-center gap-2 text-xs text-destructive">
+        <AlertCircle className="w-3 h-3" aria-hidden="true" />
         {message || 'Error'}
       </div>
     );

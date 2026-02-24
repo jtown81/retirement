@@ -57,7 +57,7 @@ export function DayCell({
       type="button"
       disabled={isOff}
       onClick={(e) => onClick(dateStr, e.shiftKey)}
-      title={holidayName}
+      aria-label={holidayName ? `${day}, holiday: ${holidayName}` : String(day)}
       className={cn(
         'h-11 sm:h-12 relative flex flex-col items-center justify-center rounded text-xs transition-colors',
         isOff ? 'cursor-default' : 'hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer',
@@ -78,15 +78,21 @@ export function DayCell({
         {day}
       </span>
       {holidayName && !isWeekend && (
-        <span className="w-2 h-2 text-amber-600 dark:text-amber-400 leading-none text-[8px]" title={holidayName}>
+        <span
+          className="w-2 h-2 text-amber-600 dark:text-amber-400 leading-none text-[8px]"
+          aria-hidden="true"
+        >
           &#9670;
         </span>
       )}
       {primaryEntry && !holidayName && (
-        <span
-          className={`w-2 h-2 rounded-full mt-0.5 ${TYPE_COLORS[primaryEntry.leaveType]}`}
-          title={primaryEntry.leaveType}
-        />
+        <>
+          <span
+            className={`w-2 h-2 rounded-full mt-0.5 ${TYPE_COLORS[primaryEntry.leaveType]}`}
+            aria-hidden="true"
+          />
+          <span className="sr-only">{primaryEntry.leaveType}</span>
+        </>
       )}
       {totalHours > 0 && totalHours < 8 && (
         <span className="absolute bottom-0.5 right-0.5 text-[9px] text-muted-foreground leading-none">

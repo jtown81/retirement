@@ -14,5 +14,15 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
     worker: { format: 'es' },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-recharts': ['recharts'],
+            'vendor-radix': ['radix-ui'],
+          },
+        },
+      },
+    },
   },
 });

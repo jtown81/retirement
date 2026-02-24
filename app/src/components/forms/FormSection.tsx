@@ -106,15 +106,17 @@ export function FormSection({
             </Button>
           )}
         </div>
-        {showSaved && (
-          <Badge
-            variant="default"
-            className="gap-1 animate-in fade-in-0 slide-in-from-right-4 duration-300 animate-out fade-out-0 slide-out-to-right-4 duration-300"
-          >
-            <Check className="w-3 h-3" />
-            Saved
-          </Badge>
-        )}
+        <div aria-live="polite" aria-atomic="true">
+          {showSaved && (
+            <Badge
+              variant="default"
+              className="gap-1 animate-in fade-in-0 slide-in-from-right-4 duration-300 animate-out fade-out-0 slide-out-to-right-4 duration-300"
+            >
+              <Check className="w-3 h-3" aria-hidden="true" />
+              Saved
+            </Badge>
+          )}
+        </div>
       </CardFooter>
     </Card>
   );

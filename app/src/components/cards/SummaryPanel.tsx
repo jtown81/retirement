@@ -1,7 +1,8 @@
+import { memo } from 'react';
 import { MetricCard } from './MetricCard';
 import type { SummaryPanelProps } from '@components/charts/chart-types';
 
-export function SummaryPanel({
+function SummaryPanelComponent({
   annuity,
   high3,
   creditableService,
@@ -71,3 +72,5 @@ export function SummaryPanel({
     </div>
   );
 }
+
+export const SummaryPanel = memo(SummaryPanelComponent);

@@ -5,7 +5,10 @@
  */
 
 @media print {
-  /* Hide interactive and navigation elements */
+  /* Hide interactive and navigation elements, but NOT print-target */
+  body > * { display: none !important; }
+  #print-target { display: block !important; }
+
   header,
   nav,
   .navbar,
@@ -30,6 +33,11 @@
     display: none !important;
   }
 
+  /* Show print header */
+  #print-header {
+    display: block !important;
+  }
+
   /* Page setup */
   html,
   body {
@@ -49,7 +57,8 @@
   /* Main content */
   main,
   .main-content,
-  .content {
+  .content,
+  #print-target {
     width: 100%;
     max-width: 100%;
     margin: 0;
@@ -164,14 +173,15 @@
     text-decoration: underline;
   }
 
-  /* Hide SVG charts - they don't print well */
+  /* Charts: print charts but break across pages gracefully */
   canvas,
   svg,
   .recharts-surface,
   .chart-container,
   [data-chart],
   .chart {
-    display: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   /* List formatting */

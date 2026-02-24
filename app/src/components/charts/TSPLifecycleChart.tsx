@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import {
   AreaChart,
   Area,
@@ -9,11 +10,11 @@ import {
   Line,
   ComposedChart,
 } from 'recharts';
-import { useChartTheme } from '@hooks/useChartTheme';
-import { useResponsiveChartFontSize } from '@hooks/useResponsiveChartFontSize';
+import { useChart } from './ChartContext';
 import { ChartContainer } from './ChartContainer';
 import { ChartTooltip } from './ChartTooltip';
 import type { TSPLifecycleDataPoint } from './chart-types';
+import type { ChartContextValue } from './ChartContext';
 
 const USD_FORMAT = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -26,7 +27,7 @@ interface TSPLifecycleTooltipProps {
   payload?: Array<{
     payload: TSPLifecycleDataPoint;
   }>;
-  theme: ReturnType<typeof useChartTheme>;
+  theme: ChartContextValue['theme'];
 }
 
 function TSPLifecycleTooltip({ active, payload, theme }: TSPLifecycleTooltipProps) {
@@ -68,12 +69,14 @@ export interface TSPLifecycleChartProps {
   retirementYear?: number;
 }
 
-export function TSPLifecycleChart({ data, retirementYear }: TSPLifecycleChartProps) {
-  const theme = useChartTheme();
-  const fontConfig = useResponsiveChartFontSize();
+function TSPLifecycleChartComponent({ data, retirementYear }: TSPLifecycleChartProps) {
+  const { theme, fontConfig } = useChart();
 
   // Find depletion year (balance drops to near 0)
-  const depletionYear = data.find((d) => d.totalBalance < 1000)?.year ?? null;
+  const depletionYear = useMemo(
+    () => data.find((d) => d.totalBalance < 1000)?.year ?? null,
+    [data]
+  );
 
   return (
     <ChartContainer
@@ -119,6 +122,7 @@ export function TSPLifecycleChart({ data, retirementYear }: TSPLifecycleChartPro
           stroke={theme.traditional}
           fillOpacity={0.6}
           name="Traditional"
+          isAnimationActive={false}
         />
 
         {/* Roth TSP area */}
@@ -130,6 +134,7 @@ export function TSPLifecycleChart({ data, retirementYear }: TSPLifecycleChartPro
           stroke={theme.roth}
           fillOpacity={0.6}
           name="Roth"
+          isAnimationActive={false}
         />
 
         {/* High-risk balance overlay line (post-retirement) */}
@@ -149,3 +154,5 @@ export function TSPLifecycleChart({ data, retirementYear }: TSPLifecycleChartPro
     </ChartContainer>
   );
 }
+
+export const TSPLifecycleChart = memo(TSPLifecycleChartComponent);

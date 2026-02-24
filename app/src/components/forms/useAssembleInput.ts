@@ -162,5 +162,5 @@ export function useAssembleInput(): SimulationInput | null {
  */
 export function useSimulationConfig(): SimulationConfig | null {
   const [simConfig] = useLocalStorage(STORAGE_KEYS.SIMULATION_CONFIG, SimulationConfigSchema);
-  return useMemo(() => simConfig ?? null, [simConfig]);
+  return simConfig ?? null;
 }

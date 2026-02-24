@@ -13,18 +13,25 @@ interface TabCompletionBadgeProps {
 export function TabCompletionBadge({ isComplete, size = 'sm' }: TabCompletionBadgeProps) {
   if (!isComplete) {
     return (
-      <Circle
-        className={`text-muted-foreground flex-shrink-0 ${
-          size === 'sm' ? 'w-3 h-3' : 'w-4 h-4'
-        }`}
-        fill="currentColor"
-      />
+      <>
+        <Circle
+          className={`text-muted-foreground flex-shrink-0 ${
+            size === 'sm' ? 'w-3 h-3' : 'w-4 h-4'
+          }`}
+          fill="currentColor"
+          aria-hidden="true"
+        />
+        <span className="sr-only">Incomplete</span>
+      </>
     );
   }
 
   return (
-    <Badge variant="default" className="gap-1 ml-2">
-      <Check className={size === 'sm' ? 'w-3 h-3' : 'w-4 h-4'} />
-    </Badge>
+    <>
+      <Badge variant="default" className="gap-1 ml-2">
+        <Check className={size === 'sm' ? 'w-3 h-3' : 'w-4 h-4'} aria-hidden="true" />
+      </Badge>
+      <span className="sr-only">Complete</span>
+    </>
   );
 }

@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@comp
 import { Badge } from '@components/ui/badge';
 import { useLeaveCalendar } from './leave-calendar/useLeaveCalendar';
 import { LeaveCalendarToolbar } from './leave-calendar/LeaveCalendarToolbar';
-import { LeaveBalanceSummaryPanel } from './leave-calendar/LeaveBalanceSummaryPanel';
+import { LeaveBalanceSummaryViewer } from './leave-calendar/LeaveBalanceSummaryViewer';
 import { LeaveCalendarGrid } from './leave-calendar/LeaveCalendarGrid';
 import { LeaveEntryModal } from './leave-calendar/LeaveEntryModal';
 import { weekdaysInRange, parseDate } from '@modules/leave/calendar-utils';
@@ -147,8 +147,8 @@ export function LeaveBalanceForm() {
           onClearYear={cal.clearYear}
         />
 
-        {/* Summary Panel */}
-        <LeaveBalanceSummaryPanel summary={cal.summary} />
+        {/* Summary Panel with Toggle */}
+        <LeaveBalanceSummaryViewer summary={cal.summary} />
 
         {/* Legend */}
         <div className="flex flex-wrap gap-2">

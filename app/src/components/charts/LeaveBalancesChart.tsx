@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import {
   AreaChart,
   Area,
@@ -7,13 +8,13 @@ import {
   Tooltip,
   ReferenceLine,
 } from 'recharts';
-import { useChartTheme } from '@hooks/useChartTheme';
-import { useResponsiveChartFontSize } from '@hooks/useResponsiveChartFontSize';
+import { useChart } from './ChartContext';
 import { ChartContainer } from './ChartContainer';
 import { ChartTooltip } from './ChartTooltip';
 import type { LeaveBalancesChartProps } from './chart-types';
+import type { ChartContextValue } from './ChartContext';
 
-function LeaveTooltip({ active, payload, theme }: { active?: boolean; payload?: Array<{ payload: { year: number; annualLeaveHours: number; sickLeaveHours: number } }>; theme: ReturnType<typeof useChartTheme> }) {
+function LeaveTooltip({ active, payload, theme }: { active?: boolean; payload?: Array<{ payload: { year: number; annualLeaveHours: number; sickLeaveHours: number } }>; theme: ChartContextValue['theme'] }) {
   if (!active || !payload?.[0]) return null;
   const d = payload[0].payload;
 
@@ -32,13 +33,14 @@ function LeaveTooltip({ active, payload, theme }: { active?: boolean; payload?: 
   );
 }
 
-export function LeaveBalancesChart({ data }: LeaveBalancesChartProps) {
-  const theme = useChartTheme();
-  const fontConfig = useResponsiveChartFontSize();
+function LeaveBalancesChartComponent({ data }: LeaveBalancesChartProps) {
+  const { theme, fontConfig } = useChart();
 
   // Calculate final sick leave retirement credit
-  const finalSickHours = data[data.length - 1]?.sickLeaveHours ?? 0;
-  const finalSickMonths = (finalSickHours / 2080) * 12;
+  const finalSickMonths = useMemo(() => {
+    const finalSickHours = data[data.length - 1]?.sickLeaveHours ?? 0;
+    return (finalSickHours / 2080) * 12;
+  }, [data]);
 
   return (
     <ChartContainer
@@ -66,6 +68,7 @@ export function LeaveBalancesChart({ data }: LeaveBalancesChartProps) {
           fill={theme.plannedAnnual}
           fillOpacity={0.4}
           name="Annual Leave"
+          isAnimationActive={false}
         />
         <Area
           type="monotone"
@@ -74,8 +77,11 @@ export function LeaveBalancesChart({ data }: LeaveBalancesChartProps) {
           fill={theme.actualAnnual}
           fillOpacity={0.3}
           name="Sick Leave"
+          isAnimationActive={false}
         />
       </AreaChart>
     </ChartContainer>
   );
 }
+
+export const LeaveBalancesChart = memo(LeaveBalancesChartComponent);

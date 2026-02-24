@@ -3,10 +3,10 @@
  * Sortable, paginated table displaying full retirement projection (40 years).
  */
 
-import { useState, useMemo } from 'react';
+import { memo, useState, useMemo } from 'react';
 import { exportProjectionCSV, triggerPrint } from '@utils/export';
 import { Button } from '@components/ui/button';
-import { ArrowUpDown, Download, Printer } from 'lucide-react';
+import { ArrowUpDown, Download, Printer, AlertTriangle } from 'lucide-react';
 import type { SimulationYearResult } from '@models/simulation';
 
 export interface ProjectionTableProps {
@@ -23,7 +23,7 @@ type SortKey =
   | 'balance';
 type SortOrder = 'asc' | 'desc';
 
-export function ProjectionTable({ years }: ProjectionTableProps) {
+function ProjectionTableComponent({ years }: ProjectionTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('year');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [pageSize, setPageSize] = useState(10);
@@ -86,6 +86,13 @@ export function ProjectionTable({ years }: ProjectionTableProps) {
     }
   };
 
+  const handleSortKeyDown = (e: React.KeyboardEvent, key: SortKey) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleSort(key);
+    }
+  };
+
   const SortIcon = ({ k }: { k: SortKey }) => {
     if (sortKey !== k) return <span className="text-muted-foreground">⬍</span>;
     return sortOrder === 'asc' ? (
@@ -113,6 +120,7 @@ export function ProjectionTable({ years }: ProjectionTableProps) {
               value={pageSize}
               onChange={(e) => setPageSize(Number(e.target.value))}
               className="px-3 py-1 text-sm border border-border rounded-lg bg-background text-foreground"
+              aria-label="Rows per page"
             >
               <option value={10}>10 rows/page</option>
               <option value={20}>20 rows/page</option>
@@ -128,7 +136,7 @@ export function ProjectionTable({ years }: ProjectionTableProps) {
             onClick={() => exportProjectionCSV(sorted)}
             className="gap-2"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-4 h-4" aria-hidden="true" />
             <span className="hidden sm:inline">Export CSV</span>
           </Button>
           <Button
@@ -137,7 +145,7 @@ export function ProjectionTable({ years }: ProjectionTableProps) {
             onClick={() => triggerPrint('FedRetire Retirement Projection')}
             className="gap-2"
           >
-            <Printer className="w-4 h-4" />
+            <Printer className="w-4 h-4" aria-hidden="true" />
             <span className="hidden sm:inline">Print / PDF</span>
           </Button>
         </div>
@@ -149,8 +157,13 @@ export function ProjectionTable({ years }: ProjectionTableProps) {
           <thead>
             <tr className="bg-muted border-b border-border">
               <th
+                scope="col"
                 className="text-left px-3 py-2 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
                 onClick={() => toggleSort('year')}
+                onKeyDown={(e) => handleSortKeyDown(e, 'year')}
+                aria-sort={sortKey === 'year' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}
+                tabIndex={0}
+                role="columnheader"
               >
                 <div className="flex items-center justify-between">
                   Year
@@ -158,21 +171,31 @@ export function ProjectionTable({ years }: ProjectionTableProps) {
                 </div>
               </th>
               <th
+                scope="col"
                 className="text-right px-3 py-2 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
                 onClick={() => toggleSort('age')}
+                onKeyDown={(e) => handleSortKeyDown(e, 'age')}
+                aria-sort={sortKey === 'age' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}
+                tabIndex={0}
+                role="columnheader"
               >
                 <div className="flex items-center justify-between">
                   Age
                   <SortIcon k="age" />
                 </div>
               </th>
-              <th className="text-right px-3 py-2 font-semibold">Annuity</th>
-              <th className="text-right px-3 py-2 font-semibold">FERS Suppl</th>
-              <th className="text-right px-3 py-2 font-semibold">Social Sec</th>
-              <th className="text-right px-3 py-2 font-semibold">TSP Draw</th>
+              <th scope="col" className="text-right px-3 py-2 font-semibold">Annuity</th>
+              <th scope="col" className="text-right px-3 py-2 font-semibold">FERS Suppl</th>
+              <th scope="col" className="text-right px-3 py-2 font-semibold">Social Sec</th>
+              <th scope="col" className="text-right px-3 py-2 font-semibold">TSP Draw</th>
               <th
+                scope="col"
                 className="text-right px-3 py-2 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
                 onClick={() => toggleSort('income')}
+                onKeyDown={(e) => handleSortKeyDown(e, 'income')}
+                aria-sort={sortKey === 'income' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}
+                tabIndex={0}
+                role="columnheader"
               >
                 <div className="flex items-center justify-between">
                   Gross Income
@@ -180,8 +203,13 @@ export function ProjectionTable({ years }: ProjectionTableProps) {
                 </div>
               </th>
               <th
+                scope="col"
                 className="text-right px-3 py-2 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
                 onClick={() => toggleSort('tax')}
+                onKeyDown={(e) => handleSortKeyDown(e, 'tax')}
+                aria-sort={sortKey === 'tax' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}
+                tabIndex={0}
+                role="columnheader"
               >
                 <div className="flex items-center justify-between">
                   Total Tax
@@ -189,18 +217,28 @@ export function ProjectionTable({ years }: ProjectionTableProps) {
                 </div>
               </th>
               <th
+                scope="col"
                 className="text-right px-3 py-2 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
                 onClick={() => toggleSort('afterTax')}
+                onKeyDown={(e) => handleSortKeyDown(e, 'afterTax')}
+                aria-sort={sortKey === 'afterTax' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}
+                tabIndex={0}
+                role="columnheader"
               >
                 <div className="flex items-center justify-between">
                   After-Tax
                   <SortIcon k="afterTax" />
                 </div>
               </th>
-              <th className="text-right px-3 py-2 font-semibold">Expenses</th>
+              <th scope="col" className="text-right px-3 py-2 font-semibold">Expenses</th>
               <th
+                scope="col"
                 className="text-right px-3 py-2 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
                 onClick={() => toggleSort('surplus')}
+                onKeyDown={(e) => handleSortKeyDown(e, 'surplus')}
+                aria-sort={sortKey === 'surplus' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}
+                tabIndex={0}
+                role="columnheader"
               >
                 <div className="flex items-center justify-between">
                   Surplus
@@ -208,8 +246,13 @@ export function ProjectionTable({ years }: ProjectionTableProps) {
                 </div>
               </th>
               <th
+                scope="col"
                 className="text-right px-3 py-2 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
                 onClick={() => toggleSort('balance')}
+                onKeyDown={(e) => handleSortKeyDown(e, 'balance')}
+                aria-sort={sortKey === 'balance' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}
+                tabIndex={0}
+                role="columnheader"
               >
                 <div className="flex items-center justify-between">
                   TSP Balance
@@ -270,6 +313,12 @@ export function ProjectionTable({ years }: ProjectionTableProps) {
                         : 'text-green-700 dark:text-green-300'
                     }`}
                   >
+                    {deficitRow && (
+                      <>
+                        <AlertTriangle className="inline w-3 h-3 mr-0.5" aria-hidden="true" />
+                        <span className="sr-only">deficit </span>
+                      </>
+                    )}
                     ${fmt(year.surplus)}
                   </td>
                   <td className="text-right px-3 py-2 tabular-nums text-foreground">
@@ -369,6 +418,8 @@ export function ProjectionTable({ years }: ProjectionTableProps) {
     </div>
   );
 }
+
+export const ProjectionTable = memo(ProjectionTableComponent);
 
 function fmt(n: number): string {
   return Math.round(n).toLocaleString('en-US');

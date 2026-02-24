@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import {
   Line,
   XAxis,
@@ -7,11 +8,11 @@ import {
   ReferenceLine,
   ComposedChart,
 } from 'recharts';
-import { useChartTheme } from '@hooks/useChartTheme';
-import { useResponsiveChartFontSize } from '@hooks/useResponsiveChartFontSize';
+import { useChart } from './ChartContext';
 import { ChartContainer } from './ChartContainer';
 import { ChartTooltip } from './ChartTooltip';
 import type { PayGrowthChartProps, PayGrowthDataPoint } from './chart-types';
+import type { ChartContextValue } from './ChartContext';
 
 const USD_FORMAT = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -19,7 +20,7 @@ const USD_FORMAT = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 0,
 });
 
-function PayTooltip({ active, payload, theme, isHigh3 }: { active?: boolean; payload?: Array<{ payload: PayGrowthDataPoint }>; theme: ReturnType<typeof useChartTheme>; isHigh3?: boolean }) {
+function PayTooltip({ active, payload, theme, isHigh3 }: { active?: boolean; payload?: Array<{ payload: PayGrowthDataPoint }>; theme: ChartContextValue['theme']; isHigh3?: boolean }) {
   if (!active || !payload?.[0]) return null;
   const d = payload[0].payload;
   return (
@@ -33,12 +34,11 @@ function PayTooltip({ active, payload, theme, isHigh3 }: { active?: boolean; pay
   );
 }
 
-export function PayGrowthChart({ data, retirementYear }: PayGrowthChartProps) {
-  const theme = useChartTheme();
-  const fontConfig = useResponsiveChartFontSize();
+function PayGrowthChartComponent({ data, retirementYear }: PayGrowthChartProps) {
+  const { theme, fontConfig } = useChart();
 
   // Calculate High-3 average (3 highest consecutive annual salaries)
-  const high3Salary = (() => {
+  const { high3Salary, high3YearSet } = useMemo(() => {
     let maxAvg = 0;
     let high3Years: PayGrowthDataPoint[] = [];
 
@@ -50,11 +50,9 @@ export function PayGrowthChart({ data, retirementYear }: PayGrowthChartProps) {
       }
     }
 
-    return { avgSalary: maxAvg, years: high3Years };
-  })();
-
-  // Create highlights for High-3 years
-  const high3YearSet = new Set(high3Salary.years.map((d) => d.year));
+    const yearSet = new Set(high3Years.map((d) => d.year));
+    return { high3Salary: { avgSalary: maxAvg, years: high3Years }, high3YearSet: yearSet };
+  }, [data]);
 
   return (
     <ChartContainer
@@ -96,6 +94,7 @@ export function PayGrowthChart({ data, retirementYear }: PayGrowthChartProps) {
           strokeWidth={2}
           dot={false}
           name="Salary"
+          isAnimationActive={false}
         />
 
         {/* High-3 average reference line */}
@@ -126,3 +125,5 @@ export function PayGrowthChart({ data, retirementYear }: PayGrowthChartProps) {
     </ChartContainer>
   );
 }
+
+export const PayGrowthChart = memo(PayGrowthChartComponent);

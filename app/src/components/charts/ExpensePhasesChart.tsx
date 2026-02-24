@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import {
   AreaChart,
   Area,
@@ -9,11 +10,11 @@ import {
   ReferenceLine,
   ComposedChart,
 } from 'recharts';
-import { useChartTheme } from '@hooks/useChartTheme';
-import { useResponsiveChartFontSize } from '@hooks/useResponsiveChartFontSize';
+import { useChart } from './ChartContext';
 import { ChartContainer } from './ChartContainer';
 import { ChartTooltip } from './ChartTooltip';
 import type { ExpensePhaseDataPoint } from './chart-types';
+import type { ChartContextValue } from './ChartContext';
 
 const USD_FORMAT = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -26,7 +27,7 @@ interface ExpensePhasesTooltipProps {
   payload?: Array<{
     payload: ExpensePhaseDataPoint;
   }>;
-  theme: ReturnType<typeof useChartTheme>;
+  theme: ChartContextValue['theme'];
 }
 
 function ExpensePhasesTooltip({ active, payload, theme }: ExpensePhasesTooltipProps) {
@@ -69,9 +70,8 @@ export interface ExpensePhasesChartProps {
   data: ExpensePhaseDataPoint[];
 }
 
-export function ExpensePhasesChart({ data }: ExpensePhasesChartProps) {
-  const theme = useChartTheme();
-  const fontConfig = useResponsiveChartFontSize();
+function ExpensePhasesChartComponent({ data }: ExpensePhasesChartProps) {
+  const { theme, fontConfig } = useChart();
 
   if (data.length === 0) {
     return (
@@ -79,7 +79,11 @@ export function ExpensePhasesChart({ data }: ExpensePhasesChartProps) {
         title="Expense Phases (Blanchett Smile Curve)"
         subtitle="Projected retirement spending pattern"
       >
-        <div className="flex items-center justify-center h-[250px] lg:h-[350px] text-muted-foreground">
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center justify-center h-[250px] lg:h-[350px] text-muted-foreground"
+        >
           No expense data available. Complete the Expenses form to enable this chart.
         </div>
       </ChartContainer>
@@ -87,8 +91,13 @@ export function ExpensePhasesChart({ data }: ExpensePhasesChartProps) {
   }
 
   // Get phase transition ages from data
-  const goGoEndAge = data.find((d) => d.phase === 'GoSlow')?.age ?? 75;
-  const goSlowEndAge = data.find((d) => d.phase === 'NoGo')?.age ?? 85;
+  const { goGoEndAge, goSlowEndAge } = useMemo(
+    () => ({
+      goGoEndAge: data.find((d) => d.phase === 'GoSlow')?.age ?? 75,
+      goSlowEndAge: data.find((d) => d.phase === 'NoGo')?.age ?? 85,
+    }),
+    [data]
+  );
 
   return (
     <ChartContainer
@@ -129,6 +138,7 @@ export function ExpensePhasesChart({ data }: ExpensePhasesChartProps) {
           strokeWidth={2}
           fillOpacity={0.25}
           name="Total Expenses (Phase-Adjusted)"
+          isAnimationActive={false}
         />
 
         {/* Blanchett reference line */}
@@ -140,6 +150,7 @@ export function ExpensePhasesChart({ data }: ExpensePhasesChartProps) {
           strokeDasharray="5 5"
           dot={false}
           name="Blanchett Model"
+          isAnimationActive={false}
         />
 
         {/* Healthcare expense overlay if present */}
@@ -152,9 +163,12 @@ export function ExpensePhasesChart({ data }: ExpensePhasesChartProps) {
             strokeDasharray="3 3"
             dot={false}
             name="Healthcare"
+            isAnimationActive={false}
           />
         )}
       </ComposedChart>
     </ChartContainer>
   );
 }
+
+export const ExpensePhasesChart = memo(ExpensePhasesChartComponent);

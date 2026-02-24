@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   ComposedChart,
   Line,
@@ -8,11 +9,11 @@ import {
   Tooltip,
   ReferenceLine,
 } from 'recharts';
-import { useChartTheme } from '@hooks/useChartTheme';
-import { useResponsiveChartFontSize } from '@hooks/useResponsiveChartFontSize';
+import { useChart } from './ChartContext';
 import { ChartContainer } from './ChartContainer';
 import { ChartTooltip } from './ChartTooltip';
 import type { IncomeWaterfallDataPoint } from './chart-types';
+import type { ChartContextValue } from './ChartContext';
 
 const USD_FORMAT = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -25,7 +26,7 @@ interface IncomeWaterfallTooltipProps {
   payload?: Array<{
     payload: IncomeWaterfallDataPoint;
   }>;
-  theme: ReturnType<typeof useChartTheme>;
+  theme: ChartContextValue['theme'];
 }
 
 function IncomeWaterfallTooltip({ active, payload, theme }: IncomeWaterfallTooltipProps) {
@@ -61,9 +62,8 @@ export interface IncomeWaterfallChartProps {
   data: IncomeWaterfallDataPoint[];
 }
 
-export function IncomeWaterfallChart({ data }: IncomeWaterfallChartProps) {
-  const theme = useChartTheme();
-  const fontConfig = useResponsiveChartFontSize();
+function IncomeWaterfallChartComponent({ data }: IncomeWaterfallChartProps) {
+  const { theme, fontConfig } = useChart();
 
   return (
     <ChartContainer
@@ -87,6 +87,7 @@ export function IncomeWaterfallChart({ data }: IncomeWaterfallChartProps) {
           fill={theme.surplus}
           stroke="none"
           fillOpacity={0.3}
+          isAnimationActive={false}
         />
 
         {/* Stacked income areas: Annuity (base) + Supplement + SS + TSP */}
@@ -98,6 +99,7 @@ export function IncomeWaterfallChart({ data }: IncomeWaterfallChartProps) {
           stroke="none"
           fillOpacity={0.7}
           name="Annuity"
+          isAnimationActive={false}
         />
         <Area
           type="monotone"
@@ -107,6 +109,7 @@ export function IncomeWaterfallChart({ data }: IncomeWaterfallChartProps) {
           stroke="none"
           fillOpacity={0.7}
           name="FERS Supplement"
+          isAnimationActive={false}
         />
         <Area
           type="monotone"
@@ -116,6 +119,7 @@ export function IncomeWaterfallChart({ data }: IncomeWaterfallChartProps) {
           stroke="none"
           fillOpacity={0.7}
           name="Social Security"
+          isAnimationActive={false}
         />
         <Area
           type="monotone"
@@ -125,6 +129,7 @@ export function IncomeWaterfallChart({ data }: IncomeWaterfallChartProps) {
           stroke="none"
           fillOpacity={0.7}
           name="TSP Withdrawal"
+          isAnimationActive={false}
         />
 
         {/* Expense line overlay */}
@@ -135,8 +140,11 @@ export function IncomeWaterfallChart({ data }: IncomeWaterfallChartProps) {
           strokeWidth={2}
           dot={false}
           name="Expenses"
+          isAnimationActive={false}
         />
       </ComposedChart>
     </ChartContainer>
   );
 }
+
+export const IncomeWaterfallChart = memo(IncomeWaterfallChartComponent);

@@ -4,6 +4,7 @@ import { AlertTriangle } from 'lucide-react';
 import { SectionHeading } from './layout/SectionHeading';
 import { SummaryPanel } from './cards/SummaryPanel';
 import { MetricCardSkeleton } from './cards/MetricCardSkeleton';
+import { ChartProvider } from './charts/ChartContext';
 import { IncomeWaterfallChart } from './charts/IncomeWaterfallChart';
 import { PayGrowthChart } from './charts/PayGrowthChart';
 import { TSPLifecycleChart } from './charts/TSPLifecycleChart';
@@ -170,7 +171,21 @@ export function Dashboard({ data, mode, inputs }: DashboardProps) {
   const lifetimeSurplusVariant = lifetimeNetResult !== undefined ? (lifetimeNetResult >= 0 ? 'positive' : 'negative') : 'default';
 
   return (
-    <div className="space-y-6">
+    <ChartProvider>
+      <div id="print-target" className="space-y-6">
+      {/* Print Header (hidden in normal view, shown in print) */}
+      <div id="print-header" className="hidden print:block space-y-2 pb-4 border-b border-gray-300">
+        <h1 className="text-2xl font-bold">FedRetire Retirement Projection</h1>
+        <p className="text-sm text-gray-600">
+          Generated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </p>
+        {retireYear && (
+          <p className="text-sm text-gray-600">
+            Retirement Year: {retireYear}
+          </p>
+        )}
+      </div>
+
       {mode === 'demo' && (
         <>
           <Alert variant="destructive">
@@ -327,6 +342,7 @@ export function Dashboard({ data, mode, inputs }: DashboardProps) {
         />
         <ProjectionTable years={fullSimulation?.years ?? []} />
       </section>
-    </div>
+      </div>
+    </ChartProvider>
   );
 }

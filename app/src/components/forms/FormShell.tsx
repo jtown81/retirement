@@ -14,12 +14,12 @@ interface FormShellProps {
 }
 
 const TAB_ICONS: Record<string, React.ReactNode> = {
-  personal: <Calculator className="w-4 h-4" />,
-  career: <Briefcase className="w-4 h-4" />,
-  expenses: <Receipt className="w-4 h-4" />,
-  simulation: <LineChart className="w-4 h-4" />,
-  tax: <FileText className="w-4 h-4" />,
-  'tsp-monitor': <BarChart3 className="w-4 h-4" />,
+  personal: <Calculator className="w-4 h-4" aria-hidden="true" />,
+  career: <Briefcase className="w-4 h-4" aria-hidden="true" />,
+  expenses: <Receipt className="w-4 h-4" aria-hidden="true" />,
+  simulation: <LineChart className="w-4 h-4" aria-hidden="true" />,
+  tax: <FileText className="w-4 h-4" aria-hidden="true" />,
+  'tsp-monitor': <BarChart3 className="w-4 h-4" aria-hidden="true" />,
 };
 
 export function FormShell({ tabs, children }: FormShellProps) {
@@ -29,13 +29,19 @@ export function FormShell({ tabs, children }: FormShellProps) {
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList className="flex flex-wrap w-full gap-2 mb-6">
         {tabs.map((tab) => (
-          <TabsTrigger key={tab.id} value={tab.id} className="flex-1 flex items-center gap-2 min-w-fit">
-            {TAB_ICONS[tab.id] || <Circle className="w-4 h-4" />}
+          <TabsTrigger key={tab.id} value={tab.id} className="flex-1 flex items-center gap-2 min-w-fit" aria-label={tab.label}>
+            {TAB_ICONS[tab.id] || <Circle className="w-4 h-4" aria-hidden="true" />}
             <span className="hidden sm:inline">{tab.label}</span>
             {tab.complete ? (
-              <CheckCircle2 className="w-3 h-3 ml-1 text-green-600 dark:text-green-400" />
+              <>
+                <CheckCircle2 className="w-3 h-3 ml-1 text-green-600 dark:text-green-400" aria-hidden="true" />
+                <span className="sr-only">(complete)</span>
+              </>
             ) : (
-              <Circle className="w-3 h-3 ml-1 text-muted-foreground" />
+              <>
+                <Circle className="w-3 h-3 ml-1 text-muted-foreground" aria-hidden="true" />
+                <span className="sr-only">(incomplete)</span>
+              </>
             )}
           </TabsTrigger>
         ))}

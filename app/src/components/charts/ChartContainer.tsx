@@ -26,11 +26,15 @@ export function ChartContainer({
         {subtitle && <CardDescription>{subtitle}</CardDescription>}
       </CardHeader>
       <CardContent>
-        <div className={heightClass}>
+        <figure
+          role="img"
+          aria-label={subtitle ? `${title}: ${subtitle}` : title}
+          className={heightClass}
+        >
           <ResponsiveContainer width="100%" height="100%">
             {children as React.ReactElement}
           </ResponsiveContainer>
-        </div>
+        </figure>
       </CardContent>
     </Card>
   );

@@ -93,7 +93,7 @@ export function DashboardActions({
         </Card>
 
         {/* Export Panel */}
-        <ExportPanel projectionYears={projectionYears} />
+        <ExportPanel projectionYears={projectionYears} input={inputs} />
       </div>
 
       {/* Dialogs */}

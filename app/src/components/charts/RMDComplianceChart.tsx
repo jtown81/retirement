@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import {
   Bar,
   Line,
@@ -8,11 +9,11 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import { useChartTheme } from '@hooks/useChartTheme';
-import { useResponsiveChartFontSize } from '@hooks/useResponsiveChartFontSize';
+import { useChart } from './ChartContext';
 import { ChartContainer } from './ChartContainer';
 import { ChartTooltip } from './ChartTooltip';
 import type { RMDDataPoint } from './chart-types';
+import type { ChartContextValue } from './ChartContext';
 
 const USD_FORMAT = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -25,7 +26,7 @@ interface RMDTooltipProps {
   payload?: Array<{
     payload: RMDDataPoint;
   }>;
-  theme: ReturnType<typeof useChartTheme>;
+  theme: ChartContextValue['theme'];
 }
 
 function RMDTooltip({ active, payload, theme }: RMDTooltipProps) {
@@ -60,9 +61,8 @@ export interface RMDComplianceChartProps {
   data: RMDDataPoint[];
 }
 
-export function RMDComplianceChart({ data }: RMDComplianceChartProps) {
-  const theme = useChartTheme();
-  const fontConfig = useResponsiveChartFontSize();
+function RMDComplianceChartComponent({ data }: RMDComplianceChartProps) {
+  const { theme, fontConfig } = useChart();
 
   if (data.length === 0) {
     return (
@@ -70,7 +70,11 @@ export function RMDComplianceChart({ data }: RMDComplianceChartProps) {
         title="RMD Compliance (Age 73+)"
         subtitle="Required Minimum Distributions tracking"
       >
-        <div className="flex items-center justify-center h-[250px] lg:h-[350px] text-muted-foreground">
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center justify-center h-[250px] lg:h-[350px] text-muted-foreground"
+        >
           No RMD data. Reach age 73 in your retirement projection to view RMD requirements.
         </div>
       </ChartContainer>
@@ -78,11 +82,17 @@ export function RMDComplianceChart({ data }: RMDComplianceChartProps) {
   }
 
   // Count RMD failures
-  const failures = data.filter((d) => !d.rmdSatisfied).length;
-  const subtitle =
-    failures > 0
-      ? `${failures} year(s) with RMD shortfall — consider increasing withdrawals`
-      : 'All RMD requirements met ✓';
+  const { failures, subtitle } = useMemo(
+    () => {
+      const failureCount = data.filter((d) => !d.rmdSatisfied).length;
+      const message =
+        failureCount > 0
+          ? `${failureCount} year(s) with RMD shortfall — consider increasing withdrawals`
+          : 'All RMD requirements met ✓';
+      return { failures: failureCount, subtitle: message };
+    },
+    [data]
+  );
 
   return (
     <ChartContainer
@@ -121,6 +131,7 @@ export function RMDComplianceChart({ data }: RMDComplianceChartProps) {
           stroke={theme.rmdRequired}
           strokeWidth={2}
           name="RMD Required"
+          isAnimationActive={false}
         />
 
         {/* Actual withdrawal bar (solid, green) */}
@@ -130,6 +141,7 @@ export function RMDComplianceChart({ data }: RMDComplianceChartProps) {
           fill={theme.income}
           name="Actual Withdrawal"
           radius={[4, 4, 0, 0]}
+          isAnimationActive={false}
         />
 
         {/* TSP balance line (secondary Y-axis) */}
@@ -142,8 +154,11 @@ export function RMDComplianceChart({ data }: RMDComplianceChartProps) {
           strokeDasharray="3 3"
           dot={false}
           name="TSP Balance"
+          isAnimationActive={false}
         />
       </ComposedChart>
     </ChartContainer>
   );
 }
+
+export const RMDComplianceChart = memo(RMDComplianceChartComponent);

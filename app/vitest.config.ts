@@ -9,7 +9,7 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.{ts,tsx}'],
     environment: 'jsdom',
-    setupFiles: ['tests/setup.ts'],
+    setupFiles: ['tests/setup.ts', 'tests/setup/axe-setup.ts'],
     coverage: {
       provider: 'v8',
       thresholds: {
