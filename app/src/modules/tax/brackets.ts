@@ -6,7 +6,7 @@
  */
 
 import { getBracketsForYear, getStandardDeductionForYear } from '@data/tax-brackets';
-import type { FilingStatus, FederalBracket } from '@models/tax';
+import type { FilingStatus, FederalBracket } from '@fedplan/models';
 
 /**
  * Retrieves the federal income tax brackets for a given year and filing status.

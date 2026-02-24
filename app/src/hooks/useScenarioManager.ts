@@ -6,8 +6,8 @@
 import { useCallback, useMemo } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 import { STORAGE_KEYS, NamedScenariosArraySchema } from '@storage/index';
-import type { NamedScenario, ScenarioComparisonMetrics, FormSnapshot } from '@models/scenario';
-import type { FullSimulationResult } from '@models/simulation';
+import type { NamedScenario, ScenarioComparisonMetrics, FormSnapshot } from '@fedplan/models';
+import type { FullSimulationResult } from '@fedplan/models';
 
 /**
  * Custom hook for scenario management.

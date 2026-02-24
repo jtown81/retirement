@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useLocalStorage } from '@hooks/useLocalStorage';
 import { STORAGE_KEYS, FERSEstimateSchema, LeaveBalanceSchema, CareerProfileSchema } from '@storage/index';
 import { getAvailableLocalityCodes } from '@data/locality-rates';
-import { buildSalaryHistory, computeHigh3Salary } from '@modules/career';
+import { buildSalaryHistory, computeHigh3Salary } from '@fedplan/career';
 import type { z } from 'zod';
 import { FieldGroup } from '../FieldGroup';
 import { FormSection } from '../FormSection';

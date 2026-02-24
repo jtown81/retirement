@@ -2,11 +2,11 @@
  * Tax Module — Barrel Export
  *
  * Exposes all tax calculation functions and data types.
- * Import from '@modules/tax' only; never import subfiles directly.
+ * Import from '@fedplan/tax' only; never import subfiles directly.
  */
 
 // Data types
-export type { TaxProfile, FilingStatus, StateCode, TaxYearResult, StateTaxRule, StandardDeduction, IrmaaTier } from '@models/tax';
+export type { TaxProfile, FilingStatus, StateCode, TaxYearResult, StateTaxRule, StandardDeduction, IrmaaTier } from '@fedplan/models';
 
 // Bracket functions
 export { getBracketsForYearAndStatus, getStandardDeduction, getMarginalBracketRate, getEffectiveTaxRate, applyStandardDeduction, getBracketAtIncome } from './brackets';

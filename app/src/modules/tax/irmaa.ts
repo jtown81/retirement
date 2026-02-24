@@ -14,7 +14,7 @@
  * surcharge thresholds (a simplification; actual Medicare premiums lag by 2 years).
  */
 
-import type { FilingStatus, IrmaaTier } from '@models/tax';
+import type { FilingStatus, IrmaaTier } from '@fedplan/models';
 
 /**
  * 2024 IRMAA tiers for Medicare Part B and Part D combined surcharges

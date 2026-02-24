@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@components/ui/tabs';
 import { ExpenseCategoriesSubForm } from './expenses/ExpenseCategoriesSubForm';
 import { ExpenseSettingsSubForm } from './expenses/ExpenseSettingsSubForm';
-import type { ExpenseProfile } from '@models/expenses';
+import type { ExpenseProfile } from '@fedplan/models';
 
 const CATEGORY_LABELS = {
   'housing': 'Housing',

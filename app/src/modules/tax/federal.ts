@@ -6,7 +6,7 @@
  */
 
 import { getBracketsForYearAndStatus, getStandardDeduction } from './brackets';
-import type { FilingStatus } from '@models/tax';
+import type { FilingStatus } from '@fedplan/models';
 
 /**
  * Computes federal income tax using the marginal bracket method.

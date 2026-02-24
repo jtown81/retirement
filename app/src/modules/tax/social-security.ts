@@ -8,7 +8,7 @@
  * the taxpayer's "provisional income" (a statutory construct defined in IRC § 86(b)).
  */
 
-import type { FilingStatus } from '@models/tax';
+import type { FilingStatus } from '@fedplan/models';
 
 /**
  * Computes provisional income per IRC § 86(b).

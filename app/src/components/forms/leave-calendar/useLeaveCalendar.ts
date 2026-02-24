@@ -17,9 +17,9 @@ import type {
   CalendarLeaveEntry,
   AccrualRate,
   LeaveCarryOver,
-} from '@models/leave-calendar';
-import { computeCalendarYearSummary } from '@modules/leave/calendar-bridge';
-import type { CalendarYearSummary } from '@modules/leave/calendar-bridge';
+} from '@fedplan/models';
+import { computeCalendarYearSummary } from '@fedplan/leave/calendar-bridge';
+import type { CalendarYearSummary } from '@fedplan/leave/calendar-bridge';
 
 const currentYear = new Date().getFullYear();
 

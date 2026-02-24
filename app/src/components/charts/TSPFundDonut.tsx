@@ -1,6 +1,6 @@
 import { PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
 import { ChartContainer } from './ChartContainer';
-import type { TSPAccountSnapshot } from '@models/tsp';
+import type { TSPAccountSnapshot } from '@fedplan/models';
 
 const FUND_COLORS: Record<string, string> = {
   'G': '#3B82F6',      // blue

@@ -3,8 +3,8 @@ import { Input } from '@components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@components/ui/select';
 import { Button } from '@components/ui/button';
 import { Trash2 } from 'lucide-react';
-import type { CareerEvent } from '@models/career';
-import { gradeStepToSalary, applyLocality, getLocalityRate, getAvailableLocalityCodes } from '@modules/career';
+import type { CareerEvent } from '@fedplan/models';
+import { gradeStepToSalary, applyLocality, getLocalityRate, getAvailableLocalityCodes } from '@fedplan/career';
 
 const EVENT_TYPES: CareerEvent['type'][] = [
   'hire', 'promotion', 'step-increase', 'locality-change', 'separation', 'rehire',

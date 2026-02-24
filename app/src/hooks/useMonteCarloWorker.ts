@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import type { SimulationConfig } from '@models/simulation';
-import type { MonteCarloResult } from '@modules/simulation';
+import type { SimulationConfig } from '@fedplan/models';
+import type { MonteCarloResult } from '@fedplan/simulation';
 import type { MonteCarloWorkerRequest, MonteCarloWorkerResponse } from '@workers/monte-carlo-worker-types';
 
 const isBrowser = typeof window !== 'undefined';

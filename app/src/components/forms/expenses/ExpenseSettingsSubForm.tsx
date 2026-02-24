@@ -8,7 +8,7 @@ import { Input } from '@components/ui/input';
 import { Checkbox } from '@components/ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert';
 import { Info } from 'lucide-react';
-import type { ExpenseProfile } from '@models/expenses';
+import type { ExpenseProfile } from '@fedplan/models';
 
 type ExpenseProfileModel = z.infer<typeof ExpenseProfileSchema>;
 

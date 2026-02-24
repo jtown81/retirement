@@ -18,7 +18,7 @@
  *   - Box-Muller transform for efficient normal distribution generation
  */
 
-import type { SimulationConfig } from '@models/simulation';
+import type { SimulationConfig } from '@fedplan/models';
 
 export interface MonteCarloConfig {
   iterations?: number; // Number of simulations (default: 1000)

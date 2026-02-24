@@ -9,8 +9,8 @@
  * Migration is idempotent — safe to call multiple times.
  */
 
-import type { TaxProfile } from '@models/tax';
-import type { TSPBalances, TSPAccountSnapshot } from '@models/tsp';
+import type { TaxProfile } from '@fedplan/models';
+import type { TSPBalances, TSPAccountSnapshot } from '@fedplan/models';
 import type { StoredRecord } from '@storage/schema';
 
 export const VERSION = 2;

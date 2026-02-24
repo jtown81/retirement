@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import type { SimulationInput, SimulationResult, SimulationConfig } from '@models/simulation';
-import type { TaxProfile } from '@models/tax';
+import type { SimulationInput, SimulationResult, SimulationConfig } from '@fedplan/models';
+import type { TaxProfile } from '@fedplan/models';
 import type {
   PayGrowthDataPoint,
   LeaveBalanceDataPoint,
@@ -11,15 +11,15 @@ import type {
   ExpensePhaseDataPoint,
   RMDDataPoint,
 } from '@components/charts/chart-types';
-import { buildSalaryHistory } from '@modules/career';
-import { simulateLeaveYear } from '@modules/leave';
-import { projectTraditionalDetailed, projectRothDetailed, getRMDStartAge } from '@modules/tsp';
+import { buildSalaryHistory } from '@fedplan/career';
+import { simulateLeaveYear } from '@fedplan/leave';
+import { projectTraditionalDetailed, projectRothDetailed, getRMDStartAge } from '@fedplan/tsp';
 import {
   smileCurveMultiplier,
   applySmileCurve,
   defaultSmileCurveParams,
-} from '@modules/expenses';
-import { projectRetirementIncome, projectRetirementSimulation } from '@modules/simulation';
+} from '@fedplan/expenses';
+import { projectRetirementIncome, projectRetirementSimulation } from '@fedplan/simulation';
 import { useLocalStorage } from './useLocalStorage';
 import { TaxProfileSchema } from '@storage/zod-schemas';
 import { STORAGE_KEYS } from '@storage/schema';

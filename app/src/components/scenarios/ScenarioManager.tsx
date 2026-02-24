@@ -12,7 +12,7 @@ import { Button } from '@components/ui/button';
 import { AlertCircle, Trash2, Edit2, Copy, CheckCircle, Download } from 'lucide-react';
 import { SaveScenarioDialog } from './SaveScenarioDialog';
 import { EditScenarioDialog } from './EditScenarioDialog';
-import type { NamedScenario } from '@models/scenario';
+import type { NamedScenario } from '@fedplan/models';
 
 interface ScenarioManagerProps {
   onLoadScenario?: (scenario: NamedScenario & any) => void;

@@ -12,7 +12,19 @@
       "@components/*": ["src/components/*"],
       "@hooks/*": ["src/hooks/*"],
       "@workers/*": ["src/workers/*"],
-      "@data/*": ["src/data/*"]
+      "@data/*": ["src/data/*"],
+      "@fedplan/models": ["../../packages/models/src"],
+      "@fedplan/career": ["../../packages/career/src"],
+      "@fedplan/leave": ["../../packages/leave/src"],
+      "@fedplan/tsp": ["../../packages/tsp/src"],
+      "@fedplan/expenses": ["../../packages/expenses/src"],
+      "@fedplan/tax": ["../../packages/tax/src"],
+      "@fedplan/military": ["../../packages/military/src"],
+      "@fedplan/simulation": ["../../packages/simulation/src"],
+      "@fedplan/validation": ["../../packages/validation/src"],
+      "@fedplan/utils": ["../../packages/utils/src"],
+      "@fedplan/ui": ["../../packages/ui/src"],
+      "@fedplan/core": ["../../packages/core/src"]
     }
   },
   "include": ["src", "tests"]

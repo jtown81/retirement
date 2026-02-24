@@ -11,7 +11,7 @@
  * in October of prior year, effective Jan 1).
  */
 
-import type { FederalBracket, StandardDeduction } from '@models/tax';
+import type { FederalBracket, StandardDeduction } from '@fedplan/models';
 
 /**
  * 2024 Federal income tax brackets (most recent published)

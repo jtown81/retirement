@@ -14,9 +14,9 @@ import { Save, FolderOpen } from 'lucide-react';
 import { useScenarioManager } from '@hooks/useScenarioManager';
 import { useLocalStorage } from '@hooks/useLocalStorage';
 import { STORAGE_KEYS, PersonalInfoSchema, FERSEstimateSchema, ExpenseProfileSchema, TaxProfileSchema, TSPContributionEventSchema, TSPAccountSnapshotSchema } from '@storage/index';
-import type { SimulationInput } from '@models/simulation';
-import type { FullSimulationResult } from '@models/simulation';
-import type { NamedScenario, FormSnapshot } from '@models/scenario';
+import type { SimulationInput } from '@fedplan/models';
+import type { FullSimulationResult } from '@fedplan/models';
+import type { NamedScenario, FormSnapshot } from '@fedplan/models';
 import { z } from 'zod';
 
 interface DashboardActionsProps {

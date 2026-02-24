@@ -17,7 +17,7 @@ import {
 import { Trash2, Edit2, Upload, Plus, TrendingUp } from 'lucide-react';
 import { AddSnapshotModal } from './AddSnapshotModal';
 import { TSPImportModal } from './TSPImportModal';
-import type { TSPAccountSnapshot } from '@models/tsp';
+import type { TSPAccountSnapshot } from '@fedplan/models';
 
 function formatUSD(amount: number): string {
   return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });

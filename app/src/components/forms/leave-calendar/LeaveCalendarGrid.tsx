@@ -5,7 +5,7 @@
 import { useMemo } from 'react';
 import { MonthCalendar } from './MonthCalendar';
 import { getFederalHolidays } from '@data/federal-holidays';
-import type { CalendarLeaveEntry } from '@models/leave-calendar';
+import type { CalendarLeaveEntry } from '@fedplan/models';
 
 interface LeaveCalendarGridProps {
   year: number;

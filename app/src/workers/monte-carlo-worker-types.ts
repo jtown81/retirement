@@ -1,5 +1,5 @@
-import type { SimulationConfig } from '@models/simulation';
-import type { MonteCarloConfig, MonteCarloResult } from '@modules/simulation';
+import type { SimulationConfig } from '@fedplan/models';
+import type { MonteCarloConfig, MonteCarloResult } from '@fedplan/simulation';
 
 export interface MonteCarloWorkerRequest {
   type: 'run';

@@ -3,7 +3,7 @@
  * Functions for calculating deltas and formatting metrics for display.
  */
 
-import type { ScenarioComparisonMetrics, ScenarioDelta } from '@models/scenario';
+import type { ScenarioComparisonMetrics, ScenarioDelta } from '@fedplan/models';
 
 /**
  * Compute delta between two scenarios for a single metric

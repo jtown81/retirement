@@ -7,7 +7,7 @@
  */
 
 import { cn } from '@lib/utils';
-import type { CalendarLeaveEntry, CalendarLeaveType } from '@models/leave-calendar';
+import type { CalendarLeaveEntry, CalendarLeaveType } from '@fedplan/models';
 
 interface DayCellProps {
   day: number;

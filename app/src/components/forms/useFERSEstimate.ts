@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
-import { checkFERSEligibility, getMRA, type EligibilityResult, type MRAResult } from '@modules/simulation/eligibility';
-import { computeFERSAnnuity, computeFERSSupplement, type FERSAnnuityResult, type FERSSupplementResult } from '@modules/simulation/annuity';
-import { sickLeaveToServiceCredit } from '@modules/leave/sick-leave';
-import { computeTSPFutureValue, projectTSPDepletion, type TSPDepletionResult } from '@modules/tsp/future-value';
-import { calculateAnnualPay } from '@modules/career/pay-calculator';
+import { checkFERSEligibility, getMRA, type EligibilityResult, type MRAResult } from '@fedplan/simulation/eligibility';
+import { computeFERSAnnuity, computeFERSSupplement, type FERSAnnuityResult, type FERSSupplementResult } from '@fedplan/simulation/annuity';
+import { sickLeaveToServiceCredit } from '@fedplan/leave/sick-leave';
+import { computeTSPFutureValue, projectTSPDepletion, type TSPDepletionResult } from '@fedplan/tsp/future-value';
+import { calculateAnnualPay } from '@fedplan/career/pay-calculator';
 
 export interface FERSEstimateInput {
   birthDate: string;       // YYYY-MM-DD

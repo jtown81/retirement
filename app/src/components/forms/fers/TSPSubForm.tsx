@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocalStorage } from '@hooks/useLocalStorage';
 import { STORAGE_KEYS, FERSEstimateSchema, TSPContributionEventSchema, TSPAccountSnapshotSchema } from '@storage/index';
-import type { TSPContributionEvent } from '@models/tsp';
+import type { TSPContributionEvent } from '@fedplan/models';
 import { z } from 'zod';
 import { FieldGroup } from '../FieldGroup';
 import { FormSection } from '../FormSection';

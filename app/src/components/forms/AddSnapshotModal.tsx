@@ -12,7 +12,7 @@ import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
 import { Alert, AlertDescription } from '@components/ui/alert';
 import { FieldGroup } from './FieldGroup';
-import type { TSPAccountSnapshot, TSPFundCode, TSPFundAllocation } from '@models/tsp';
+import type { TSPAccountSnapshot, TSPFundCode, TSPFundAllocation } from '@fedplan/models';
 import { TSPAccountSnapshotSchema } from '@storage/index';
 
 const FUND_CODES: TSPFundCode[] = [

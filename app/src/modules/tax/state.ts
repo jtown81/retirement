@@ -8,7 +8,7 @@
  * V2: Full marginal bracket support for all 50 states
  */
 
-import type { StateCode, StateTaxRule } from '@models/tax';
+import type { StateCode, StateTaxRule } from '@fedplan/models';
 
 /**
  * State tax rules for top 10 states + DC + no-tax states

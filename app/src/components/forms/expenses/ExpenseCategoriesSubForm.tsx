@@ -6,7 +6,7 @@ import { FieldGroup } from '../FieldGroup';
 import { FormSection } from '../FormSection';
 import { Input } from '@components/ui/input';
 import { Alert, AlertDescription } from '@components/ui/alert';
-import type { ExpenseProfile, ExpenseCategoryName } from '@models/expenses';
+import type { ExpenseProfile, ExpenseCategoryName } from '@fedplan/models';
 
 type ExpenseProfileModel = z.infer<typeof ExpenseProfileSchema>;
 

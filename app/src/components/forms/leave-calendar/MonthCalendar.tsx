@@ -6,9 +6,9 @@
  */
 
 import { DayCell } from './DayCell';
-import { formatDate } from '@modules/leave/calendar-utils';
+import { formatDate } from '@fedplan/leave/calendar-utils';
 import { Card } from '@components/ui/card';
-import type { CalendarLeaveEntry } from '@models/leave-calendar';
+import type { CalendarLeaveEntry } from '@fedplan/models';
 
 const DAY_HEADERS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_NAMES = [

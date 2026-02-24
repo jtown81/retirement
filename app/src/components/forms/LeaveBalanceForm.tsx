@@ -13,8 +13,8 @@ import { LeaveCalendarToolbar } from './leave-calendar/LeaveCalendarToolbar';
 import { LeaveBalanceSummaryViewer } from './leave-calendar/LeaveBalanceSummaryViewer';
 import { LeaveCalendarGrid } from './leave-calendar/LeaveCalendarGrid';
 import { LeaveEntryModal } from './leave-calendar/LeaveEntryModal';
-import { weekdaysInRange, parseDate } from '@modules/leave/calendar-utils';
-import type { CalendarLeaveType, SickLeaveCode, CalendarLeaveEntry } from '@models/leave-calendar';
+import { weekdaysInRange, parseDate } from '@fedplan/leave/calendar-utils';
+import type { CalendarLeaveType, SickLeaveCode, CalendarLeaveEntry } from '@fedplan/models';
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;

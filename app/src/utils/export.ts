@@ -3,8 +3,8 @@
  * Functions for exporting retirement projections and scenarios to CSV, JSON, Excel, and PDF.
  */
 
-import type { SimulationYearResult, SimulationInput } from '@models/simulation';
-import type { NamedScenario } from '@models/scenario';
+import type { SimulationYearResult, SimulationInput } from '@fedplan/models';
+import type { NamedScenario } from '@fedplan/models';
 
 /**
  * Export projection table to CSV format

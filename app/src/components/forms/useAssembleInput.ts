@@ -14,13 +14,13 @@ import {
   FERSEstimateSchema,
   SimulationConfigSchema,
 } from '@storage/index';
-import { calculateAnnualPay } from '@modules/career';
-import { calendarToLeaveBalance } from '@modules/leave/calendar-bridge';
+import { calculateAnnualPay } from '@fedplan/career';
+import { calendarToLeaveBalance } from '@fedplan/leave/calendar-bridge';
 import { z } from 'zod';
-import type { SimulationInput, SimulationConfig } from '@models/simulation';
-import type { CareerProfile } from '@models/career';
-import type { GSGrade, GSStep } from '@models/common';
-import type { TSPBalances } from '@models/tsp';
+import type { SimulationInput, SimulationConfig } from '@fedplan/models';
+import type { CareerProfile } from '@fedplan/models';
+import type { GSGrade, GSStep } from '@fedplan/models';
+import type { TSPBalances } from '@fedplan/models';
 
 const TSPContributionListSchema = z.array(TSPContributionEventSchema);
 const TSPSnapshotListSchema = z.array(TSPAccountSnapshotSchema);

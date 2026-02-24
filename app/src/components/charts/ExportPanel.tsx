@@ -19,7 +19,7 @@ import {
   triggerPrint,
 } from '@utils/export';
 import { useScenarioManager } from '@hooks/useScenarioManager';
-import type { SimulationYearResult, SimulationInput } from '@models/simulation';
+import type { SimulationYearResult, SimulationInput } from '@fedplan/models';
 
 interface ExportPanelProps {
   projectionYears: SimulationYearResult[] | null;

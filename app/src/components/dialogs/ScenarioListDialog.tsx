@@ -19,7 +19,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { exportScenarioJSON } from '@utils/export';
-import type { NamedScenario } from '@models/scenario';
+import type { NamedScenario } from '@fedplan/models';
 
 interface ScenarioListDialogProps {
   isOpen: boolean;

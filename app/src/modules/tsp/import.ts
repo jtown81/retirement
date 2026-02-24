@@ -9,8 +9,8 @@
  * "04/15/2024","Agency Auto (k)",C Fund,Agency Auto,100.00,123.45,0.811,25000.00
  */
 
-import type { TSPTransactionRow, TSPImportError, TSPFundCode } from '@models/tsp';
-import type { ISODate } from '@models/common';
+import type { TSPTransactionRow, TSPImportError, TSPFundCode } from '@fedplan/models';
+import type { ISODate } from '@fedplan/models';
 
 /**
  * Map TSP.gov fund names to fund codes

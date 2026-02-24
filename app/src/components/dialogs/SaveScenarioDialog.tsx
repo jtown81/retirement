@@ -12,9 +12,9 @@ import { Input } from '@components/ui/input';
 import { Textarea } from '@components/ui/textarea';
 import { Alert, AlertDescription } from '@components/ui/alert';
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
-import type { SimulationInput } from '@models/simulation';
-import type { FullSimulationResult } from '@models/simulation';
-import type { FormSnapshot } from '@models/scenario';
+import type { SimulationInput } from '@fedplan/models';
+import type { FullSimulationResult } from '@fedplan/models';
+import type { FormSnapshot } from '@fedplan/models';
 
 interface SaveScenarioDialogProps {
   isOpen: boolean;

@@ -8,8 +8,8 @@
  * Used by the Dashboard in Phase 8 demo mode (before forms exist).
  */
 
-import type { SimulationInput, SimulationResult } from '@models/simulation';
-import type { SmileCurveParams } from '@modules/expenses';
+import type { SimulationInput, SimulationResult } from '@fedplan/models';
+import type { SmileCurveParams } from '@fedplan/expenses';
 import type {
   PayGrowthDataPoint,
   LeaveBalanceDataPoint,
@@ -20,11 +20,11 @@ import type {
   ExpensePhaseDataPoint,
   RMDDataPoint,
 } from '@components/charts/chart-types';
-import { buildSalaryHistory } from '@modules/career';
-import { simulateLeaveYear } from '@modules/leave';
-import { projectTraditionalDetailed, projectRothDetailed } from '@modules/tsp';
-import { smileCurveMultiplier, applySmileCurve, defaultSmileCurveParams } from '@modules/expenses';
-import { projectRetirementIncome } from '@modules/simulation';
+import { buildSalaryHistory } from '@fedplan/career';
+import { simulateLeaveYear } from '@fedplan/leave';
+import { projectTraditionalDetailed, projectRothDetailed } from '@fedplan/tsp';
+import { smileCurveMultiplier, applySmileCurve, defaultSmileCurveParams } from '@fedplan/expenses';
+import { projectRetirementIncome } from '@fedplan/simulation';
 
 // ── Scenario constants (from gs-straight-through scenario) ───────────────────
 

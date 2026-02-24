@@ -6,8 +6,8 @@ import { Button } from '@components/ui/button';
 import { Plus } from 'lucide-react';
 import { Alert, AlertDescription } from '@components/ui/alert';
 import { CareerEventItem } from './career/CareerEventItem';
-import type { CareerProfile, CareerEvent } from '@models/career';
-import type { GSGrade, GSStep } from '@models/common';
+import type { CareerProfile, CareerEvent } from '@fedplan/models';
+import type { GSGrade, GSStep } from '@fedplan/models';
 
 function makeEmptyEvent(): CareerEvent {
   return {

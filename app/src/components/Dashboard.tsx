@@ -17,7 +17,7 @@ import { ProjectionTable } from './charts/ProjectionTable';
 import { DashboardActions } from './dashboard/DashboardActions';
 import { useMonteCarloWorker } from '@hooks/useMonteCarloWorker';
 import type { SimulationData } from '@hooks/useSimulation';
-import type { SimulationInput, FullSimulationResult } from '@models/simulation';
+import type { SimulationInput, FullSimulationResult } from '@fedplan/models';
 
 const USD_FORMAT = new Intl.NumberFormat('en-US', {
   style: 'currency',

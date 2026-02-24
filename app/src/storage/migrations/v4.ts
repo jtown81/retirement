@@ -12,8 +12,8 @@
  * Migration is idempotent — safe to call multiple times.
  */
 
-import type { SimulationConfig } from '@models/simulation';
-import type { RetirementAssumptions } from '@models/simulation';
+import type { SimulationConfig } from '@fedplan/models';
+import type { RetirementAssumptions } from '@fedplan/models';
 import type { StoredRecord } from '@storage/schema';
 
 export const VERSION = 4;

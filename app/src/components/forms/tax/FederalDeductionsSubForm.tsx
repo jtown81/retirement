@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocalStorage } from '@hooks/useLocalStorage';
 import { STORAGE_KEYS, TaxProfileSchema } from '@storage/index';
-import { getStandardDeduction } from '@modules/tax';
+import { getStandardDeduction } from '@fedplan/tax';
 import type { z } from 'zod';
 import { FieldGroup } from '../FieldGroup';
 import { FormSection } from '../FormSection';
@@ -9,7 +9,7 @@ import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@components/ui/select';
 import { Alert, AlertDescription } from '@components/ui/alert';
-import type { TaxProfile, FilingStatus } from '@models/tax';
+import type { TaxProfile, FilingStatus } from '@fedplan/models';
 
 type TaxProfileModel = z.infer<typeof TaxProfileSchema>;
 

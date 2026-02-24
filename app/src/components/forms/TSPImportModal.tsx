@@ -19,8 +19,8 @@ import {
   TableRow,
 } from '@components/ui/table';
 import { AlertCircle, Upload } from 'lucide-react';
-import { parseTSPCSV, extractSnapshotFromRows } from '@modules/tsp/import';
-import type { TSPAccountSnapshot, TSPTransactionRow, TSPImportError } from '@models/tsp';
+import { parseTSPCSV, extractSnapshotFromRows } from '@fedplan/tsp/import';
+import type { TSPAccountSnapshot, TSPTransactionRow, TSPImportError } from '@fedplan/models';
 
 interface TSPImportModalProps {
   onImport: (snapshot: TSPAccountSnapshot) => void;

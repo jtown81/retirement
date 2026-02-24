@@ -6,7 +6,7 @@
  * stays in the demo fixture or useSimulation hook.
  */
 
-import type { AnnualProjection } from '@models/simulation';
+import type { AnnualProjection } from '@fedplan/models';
 
 // ── Data point interfaces ────────────────────────────────────────────────────
 
