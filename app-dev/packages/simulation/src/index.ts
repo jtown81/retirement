@@ -14,7 +14,7 @@
  * All formulas referenced in: docs/formula-registry.md
  */
 
-export type { SimulationInput, SimulationResult, RetirementScenario, AnnualProjection, RetirementAssumptions } from '@fedplan/..';
+export type { SimulationInput, SimulationResult, RetirementScenario, AnnualProjection, RetirementAssumptions } from '@fedplan/models';
 export type { MRAResult, EligibilityResult } from './eligibility';
 export type { FERSAnnuityResult, FERSSupplementResult } from './annuity';
 export type { ScenarioSummary, ScenarioComparisonResult } from './scenario';
@@ -25,7 +25,7 @@ export { computeHigh3, computeFERSAnnuity, computeFERSSupplement } from './annui
 export { projectRetirementIncome } from './income-projection';
 export { projectRetirementSimulation } from './retirement-simulation';
 export { runMonteCarlo } from './monte-carlo';
-export type { SimulationConfig, SimulationYearResult, FullSimulationResult } from '@fedplan/..';
+export type { SimulationConfig, SimulationYearResult, FullSimulationResult } from '@fedplan/models';
 export { runScenario, compareScenarios } from './scenario';
 export type { ScenarioMetrics, PresentValueMetrics, ScenarioComparison } from './scenario-comparison';
 export {

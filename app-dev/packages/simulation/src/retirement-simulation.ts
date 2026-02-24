@@ -18,8 +18,8 @@ import type {
   SimulationConfig,
   SimulationYearResult,
   FullSimulationResult,
-} from '@fedplan/..';
-import type { TaxProfile } from '@fedplan/..';
+} from '@fedplan/models';
+import type { TaxProfile } from '@fedplan/models';
 import { computeRMD, isRMDRequired } from '@fedplan/tsp';
 import {
   computeFederalTaxFull,

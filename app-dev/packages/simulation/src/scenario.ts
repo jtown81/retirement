@@ -8,7 +8,7 @@
  * Deterministic: given the same input, runScenario always returns the same result.
  */
 
-import type { SimulationInput, SimulationResult, RetirementScenario } from '@fedplan/..';
+import type { SimulationInput, SimulationResult, RetirementScenario } from '@fedplan/models';
 import { projectRetirementIncome } from './income-projection';
 
 export interface ScenarioSummary {

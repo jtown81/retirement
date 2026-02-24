@@ -8,7 +8,7 @@
  * by normalizing for discount rate and extracting key decision metrics.
  */
 
-import type { SimulationYearResult } from '@fedplan/..';
+import type { SimulationYearResult } from '@fedplan/models';
 
 export interface ScenarioMetrics {
   /** Scenario label or identifier */

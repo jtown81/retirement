@@ -27,7 +27,12 @@ export type {
 } from './leave-calendar';
 
 // Expenses model
-export type { ExpenseCategoryName, ExpenseCategory, ExpenseProfile } from './expenses';
+export type {
+  ExpenseCategoryName,
+  ExpenseCategory,
+  SmileCurveParams,
+  ExpenseProfile,
+} from './expenses';
 
 // TSP model
 export type {
@@ -38,11 +43,6 @@ export type {
   TSPTransactionRow,
   TSPImportError,
   TSPContributionEvent,
-  TSPAllocation,
-  TSPBalance,
-  TSPConfig,
-  TSPProfile,
-  WithdrawalStrategy,
 } from './tsp';
 
 // Tax model
@@ -55,14 +55,10 @@ export type {
   StateTaxRule,
   StandardDeduction,
   IrmaaTier,
-  FederalDeductions,
-  IrmaaThreshold,
-  StateResidency,
-  TaxProfileInput,
 } from './tax';
 
 // Military model
-export type { MilitaryService, MilitaryBuyback } from './military';
+export type { MilitaryService } from './military';
 
 // Simulation models
 export type {
@@ -74,9 +70,6 @@ export type {
   SimulationConfig,
   SimulationYearResult,
   FullSimulationResult,
-  SimulationYear,
-  SimulationData,
-  SimulationDataAdvanced,
 } from './simulation';
 
 // Scenario model
@@ -85,5 +78,4 @@ export type {
   NamedScenario,
   ScenarioComparisonMetrics,
   ScenarioDelta,
-  ScenarioComparison,
 } from './scenario';

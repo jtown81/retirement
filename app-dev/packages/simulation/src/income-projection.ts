@@ -23,7 +23,7 @@
  * Source: OPM FERS Handbook; docs/architecture.md
  */
 
-import type { SimulationInput, SimulationResult, AnnualProjection } from '@fedplan/..';
+import type { SimulationInput, SimulationResult, AnnualProjection } from '@fedplan/models';
 import { checkFERSEligibility } from './eligibility';
 import { computeFERSAnnuity, computeFERSSupplement, computeHigh3 } from './annuity';
 import { totalAnnualExpenses } from '@fedplan/expenses';
