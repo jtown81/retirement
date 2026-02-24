@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { LeaveBalancesChart } from '@components/charts/LeaveBalancesChart';
+import { ChartProvider } from '@components/charts/ChartContext';
 import type { LeaveBalanceDataPoint } from '@components/charts/chart-types';
 
 vi.stubGlobal('ResizeObserver', vi.fn(() => ({
@@ -17,17 +18,29 @@ const SAMPLE_DATA: LeaveBalanceDataPoint[] = [
 
 describe('LeaveBalancesChart', () => {
   it('renders the chart title', () => {
-    render(<LeaveBalancesChart data={SAMPLE_DATA} />);
+    render(
+      <ChartProvider>
+        <LeaveBalancesChart data={SAMPLE_DATA} />
+      </ChartProvider>
+    );
     expect(screen.getByText('Leave Balances')).toBeInTheDocument();
   });
 
   it('renders the subtitle', () => {
-    render(<LeaveBalancesChart data={SAMPLE_DATA} />);
+    render(
+      <ChartProvider>
+        <LeaveBalancesChart data={SAMPLE_DATA} />
+      </ChartProvider>
+    );
     expect(screen.getByText(/Annual and sick leave accumulation.*retirement credit/)).toBeInTheDocument();
   });
 
   it('renders with empty data without crashing', () => {
-    const { container } = render(<LeaveBalancesChart data={[]} />);
+    const { container } = render(
+      <ChartProvider>
+        <LeaveBalancesChart data={[]} />
+      </ChartProvider>
+    );
     expect(container).toBeTruthy();
   });
 });

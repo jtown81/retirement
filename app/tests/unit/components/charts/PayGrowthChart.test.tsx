@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { PayGrowthChart } from '@components/charts/PayGrowthChart';
+import { ChartProvider } from '@components/charts/ChartContext';
 import type { PayGrowthDataPoint } from '@components/charts/chart-types';
 
 vi.stubGlobal('ResizeObserver', vi.fn(() => ({
@@ -17,23 +18,39 @@ const SAMPLE_DATA: PayGrowthDataPoint[] = [
 
 describe('PayGrowthChart', () => {
   it('renders the chart title', () => {
-    render(<PayGrowthChart data={SAMPLE_DATA} />);
+    render(
+      <ChartProvider>
+        <PayGrowthChart data={SAMPLE_DATA} />
+      </ChartProvider>
+    );
     expect(screen.getByText('Pay Growth Over Career')).toBeInTheDocument();
   });
 
   it('renders the subtitle', () => {
-    render(<PayGrowthChart data={SAMPLE_DATA} />);
+    render(
+      <ChartProvider>
+        <PayGrowthChart data={SAMPLE_DATA} />
+      </ChartProvider>
+    );
     expect(screen.getByText(/Annual salary progression.*High-3/)).toBeInTheDocument();
   });
 
   it('renders with empty data without crashing', () => {
-    const { container } = render(<PayGrowthChart data={[]} />);
+    const { container } = render(
+      <ChartProvider>
+        <PayGrowthChart data={[]} />
+      </ChartProvider>
+    );
     expect(container).toBeTruthy();
     expect(screen.getByText('Pay Growth Over Career')).toBeInTheDocument();
   });
 
   it('renders with retirement year marker', () => {
-    const { container } = render(<PayGrowthChart data={SAMPLE_DATA} retirementYear={2010} />);
+    const { container } = render(
+      <ChartProvider>
+        <PayGrowthChart data={SAMPLE_DATA} retirementYear={2010} />
+      </ChartProvider>
+    );
     expect(container).toBeTruthy();
   });
 });
