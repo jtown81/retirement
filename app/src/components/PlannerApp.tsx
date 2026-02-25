@@ -1,4 +1,4 @@
-import { useState, useEffect, Component, type ReactNode, type ErrorInfo } from 'react';
+import { useState, useEffect, useCallback, Component, type ReactNode, type ErrorInfo } from 'react';
 import { AppShell, type View } from './layout/AppShell';
 import { Dashboard } from './Dashboard';
 import { FormShell, type TabDef } from './forms/FormShell';
@@ -8,6 +8,7 @@ import { useSimulation, type SimulationData } from '@hooks/useSimulation';
 import { useTheme } from '@hooks/useTheme';
 import { useEntitlement } from '@hooks/useEntitlement';
 import { useRevenueCatSync } from '@hooks/useRevenueCatSync';
+import { useDeepLink, getInitialDeepLink, type DeepLinkData } from '@hooks/useDeepLink';
 import { FERSEstimateForm } from './forms/FERSEstimateForm';
 import { CareerEventsForm } from './forms/CareerEventsForm';
 import { ExpensesForm } from './forms/ExpensesForm';
@@ -113,6 +114,54 @@ export function PlannerApp() {
   const [view, setView] = useState<View>('input');
   const { theme, setTheme } = useTheme();
   const { isPremium } = useEntitlement();
+
+  // Handle app deeplinks (e.g., fedretire://scenarios/123)
+  const handleDeepLink = useCallback(
+    (data: DeepLinkData) => {
+      switch (data.type) {
+        case 'scenario':
+          // Navigate to scenarios tab and load scenario
+          setView('scenarios');
+          // TODO: Phase 5.5 - Emit event to ScenarioManager to load specific scenario
+          if (data.id) {
+            console.log('[PlannerApp] Load scenario:', data.id);
+          }
+          break;
+        case 'profile':
+          // Navigate to profile settings
+          console.log('[PlannerApp] Navigate to profile');
+          break;
+        case 'settings':
+          // Navigate to settings
+          console.log('[PlannerApp] Navigate to settings');
+          break;
+        default:
+          // Unknown deeplink, default to input view
+          setView('input');
+      }
+    },
+    []
+  );
+
+  // Set up deeplink listener for app foreground navigation
+  useDeepLink(handleDeepLink);
+
+  // Check for initial deeplink on cold start (app opened from link)
+  useEffect(() => {
+    const checkInitialDeepLink = async () => {
+      try {
+        const deepLink = await getInitialDeepLink();
+        if (deepLink) {
+          console.log('[PlannerApp] Initial deeplink detected:', deepLink.type);
+          handleDeepLink(deepLink);
+        }
+      } catch (err) {
+        console.error('[PlannerApp] Failed to check initial deeplink:', err);
+      }
+    };
+
+    checkInitialDeepLink();
+  }, [handleDeepLink]);
 
   // Initialize RevenueCat SDK on app load
   useEffect(() => {
