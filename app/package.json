@@ -10,10 +10,17 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:scenarios": "vitest run tests/scenarios",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "mobile:build": "pnpm build && pnpm dlx cap sync",
+    "mobile:ios": "pnpm dlx cap open ios",
+    "mobile:android": "pnpm dlx cap open android",
+    "mobile:sync": "pnpm dlx cap sync"
   },
   "dependencies": {
     "@astrojs/react": "^4.0.0",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/haptics": "^8.0.0",
+    "@capacitor/keyboard": "^8.0.0",
     "@tailwindcss/vite": "^4.0.0",
     "astro": "^5.0.0",
     "class-variance-authority": "^0.7.1",
@@ -31,6 +38,11 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@capacitor-community/admob": "^5.0.0",
+    "@capacitor-firebase/authentication": "^5.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@revenuecat/purchases-capacitor": "^7.0.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.0.0",
