@@ -1,11 +1,12 @@
 import { useState, type ReactNode } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@components/ui/tabs';
-import { Calculator, Briefcase, Receipt, LineChart, FileText, BarChart3, CheckCircle2, Circle } from 'lucide-react';
+import { Calculator, Briefcase, Receipt, LineChart, FileText, BarChart3, CheckCircle2, Circle, Lock } from 'lucide-react';
 
 export interface TabDef {
   id: string;
   label: string;
   complete: boolean;
+  locked?: boolean;
 }
 
 interface FormShellProps {
@@ -29,10 +30,21 @@ export function FormShell({ tabs, children }: FormShellProps) {
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList className="flex flex-wrap w-full gap-2 mb-6">
         {tabs.map((tab) => (
-          <TabsTrigger key={tab.id} value={tab.id} className="flex-1 flex items-center gap-2 min-w-fit" aria-label={tab.label}>
+          <TabsTrigger
+            key={tab.id}
+            value={tab.id}
+            className={`flex-1 flex items-center gap-2 min-w-fit ${tab.locked ? 'opacity-60' : ''}`}
+            aria-label={tab.label}
+            aria-disabled={tab.locked}
+          >
             {TAB_ICONS[tab.id] || <Circle className="w-4 h-4" aria-hidden="true" />}
             <span className="hidden sm:inline">{tab.label}</span>
-            {tab.complete ? (
+            {tab.locked ? (
+              <>
+                <Lock className="w-3 h-3 ml-1 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                <span className="sr-only">(premium feature)</span>
+              </>
+            ) : tab.complete ? (
               <>
                 <CheckCircle2 className="w-3 h-3 ml-1 text-green-600 dark:text-green-400" aria-hidden="true" />
                 <span className="sr-only">(complete)</span>

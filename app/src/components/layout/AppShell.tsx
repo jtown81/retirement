@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@components/ui/tabs';
 import { Button } from '@components/ui/button';
-import { ClipboardList, Calendar, LayoutDashboard, Sun, Moon, GitBranch } from 'lucide-react';
+import { ClipboardList, LayoutDashboard, Sun, Moon, GitBranch } from 'lucide-react';
 
-export type View = 'input' | 'leave' | 'dashboard' | 'scenarios';
+export type View = 'input' | 'dashboard' | 'scenarios';
 
 interface AppShellProps {
   children: ReactNode;
@@ -16,7 +16,6 @@ interface AppShellProps {
 
 const NAV_ITEMS: { id: View; label: string; icon: React.ReactNode }[] = [
   { id: 'input', label: 'My Plan', icon: <ClipboardList className="w-4 h-4" aria-hidden="true" /> },
-  { id: 'leave', label: 'Leave', icon: <Calendar className="w-4 h-4" aria-hidden="true" /> },
   { id: 'scenarios', label: 'Scenarios', icon: <GitBranch className="w-4 h-4" aria-hidden="true" /> },
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" aria-hidden="true" /> },
 ];
@@ -66,7 +65,7 @@ export function AppShell({
           </div>
 
           <Tabs value={view} onValueChange={(value) => onViewChange(value as View)} className="mt-4" aria-label="Main navigation">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-3">
               {NAV_ITEMS.map((item) => (
                 <TabsTrigger key={item.id} value={item.id} className="flex items-center gap-2" aria-label={item.label}>
                   {item.icon}

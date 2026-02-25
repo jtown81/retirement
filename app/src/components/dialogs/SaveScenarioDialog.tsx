@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useScenarioManager } from '@hooks/useScenarioManager';
+import { useEntitlement } from '@hooks/useEntitlement';
 import {
   Dialog,
   DialogContent,
@@ -11,7 +12,8 @@ import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Textarea } from '@components/ui/textarea';
 import { Alert, AlertDescription } from '@components/ui/alert';
-import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Loader2, Lock } from 'lucide-react';
+import { BASIC_SCENARIO_LIMIT } from '@config/features';
 import type { SimulationInput } from '@fedplan/models';
 import type { FullSimulationResult } from '@fedplan/models';
 import type { FormSnapshot } from '@fedplan/models';
@@ -33,12 +35,16 @@ export function SaveScenarioDialog({
   formSnapshot,
   onScenarioSaved,
 }: SaveScenarioDialogProps) {
-  const { saveScenario } = useScenarioManager();
+  const { saveScenario, scenarios } = useScenarioManager();
+  const { isBasic } = useEntitlement();
   const [label, setLabel] = useState('');
   const [description, setDescription] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // Check if basic tier has reached scenario limit
+  const isScenarioLimitReached = isBasic && scenarios.length >= BASIC_SCENARIO_LIMIT;
 
   const handleSave = async () => {
     if (!label.trim()) {
@@ -102,6 +108,16 @@ export function SaveScenarioDialog({
             </Alert>
           ) : (
             <>
+              {isScenarioLimitReached && (
+                <Alert variant="destructive">
+                  <Lock className="h-4 w-4" />
+                  <AlertDescription>
+                    You've reached the scenario limit for the Basic plan ({BASIC_SCENARIO_LIMIT} scenario).
+                    Upgrade to Premium for unlimited scenarios.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <div className="space-y-2">
                 <label htmlFor="scenario-name" className="text-sm font-medium">
                   Scenario Name *
@@ -114,7 +130,7 @@ export function SaveScenarioDialog({
                     setLabel(e.target.value);
                     setError(null);
                   }}
-                  disabled={isSaving}
+                  disabled={isSaving || isScenarioLimitReached}
                 />
                 <p className="text-xs text-muted-foreground">
                   A descriptive name for this retirement plan scenario
@@ -130,7 +146,7 @@ export function SaveScenarioDialog({
                   placeholder="Add notes about this scenario..."
                   value={description}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
-                  disabled={isSaving}
+                  disabled={isSaving || isScenarioLimitReached}
                   rows={3}
                   className="resize-none"
                 />
@@ -156,7 +172,7 @@ export function SaveScenarioDialog({
                 </Button>
                 <Button
                   onClick={handleSave}
-                  disabled={isSaving || !label.trim()}
+                  disabled={isSaving || !label.trim() || isScenarioLimitReached}
                   className="gap-2"
                 >
                   {isSaving ? (

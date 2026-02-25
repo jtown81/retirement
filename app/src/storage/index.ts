@@ -78,6 +78,9 @@ export {
   SimulationInputSchema,
   NamedScenarioSchema,
   NamedScenariosArraySchema,
+  // Subscription & Entitlement (Phase 3B)
+  SubscriptionTierSchema,
+  SubscriptionSchema,
   // Envelope
   StoredRecordSchema,
 } from './zod-schemas';

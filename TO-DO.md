@@ -1,11 +1,13 @@
 # Implementation Roadmap: Platform Architecture Overhaul
 
 **Last Updated**: 2026-02-24
-**Status**: Phase 2 In Progress — Leave App Separation & Scaffolding
-**Current Phase**: 2 (Leave App Separation) started 2026-02-24
+**Status**: Phase 3 Complete — Leave Tab Removal + Basic/Premium Tier Segmentation
+**Current Phase**: 4 (Infrastructure Setup) — Ready to start
 **Scope**: Leave app separation, tiered retirement planning, monetization, mobile deployment
 
 **Phase 1 Completion**: ✅ All validation gates passed (typecheck, tests 770/770, build successful)
+**Phase 2 Completion**: ✅ Leave app scaffolding, integration, and component cleanup complete
+**Phase 3 Completion**: ✅ Leave tab removed; Basic/Premium tier system fully implemented (789 tests passing)
 **Reference**: [Revenue-Analysis.md](./Revenue-Analysis.md) for monetization strategy detail
 
 ---
@@ -227,44 +229,44 @@ NOT Needed by Leave App:
 
 ---
 
-## Phase 3: Retirement Tier Segmentation (Basic/Premium Feature Gating)
+## Phase 3: Retirement Tier Segmentation (Basic/Premium Feature Gating) — ✅ COMPLETE
 
 **Goal**: Split retirement app UI into Basic (free) and Premium (paid) tiers. Calculation modules remain ungated.
 
-**Duration**: 2-3 weeks
-**Risk**: Medium (feature boundaries must be clean; no business logic leakage)
-**Prerequisite**: Phase 1 complete (Phase 2 is parallel-safe)
+**Duration**: Completed 2026-02-24
+**Risk**: Medium (feature boundaries must be clean; no business logic leakage) — MITIGATED ✅
+**Prerequisite**: Phase 1 complete (Phase 2 is parallel-safe) — MET ✅
 
-### 3.1 Define Feature Registry
+### 3.1 Define Feature Registry — ✅ COMPLETE
 
-- [ ] Create `src/config/features.ts`:
+- [x] Create `src/config/features.ts`:
   ```typescript
   export const FEATURE_TIERS = {
     basic: {
-      fersEstimate: true,       // Personal, Salary, Annuity & SS, TSP basics
-      careerTimeline: true,     // Career events, auto-salary
-      expenseCategories: true,  // 10 categories, base inflation
-      basicDashboard: true,     // PayGrowth, LeaveBalances, simple TSP, income table
-      scenarioSave: true,       // Save 1 scenario (limit)
-      csvExport: true,          // Basic CSV export
+      fersEstimate: true,       // ✅ Personal, Salary, Annuity & SS, TSP basics
+      careerTimeline: true,     // ✅ Career events, auto-salary
+      expenseCategories: true,  // ✅ 10 categories, base inflation
+      basicDashboard: true,     // ✅ PayGrowth, LeaveBalances, simple TSP, income table
+      scenarioSave: true,       // ✅ Save 1 scenario (limit: BASIC_SCENARIO_LIMIT = 1)
+      csvExport: true,          // ✅ Basic CSV export
     },
     premium: {
-      simulationConfig: true,   // Dual-pot TSP, advanced allocation, withdrawal strategy
-      taxModeling: true,        // Federal, state, IRMAA
-      smileCurve: true,         // GoGo/GoSlow/NoGo expense phases
-      advancedDashboard: true,  // All 6 charts + 60-year projection table
-      monteCarlo: true,         // Probabilistic simulation
-      scenarioUnlimited: true,  // Unlimited scenarios + comparison
-      excelExport: true,        // Excel multi-sheet + PDF export
-      scenarioDiff: true,       // Side-by-side scenario comparison CSV
-      tspMonitor: true,         // TSP snapshot import + tracking
+      simulationConfig: true,   // ✅ Dual-pot TSP, advanced allocation, withdrawal strategy
+      taxModeling: true,        // ✅ Federal, state, IRMAA
+      smileCurve: true,         // ✅ GoGo/GoSlow/NoGo expense phases
+      advancedDashboard: true,  // ✅ All 6 charts + 60-year projection table
+      monteCarlo: true,         // ✅ Probabilistic simulation
+      scenarioUnlimited: true,  // ✅ Unlimited scenarios + comparison
+      excelExport: true,        // ✅ Excel multi-sheet + PDF export
+      scenarioDiff: true,       // ✅ Side-by-side scenario comparison CSV
+      tspMonitor: true,         // ✅ TSP snapshot import + tracking
     },
   } as const;
   ```
 
-### 3.2 Create Entitlement Hook
+### 3.2 Create Entitlement Hook — ✅ COMPLETE
 
-- [ ] Create `src/hooks/useEntitlement.ts`:
+- [x] Create `src/hooks/useEntitlement.ts`:
   ```typescript
   export function useEntitlement(): {
     tier: 'basic' | 'premium';
@@ -347,13 +349,14 @@ Why:
 
 ---
 
-## Phase 4: Infrastructure Setup (Auth, Entitlements, Ad SDK)
+## Phase 4: Infrastructure Setup (Auth, Entitlements, Ad SDK) — PENDING START
 
 **Goal**: Set up Firebase Auth, RevenueCat, and Google AdSense/AdMob integration.
 
 **Duration**: 3-4 weeks
 **Risk**: High (external service integration, store compliance)
-**Prerequisite**: Phase 3 complete
+**Prerequisite**: Phase 3 complete ✅
+**Status**: Ready to start — all Phase 3 gates passed
 
 ### 4.1 Firebase Authentication
 

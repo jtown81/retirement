@@ -3,7 +3,6 @@ import {
   STORAGE_KEYS,
   PersonalInfoSchema,
   CareerProfileSchema,
-  LeaveBalanceSchema,
   ExpenseProfileSchema,
   SimulationConfigSchema,
   RetirementAssumptionsFullSchema,
@@ -16,6 +15,7 @@ export interface SectionStatus {
   label: string;
   complete: boolean;
   required: boolean;
+  tier: 'basic' | 'premium';
 }
 
 export function useFormSections(): SectionStatus[] {
@@ -30,17 +30,11 @@ export function useFormSections(): SectionStatus[] {
   const tspSnapshotList = Array.isArray(tspSnapshots) ? tspSnapshots : [];
 
   return [
-    { id: 'personal', label: 'FERS Estimate', complete: personal !== null, required: true },
-    { id: 'career', label: 'Career', complete: career !== null, required: false },
-    { id: 'expenses', label: 'Expenses', complete: expenses !== null, required: true },
-    { id: 'simulation', label: 'Simulation', complete: simConfig !== null, required: true },
-    { id: 'tax', label: 'Tax Profile', complete: taxProfile !== null, required: false },
-    { id: 'tsp-monitor', label: 'TSP Monitor', complete: tspSnapshotList.length > 0, required: false },
+    { id: 'personal', label: 'FERS Estimate', complete: personal !== null, required: true, tier: 'basic' },
+    { id: 'career', label: 'Career', complete: career !== null, required: false, tier: 'basic' },
+    { id: 'expenses', label: 'Expenses', complete: expenses !== null, required: true, tier: 'basic' },
+    { id: 'simulation', label: 'Simulation', complete: simConfig !== null, required: true, tier: 'premium' },
+    { id: 'tax', label: 'Tax Profile', complete: taxProfile !== null, required: false, tier: 'premium' },
+    { id: 'tsp-monitor', label: 'TSP Monitor', complete: tspSnapshotList.length > 0, required: false, tier: 'basic' },
   ];
-}
-
-/** Check if Leave section is complete (used for dashboard unlock). */
-export function useLeaveComplete(): boolean {
-  const [leave] = useLocalStorage(STORAGE_KEYS.LEAVE_BALANCE, LeaveBalanceSchema);
-  return leave !== null;
 }

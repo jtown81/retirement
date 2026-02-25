@@ -6,13 +6,14 @@ import { useFormSections } from './forms/useFormSections';
 import { useAssembleInput, useSimulationConfig } from './forms/useAssembleInput';
 import { useSimulation, type SimulationData } from '@hooks/useSimulation';
 import { useTheme } from '@hooks/useTheme';
+import { useEntitlement } from '@hooks/useEntitlement';
 import { FERSEstimateForm } from './forms/FERSEstimateForm';
 import { CareerEventsForm } from './forms/CareerEventsForm';
-import { LeaveBalanceForm } from './forms/LeaveBalanceForm';
 import { ExpensesForm } from './forms/ExpensesForm';
 import { SimulationForm } from './forms/SimulationForm';
 import { TaxProfileForm } from './forms/TaxProfileForm';
 import { TSPMonitorPanel } from './forms/TSPMonitorPanel';
+import { UpgradePrompt } from './paywall/UpgradePrompt';
 import { ScenarioManager } from './scenarios/ScenarioManager';
 import { ScenarioComparison } from './scenarios/ScenarioComparison';
 import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert';
@@ -73,13 +74,35 @@ const DEMO_DATA: SimulationData = {
   rmdTimeline: DEMO_RMD_TIMELINE,
 };
 
-function FormContent({ activeTabId }: { activeTabId: string }) {
+function FormContent({
+  activeTabId,
+  isPremium,
+}: {
+  activeTabId: string;
+  isPremium: boolean;
+}) {
   switch (activeTabId) {
     case 'personal': return <FERSEstimateForm />;
     case 'career': return <CareerEventsForm />;
     case 'expenses': return <ExpensesForm />;
-    case 'simulation': return <SimulationForm />;
-    case 'tax': return <TaxProfileForm />;
+    case 'simulation':
+      return isPremium ? (
+        <SimulationForm />
+      ) : (
+        <UpgradePrompt
+          feature="Advanced Simulation"
+          description="Unlock detailed retirement projections with Monte Carlo analysis and tax modeling."
+        />
+      );
+    case 'tax':
+      return isPremium ? (
+        <TaxProfileForm />
+      ) : (
+        <UpgradePrompt
+          feature="Tax Modeling"
+          description="Unlock advanced tax planning including IRMAA surcharge calculations."
+        />
+      );
     case 'tsp-monitor': return <TSPMonitorPanel />;
     default: return null;
   }
@@ -88,20 +111,27 @@ function FormContent({ activeTabId }: { activeTabId: string }) {
 export function PlannerApp() {
   const [view, setView] = useState<View>('input');
   const { theme, setTheme } = useTheme();
+  const { isPremium } = useEntitlement();
   const sections = useFormSections();
   const assembledInput = useAssembleInput();
   const simConfig = useSimulationConfig();
-  const userData = useSimulation(assembledInput, simConfig);
+  // For basic tier, suppress simulation config to prevent fullSimulation projection
+  const effectiveSimConfig = isPremium ? simConfig : null;
+  const userData = useSimulation(assembledInput, effectiveSimConfig);
 
   const mode = userData ? 'user' : 'demo';
   const data = userData ?? DEMO_DATA;
 
-  const requiredComplete = sections.filter((s) => s.required).every((s) => s.complete);
+  // For basic tier, exclude premium forms from required completion check
+  const requiredComplete = sections
+    .filter((s) => s.required && (isPremium || s.tier === 'basic'))
+    .every((s) => s.complete);
 
   const tabs: TabDef[] = sections.map((s) => ({
     id: s.id,
     label: s.label,
     complete: s.complete,
+    locked: !isPremium && s.tier === 'premium',
   }));
 
   return (
@@ -119,20 +149,18 @@ export function PlannerApp() {
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Complete your plan details</AlertTitle>
               <AlertDescription>
-                Complete all required sections (marked with dots) and the Leave tab, then switch to the Dashboard to see your personalized projections.
+                Complete all required sections (marked with dots), then switch to the Dashboard to see your personalized projections.
               </AlertDescription>
             </Alert>
           )}
           <FormShell tabs={tabs}>
             {(activeTabId) => (
               <TabErrorBoundary tabId={activeTabId} key={activeTabId}>
-                <FormContent activeTabId={activeTabId} />
+                <FormContent activeTabId={activeTabId} isPremium={isPremium} />
               </TabErrorBoundary>
             )}
           </FormShell>
         </div>
-      ) : view === 'leave' ? (
-        <LeaveBalanceForm />
       ) : view === 'scenarios' ? (
         <div className="space-y-8">
           <ScenarioManager />

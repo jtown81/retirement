@@ -4,6 +4,7 @@
     "baseUrl": ".",
     "paths": {
       "@lib/*": ["src/lib/*"],
+      "@config/*": ["src/config/*"],
       "@models/*": ["src/models/*"],
       "@modules/*": ["src/modules/*"],
       "@utils/*": ["src/utils/*"],

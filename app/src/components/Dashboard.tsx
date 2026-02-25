@@ -5,6 +5,7 @@ import { SectionHeading } from './layout/SectionHeading';
 import { SummaryPanel } from './cards/SummaryPanel';
 import { MetricCardSkeleton } from './cards/MetricCardSkeleton';
 import { ChartProvider } from './charts/ChartContext';
+import { BasicDashboard } from './charts/BasicDashboard';
 import { IncomeWaterfallChart } from './charts/IncomeWaterfallChart';
 import { PayGrowthChart } from './charts/PayGrowthChart';
 import { TSPLifecycleChart } from './charts/TSPLifecycleChart';
@@ -15,7 +16,10 @@ import { RMDComplianceChart } from './charts/RMDComplianceChart';
 import { ChartSkeleton } from './charts/ChartSkeleton';
 import { ProjectionTable } from './charts/ProjectionTable';
 import { DashboardActions } from './dashboard/DashboardActions';
+import { UpgradePrompt } from './paywall/UpgradePrompt';
+import { PremiumBadge } from './paywall/PremiumBadge';
 import { useMonteCarloWorker } from '@hooks/useMonteCarloWorker';
+import { useEntitlement } from '@hooks/useEntitlement';
 import type { SimulationData } from '@hooks/useSimulation';
 import type { SimulationInput, FullSimulationResult } from '@fedplan/models';
 
@@ -32,6 +36,13 @@ interface DashboardProps {
 }
 
 export function Dashboard({ data, mode, inputs }: DashboardProps) {
+  const { isPremium } = useEntitlement();
+
+  // Basic tier users see simplified dashboard
+  if (!isPremium) {
+    return <BasicDashboard data={data} mode={mode} />;
+  }
+
   if (!data) {
     return (
       <div className="space-y-6">

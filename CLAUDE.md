@@ -12,9 +12,29 @@ A retirement planning simulation app for U.S. federal employees. Runs locally on
 
 ## Current Status
 
-**Phases 1-9 complete.** **Phases A-G (post-Phase-9 refinement) complete.**
+**Phases 1-9 complete.** **Phases A-G (post-Phase-9 refinement) complete.** **Phases 1-3 (monorepo & tier segmentation) complete.**
 
-The app has a working UI with three top-level views (My Plan, Leave, Dashboard), nested form tabs within My Plan with sub-form components (FERS Estimate E.1, Career E.4, Expenses E.5, Simulation E.2, Tax E.3), a full leave calendar with federal holidays, and a modern Dashboard with 6 projection charts + expanded summary cards. Enhanced form UX with animations, keyboard shortcuts, better error feedback, and scenario management with export capabilities.
+The app has a working UI with **two** top-level views (My Plan, Dashboard, Scenarios — **Leave tab removed**). My Plan features nested form tabs with sub-form components split across **Basic** (FERS Estimate, Career, Expenses, TSP Monitor) and **Premium** (Simulation, Tax) tiers. Dashboard adapts to tier: Basic shows simplified 3-chart view; Premium shows advanced 6-chart view with Monte Carlo and detailed projections. Scenario management and export capabilities tier-gated. All modules extracted into pnpm workspace packages (@fedplan/*) for code reuse across leave and retire apps.
+
+### Phase 3 Completion (Leave Tab Removal + Basic/Premium Tier Segmentation - Feb 2026)
+- ✅ **3A: Leave Tab Removal**
+  - Deleted 6 leave-calendar component files + LeaveBalanceForm.tsx
+  - Removed Leave tab from AppShell (View type reduced: 4 tabs → 3)
+  - Updated PlannerApp, useFormSections for removal
+  - @fedplan/leave package dependency retained (simulation still uses leave module)
+- ✅ **3B: Tier Segmentation**
+  - Feature registry: FEATURE_TIERS (basic/premium), BASIC_SCENARIO_LIMIT = 1
+  - Storage schema v5: SUBSCRIPTION key + SubscriptionTierSchema
+  - useEntitlement() hook: localStorage-based tier detection (defaults to basic)
+  - Paywall components: UpgradePrompt, PremiumBadge
+  - FormShell locked tabs: Lock icon for premium forms, clickable with upgrade prompt
+  - PlannerApp gating: SimulationForm/TaxProfileForm wrapped in UpgradePrompt
+  - BasicDashboard.tsx: Simplified 5-metric, PayGrowth-only view for basic tier
+  - Dashboard conditional: BasicDashboard for basic tier, full 6-chart dashboard for premium
+  - ExportPanel: Excel/Compare buttons disabled for basic tier with PremiumBadge
+  - SaveScenarioDialog: Enforces BASIC_SCENARIO_LIMIT with warning message
+  - Tests: 19 new tests (useEntitlement, features); 789 total tests passing
+- ✅ All validation gates passed: typecheck clean, tests 789/789, build succeeds
 
 ### Phase G Completion (Scenario Management & Export UI - Feb 2026)
 - ✅ SaveScenarioDialog: Save current plan as named scenario with optional description
@@ -114,21 +134,32 @@ pnpm typecheck                            # TypeScript type check (no emit)
 ## App Navigation Structure
 
 ### Top-Level (AppShell)
-1. **My Plan** — Form entry with sub-tabs
-2. **Leave** — Leave calendar planner (standalone view)
-3. **Dashboard** — Charts & projections (unlocks when all sections complete)
+1. **My Plan** — Form entry with sub-tabs (Basic + Premium tiers)
+2. **Scenarios** — Scenario management and comparison
+3. **Dashboard** — Charts & projections (unlocks when all required sections complete)
 
-### My Plan Sub-Tabs (FormShell)
+**Note (Phase 3)**: Leave tab removed (moved to standalone `app-dev/leave/` app)
+
+### My Plan Sub-Tabs (FormShell) — Tier-Gated
+**Basic Tier (Always Available)**:
 1. **FERS Estimate** (`personal`) — Personal info, salary, High-3, annuity options, SS, TSP config
 2. **Career** (`career`) — Career events timeline
-3. **Expenses** (`expenses`) — 10 expense categories with defaults, dual inflation rates, smile curve
-4. **Simulation** (`simulation`) — Post-retirement projection with dual-pot TSP, RMD, smile curve phases
+3. **Expenses** (`expenses`) — 10 expense categories with defaults, dual inflation rates
+4. **TSP Monitor** (`tsp-monitor`) — TSP snapshot import and balance tracking
+
+**Premium Tier (Locked for Basic Users)**:
+5. **Simulation** (`simulation`) 🔒 — Post-retirement projection with dual-pot TSP, RMD, smile curve phases, Monte Carlo
+6. **Tax Profile** (`tax`) 🔒 — Federal/state deductions, IRMAA modeling
+
+Locked tabs show Lock icon + upgrade prompt when clicked (Phase 3B).
 
 ### Orphaned Components (retained in codebase but not rendered)
-- `PersonalInfoForm.tsx` — merged into FERSEstimateForm
+- `PersonalInfoForm.tsx` — merged into FERSEstimateForm (Phase E.1)
 - `MilitaryServiceForm.tsx` — Military tab disconnected
-- `TSPForm.tsx` — TSP fields merged into FERSEstimateForm
-- `AssumptionsForm.tsx` — replaced by SimulationForm
+- `TSPForm.tsx` — TSP fields merged into FERSEstimateForm (Phase E.1)
+- `AssumptionsForm.tsx` — replaced by SimulationForm (Phase E.2)
+- `LeaveBalanceForm.tsx` — **Removed Phase 3A** (moved to standalone leave app)
+- Leave calendar components — **Removed Phase 3A** (moved to standalone leave app)
 
 ## Required Module Boundaries
 

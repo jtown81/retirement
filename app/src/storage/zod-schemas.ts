@@ -497,6 +497,17 @@ export const NamedScenarioSchema = z.object({
 export const NamedScenariosArraySchema = z.array(NamedScenarioSchema);
 
 // ---------------------------------------------------------------------------
+// Subscription & Entitlement (Phase 3B)
+// ---------------------------------------------------------------------------
+
+export const SubscriptionTierSchema = z.enum(['basic', 'premium']);
+
+export const SubscriptionSchema = z.object({
+  tier: SubscriptionTierSchema,
+  activatedAt: z.string().datetime().optional(),
+});
+
+// ---------------------------------------------------------------------------
 // StoredRecord wrapper
 // ---------------------------------------------------------------------------
 

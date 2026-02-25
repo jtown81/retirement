@@ -19,6 +19,8 @@ import {
   triggerPrint,
 } from '@utils/export';
 import { useScenarioManager } from '@hooks/useScenarioManager';
+import { useEntitlement } from '@hooks/useEntitlement';
+import { PremiumBadge } from '../paywall/PremiumBadge';
 import type { SimulationYearResult, SimulationInput } from '@fedplan/models';
 
 interface ExportPanelProps {
@@ -28,6 +30,7 @@ interface ExportPanelProps {
 
 export function ExportPanel({ projectionYears, input }: ExportPanelProps) {
   const { scenarios } = useScenarioManager();
+  const { isPremium } = useEntitlement();
   const [diffDialogOpen, setDiffDialogOpen] = useState(false);
   const [selectedBaseline, setSelectedBaseline] = useState<string>(scenarios[0]?.id ?? '');
   const [selectedComparison, setSelectedComparison] = useState<string>(scenarios[1]?.id ?? '');
@@ -125,14 +128,17 @@ export function ExportPanel({ projectionYears, input }: ExportPanelProps) {
             Export CSV
           </Button>
 
-          <Button
-            onClick={handleExportExcel}
-            disabled={!projectionYears || projectionYears.length === 0}
-            className="gap-2"
-          >
-            <Grid3X3 className="w-4 h-4" aria-hidden="true" />
-            Export Excel
-          </Button>
+          <div className="relative">
+            <Button
+              onClick={handleExportExcel}
+              disabled={!projectionYears || projectionYears.length === 0 || !isPremium}
+              className="gap-2 w-full"
+            >
+              <Grid3X3 className="w-4 h-4" aria-hidden="true" />
+              Export Excel
+            </Button>
+            {!isPremium && <div className="absolute top-0 right-0 -mt-2"><PremiumBadge label="Premium" /></div>}
+          </div>
 
           <Button
             onClick={handlePrint}
@@ -144,17 +150,18 @@ export function ExportPanel({ projectionYears, input }: ExportPanelProps) {
             Print / PDF
           </Button>
 
-          <Dialog open={diffDialogOpen} onOpenChange={setDiffDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                disabled={scenarios.length < 2}
-                variant="outline"
-                className="gap-2"
-              >
-                <Download className="w-4 h-4" aria-hidden="true" />
-                Compare ({scenarios.length})
-              </Button>
-            </DialogTrigger>
+          <div className="relative">
+            <Dialog open={diffDialogOpen} onOpenChange={setDiffDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  disabled={scenarios.length < 2 || !isPremium}
+                  variant="outline"
+                  className="gap-2 w-full"
+                >
+                  <Download className="w-4 h-4" aria-hidden="true" />
+                  Compare ({scenarios.length})
+                </Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Compare Scenarios</DialogTitle>
@@ -204,7 +211,9 @@ export function ExportPanel({ projectionYears, input }: ExportPanelProps) {
                 </div>
               </div>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+            {!isPremium && <div className="absolute top-0 right-0 -mt-2"><PremiumBadge label="Premium" /></div>}
+          </div>
 
           <Button
             onClick={handleExportAllScenarios}
