@@ -27,12 +27,13 @@ export function UserMenu() {
     return null;
   }
 
-  // Get user initials from email
-  const email = user.email || 'User';
-  const initials = email
+  // Get user initials from email (handle both web User and mobile MobileAuthUser types)
+  const email = (user as any).email || 'User';
+  const emailStr = typeof email === 'string' ? email : 'User';
+  const initials = emailStr
     .split('@')[0]
     .split(/[._-]/)
-    .map((part) => part[0].toUpperCase())
+    .map((part: string) => part[0]?.toUpperCase() || '')
     .join('')
     .slice(0, 2);
 
@@ -67,7 +68,7 @@ export function UserMenu() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-sm font-semibold text-white hover:from-blue-600 hover:to-blue-700 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 transition-colors"
-        title={email}
+        title={emailStr}
         aria-expanded={isOpen}
         aria-haspopup="menu"
       >
@@ -78,7 +79,7 @@ export function UserMenu() {
         <div className="absolute right-0 mt-2 w-56 rounded-lg bg-white dark:bg-slate-900 shadow-lg border border-slate-200 dark:border-slate-700 z-10">
           {/* User Info */}
           <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
-            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{email}</p>
+            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{emailStr}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400">Signed in</p>
           </div>
 
