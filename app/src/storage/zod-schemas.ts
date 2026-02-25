@@ -505,6 +505,9 @@ export const SubscriptionTierSchema = z.enum(['basic', 'premium']);
 export const SubscriptionSchema = z.object({
   tier: SubscriptionTierSchema,
   activatedAt: z.string().datetime().optional(),
+  expiresAt: z.string().datetime().nullable().optional(),
+  source: z.enum(['revenuecat', 'firebase', 'manual']).optional(),
+  userId: z.string().optional(),
 });
 
 // ---------------------------------------------------------------------------

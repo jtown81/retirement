@@ -10,6 +10,7 @@ export default defineConfig({
     include: ['tests/**/*.test.{ts,tsx}'],
     environment: 'jsdom',
     setupFiles: ['tests/setup.ts', 'tests/setup/axe-setup.ts'],
+    globals: true,
     coverage: {
       provider: 'v8',
       thresholds: {
@@ -22,6 +23,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@auth': resolve(__dirname, 'src/auth'),
+      '@entitlements': resolve(__dirname, 'src/entitlements'),
       '@lib': resolve(__dirname, 'src/lib'),
       '@config': resolve(__dirname, 'src/config'),
       '@models': resolve(__dirname, 'src/models'),

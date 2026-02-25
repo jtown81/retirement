@@ -1,0 +1,31 @@
+---
+/**
+ * Google AdSense Script Component
+ *
+ * Initializes Google AdSense globally for the application.
+ * This Astro component renders the AdSense script tag in the document head.
+ *
+ * Features:
+ * - Loads only in production (when building for real deployment)
+ * - Uses client:load to ensure script loads after hydration
+ * - No impact on development or preview builds
+ *
+ * Usage in layout or page:
+ * <AdSenseScript />
+ *
+ * Documentation: https://support.google.com/adsense/answer/7528153
+ */
+
+const isProduction = import.meta.env.PROD;
+const publisherId = import.meta.env.PUBLIC_ADSENSE_CLIENT_ID;
+---
+
+{
+  isProduction && publisherId && (
+    <script
+      async
+      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${publisherId}`}
+      client:load
+    />
+  )
+}

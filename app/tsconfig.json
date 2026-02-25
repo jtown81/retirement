@@ -3,6 +3,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@auth/*": ["src/auth/*"],
+      "@entitlements/*": ["src/entitlements/*"],
       "@lib/*": ["src/lib/*"],
       "@config/*": ["src/config/*"],
       "@models/*": ["src/models/*"],

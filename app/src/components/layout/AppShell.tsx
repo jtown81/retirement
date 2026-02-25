@@ -1,7 +1,13 @@
-import type { ReactNode } from 'react';
+'use client';
+
+import { type ReactNode, useState } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@components/ui/tabs';
 import { Button } from '@components/ui/button';
-import { ClipboardList, LayoutDashboard, Sun, Moon, GitBranch } from 'lucide-react';
+import { ClipboardList, LayoutDashboard, Sun, Moon, GitBranch, LogIn } from 'lucide-react';
+import { useAuth } from '@hooks/useAuth';
+import { UserMenu } from '@components/auth/UserMenu';
+import { SignInDialog } from '@components/auth/SignInDialog';
+import { AdUnit } from '@components/ads/AdUnit';
 
 export type View = 'input' | 'dashboard' | 'scenarios';
 
@@ -28,6 +34,9 @@ export function AppShell({
   theme = 'system',
   onThemeChange,
 }: AppShellProps) {
+  const { isSignedIn, loading } = useAuth();
+  const [signInDialogOpen, setSignInDialogOpen] = useState(false);
+
   const handleThemeToggle = () => {
     if (onThemeChange) {
       onThemeChange(theme === 'light' ? 'dark' : 'light');
@@ -42,26 +51,45 @@ export function AppShell({
       >
         Skip to main content
       </a>
-      <header className="sticky top-0 z-50 bg-card border-b border-border">
+      <header className="sticky top-0 z-40 bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold text-foreground">
               Federal Retirement Planner
             </h1>
-            {onThemeChange && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleThemeToggle}
-                aria-label="Toggle theme"
-              >
-                {theme === 'dark' ? (
-                  <Sun className="w-4 h-4" aria-hidden="true" />
-                ) : (
-                  <Moon className="w-4 h-4" aria-hidden="true" />
-                )}
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {onThemeChange && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleThemeToggle}
+                  aria-label="Toggle theme"
+                >
+                  {theme === 'dark' ? (
+                    <Sun className="w-4 h-4" aria-hidden="true" />
+                  ) : (
+                    <Moon className="w-4 h-4" aria-hidden="true" />
+                  )}
+                </Button>
+              )}
+              {!loading && (
+                <>
+                  {isSignedIn ? (
+                    <UserMenu />
+                  ) : (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => setSignInDialogOpen(true)}
+                      className="gap-2"
+                    >
+                      <LogIn className="w-4 h-4" />
+                      <span className="hidden sm:inline">Sign In</span>
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
 
           <Tabs value={view} onValueChange={(value) => onViewChange(value as View)} className="mt-4" aria-label="Main navigation">
@@ -77,7 +105,14 @@ export function AppShell({
         </div>
       </header>
 
-      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+      <div className="sticky top-[73px] z-30 bg-slate-50 dark:bg-slate-900/50 border-b border-border py-2 flex justify-center">
+        <AdUnit
+          slotId={import.meta.env.PUBLIC_ADSENSE_SLOTS_LEADERBOARD}
+          format="leaderboard"
+        />
+      </div>
+
+      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 mb-16 md:mb-0">
         {children}
       </main>
 
@@ -86,6 +121,16 @@ export function AppShell({
           Federal Retirement Planner — {mode === 'demo' ? 'Demo Mode' : 'Your Plan'}
         </div>
       </footer>
+
+      <SignInDialog open={signInDialogOpen} onOpenChange={setSignInDialogOpen} />
+
+      {/* Anchor ad (mobile, sticky at bottom) */}
+      <div className="fixed bottom-0 left-0 right-0 z-20 flex justify-center bg-white dark:bg-slate-950 border-t border-border md:hidden">
+        <AdUnit
+          slotId={import.meta.env.PUBLIC_ADSENSE_SLOTS_ANCHOR}
+          format="anchor"
+        />
+      </div>
     </div>
   );
 }

@@ -1,4 +1,6 @@
 ---
+import AdSenseScript from '../components/ads/AdSenseScript.astro';
+
 interface Props {
   title?: string;
 }
@@ -23,6 +25,7 @@ const { title = 'Federal Retirement Planner' } = Astro.props;
         document.documentElement.classList.add('dark');
       }
     </script>
+    <AdSenseScript />
   </head>
   <body>
     <slot />

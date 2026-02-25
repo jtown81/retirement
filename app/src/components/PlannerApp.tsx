@@ -1,4 +1,4 @@
-import { useState, Component, type ReactNode, type ErrorInfo } from 'react';
+import { useState, useEffect, Component, type ReactNode, type ErrorInfo } from 'react';
 import { AppShell, type View } from './layout/AppShell';
 import { Dashboard } from './Dashboard';
 import { FormShell, type TabDef } from './forms/FormShell';
@@ -7,6 +7,7 @@ import { useAssembleInput, useSimulationConfig } from './forms/useAssembleInput'
 import { useSimulation, type SimulationData } from '@hooks/useSimulation';
 import { useTheme } from '@hooks/useTheme';
 import { useEntitlement } from '@hooks/useEntitlement';
+import { useRevenueCatSync } from '@hooks/useRevenueCatSync';
 import { FERSEstimateForm } from './forms/FERSEstimateForm';
 import { CareerEventsForm } from './forms/CareerEventsForm';
 import { ExpensesForm } from './forms/ExpensesForm';
@@ -112,6 +113,23 @@ export function PlannerApp() {
   const [view, setView] = useState<View>('input');
   const { theme, setTheme } = useTheme();
   const { isPremium } = useEntitlement();
+
+  // Initialize RevenueCat SDK on app load
+  useEffect(() => {
+    const initializeRC = async () => {
+      try {
+        const { initializeRevenueCat } = await import('@entitlements/revenuecat');
+        await initializeRevenueCat();
+      } catch (err) {
+        console.error('[PlannerApp] RevenueCat initialization failed:', err);
+      }
+    };
+    initializeRC();
+  }, []);
+
+  // Sync entitlements from RevenueCat on sign-in/sign-out
+  useRevenueCatSync();
+
   const sections = useFormSections();
   const assembledInput = useAssembleInput();
   const simConfig = useSimulationConfig();

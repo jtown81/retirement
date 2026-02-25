@@ -7,7 +7,13 @@ import { STORAGE_KEYS, SubscriptionSchema } from '@storage/index';
  * Reads `retire:subscription` from localStorage with safe default to 'basic' tier.
  * UI-only hook — never import from @fedplan/* packages.
  *
- * Phase 3B: localStorage-only implementation. RevenueCat/Firebase integration deferred to Phase 4.
+ * Data flow (Phase 4.2):
+ * 1. useAuth() → get firebaseUID on sign-in
+ * 2. useRevenueCatSync() → check RevenueCat API, write tier to localStorage
+ * 3. useEntitlement() → read from localStorage (fast, reactive)
+ *
+ * Fallback: If RevenueCat API fails or network is offline, cached localStorage value is used
+ * (valid for 7 days before requiring re-auth).
  *
  * Returns:
  *  - tier: 'basic' | 'premium' (defaults to 'basic' if subscription key not set)
