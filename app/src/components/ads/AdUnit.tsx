@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react';
 import { useEntitlement } from '@hooks/useEntitlement';
+import { isNative } from '@auth/platform-detector';
+import { AdMobUnit } from './AdMobUnit';
 
 interface AdUnitProps {
   slotId: string;
@@ -10,14 +12,16 @@ interface AdUnitProps {
 }
 
 /**
- * Ad Unit Component
+ * Ad Unit Component (Platform-Aware)
  *
- * Renders Google AdSense ad slots for Basic tier users.
+ * Renders platform-appropriate ads for Basic tier users:
+ * - Web: Google AdSense
+ * - Mobile: Google AdMob
  *
  * Features:
  * - Only renders for basic tier (premium users see nothing)
  * - Auto-sizes ads for different formats
- * - Defers ad request via adsbygoogle queue
+ * - Defers ad request via platform-specific queue
  * - Development mode: renders placeholder
  *
  * Formats:
@@ -25,14 +29,30 @@ interface AdUnitProps {
  * - 'sidebar': 300x250px (vertical, right side on desktop)
  * - 'anchor': 320x50px (horizontal, bottom mobile sticky)
  *
+ * Platform routing:
+ * - Web: AdSense via <ins> element
+ * - Mobile: AdMob via Capacitor plugin
+ *
  * Usage:
  * <AdUnit slotId={ADSENSE_SLOTS.leaderboard} format="leaderboard" />
  */
 export function AdUnit({ slotId, format, className = '' }: AdUnitProps) {
   const { isBasic } = useEntitlement();
   const isDev = import.meta.env.DEV;
+  const isMobile = isNative();
 
-  // Dimensions for each format
+  // Don't render ads for premium users
+  if (!isBasic) {
+    return null;
+  }
+
+  // Route to mobile ads on iOS/Android
+  // AdMob uses 'banner' for all banner ads (positioning differs on native)
+  if (isMobile) {
+    return <AdMobUnit unitId={slotId} format="banner" className={className} />;
+  }
+
+  // Web: Dimensions for each format
   const dimensions = {
     leaderboard: { width: 728, height: 90 },
     sidebar: { width: 300, height: 250 },
@@ -40,11 +60,6 @@ export function AdUnit({ slotId, format, className = '' }: AdUnitProps) {
   };
 
   const { width, height } = dimensions[format];
-
-  // Don't render ads for premium users
-  if (!isBasic) {
-    return null;
-  }
 
   // Push ad to AdSense queue
   useEffect(() => {
@@ -66,7 +81,7 @@ export function AdUnit({ slotId, format, className = '' }: AdUnitProps) {
       >
         <div className="text-center">
           <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-            AdSense
+            AdSense (Web)
           </p>
           <p className="text-xs text-slate-500 dark:text-slate-500">
             {width}×{height}
