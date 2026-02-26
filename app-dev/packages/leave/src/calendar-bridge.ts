@@ -35,6 +35,8 @@ export interface CalendarYearSummary {
   plannedSickDE: number;
   actualSickLS: number;
   actualSickDE: number;
+  /** Time-off award bonus hours (annual leave only, current year) */
+  timeOffAwardHours: number;
   /** Total used (planned + actual) */
   totalAnnualUsed: number;
   totalSickUsed: number;
@@ -101,8 +103,9 @@ export function computeCalendarYearSummary(
   const totalAnnualUsed = plannedAnnualUsed + actualAnnualUsed;
   const totalSickUsed = plannedSickUsed + actualSickUsed;
 
+  const timeOffAwardHours = yearData.timeOffAwardHours ?? 0;
   const projectedAnnualEOY =
-    yearData.carryOver.annualLeaveHours + annualAccrued - totalAnnualUsed;
+    yearData.carryOver.annualLeaveHours + annualAccrued + timeOffAwardHours - totalAnnualUsed;
   const projectedSickEOY =
     yearData.carryOver.sickLeaveHours + sickAccrued - totalSickUsed;
 
@@ -117,6 +120,7 @@ export function computeCalendarYearSummary(
     sickCarryOver: yearData.carryOver.sickLeaveHours,
     annualAccrued,
     sickAccrued,
+    timeOffAwardHours,
     plannedAnnualUsed,
     plannedSickUsed,
     actualAnnualUsed,

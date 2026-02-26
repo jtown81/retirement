@@ -36,6 +36,7 @@ export interface LeaveCalendarYear {
   accrualRatePerPP: AccrualRate;
   carryOver: LeaveCarryOver;
   entries: CalendarLeaveEntry[];
+  timeOffAwardHours?: number;
 }
 
 export interface LeaveCalendarData {
