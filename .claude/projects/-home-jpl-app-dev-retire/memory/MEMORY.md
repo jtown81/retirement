@@ -1,5 +1,208 @@
 # app-dev/retire Project Memory
 
+## Financial Accuracy Audit & Fixes (2026-03-10) — IN PROGRESS
+
+### E-11: FERS Survivor Benefit Reduction (2026-03-10) — COMPLETE ✅
+Implemented categorical survivor benefit options directly in FERS annuity calculation per 5 U.S.C. § 8420.
+
+**Changes:**
+- models/simulation.ts: Added SurvivorBenefitOption type, survivorBenefitOption field to RetirementAssumptions & SimulationConfig
+- modules/simulation/annuity.ts: Updated computeFERSAnnuity() with survivorBenefitOption parameter (default 'none')
+  - 'none': 0% reduction (no survivor benefit)
+  - 'partial': 5% reduction (25% of annuity to surviving spouse)
+  - 'full': 10% reduction (50% of annuity to surviving spouse)
+- modules/simulation/income-projection.ts: Extract survivorBenefitOption from assumptions, pass to computeFERSAnnuity()
+- components/forms/useFERSEstimate.ts: Maintains backward compatibility (uses default 'none', applies percentage-based reduction)
+- tests/unit/simulation/retirement-simulation.test.ts: Added missing SimulationConfig fields (birthYear, ssClaimingAge, survivorBenefitOption)
+- **All 415 tests passing** ✅
+
+**Commit**: 60d4b5f
+
+### Previous Fixes Completed
+- ✅ E-3: 2026+ TSP contribution limits (IRS Notice 2025-67)
+- ✅ E-4: Enhanced catch-up ages 60-63 ($12,000 for 2026+)
+- ✅ E-2: SECURE 2.0 RMD age 75 for born 1960+
+- ✅ E-5: FERS COLA cap (5 U.S.C. § 8462)
+- ✅ E-6: Social Security claiming age options 62-70 with actuarial adjustments
+- ✅ E-7: Military service years with month precision
+- ✅ E-8: Remove tautological military service filter
+- ✅ E-9: TSP chart balance calculation (was using 10%, now full balance)
+
+### Next Priorities
+1. **E-1 (Tax Module - HIGH EFFORT)**: Federal income tax, IRMAA, state tax, SS taxation
+2. **E-12 (Consolidate Dual Simulation Engines - MEDIUM EFFORT)**: Merge income-projection.ts and retirement-simulation.ts
+3. **Remaining chart recommendations** from TO-DO.md
+
+---
+
+## Public Release Scaffolding & Phase 2 Setup (2026-03-03) — COMPLETE ✅
+
+Created standalone **retire-public** app at `app-dev/public/retire-public/` following Leave app pattern.
+
+**Phase 1 Complete**: Monorepo Scaffolding ✅
+- Full Astro 5 + React 19 structure copied from retire/app
+- Storage keys prefixed with `fedplan-retire:*` (independent from retire/app)
+- All @fedplan/* packages imported (career, tsp, expenses, simulation, etc.)
+- pnpm workspace updated to include new package
+- Capacitor configured for mobile builds (com.fedplan.retire)
+- README + build scripts ready
+
+**Phase 2 Complete**: Backend Infrastructure Scaffolding ✅
+- **Firebase Auth** system copied from leave/app (firebase.ts, firebase-mobile.ts)
+- **Platform detection** for web vs iOS/Android (platform-detector.ts)
+- **RevenueCat subscriptions** framework (revenuecat.ts, revenuecat-mobile.ts)
+- **Auth hook**: useAuth.ts manages sign-in/sign-out (Google, Apple, email)
+- **Subscription hooks**: useEntitlement.ts + useRevenueCatSync.ts for tier checking
+- **Feature flags**: config/features.ts for tier gating
+- **Setup guide**: PHASE-2-SETUP.md with step-by-step Firebase + RevenueCat config
+
+**Next Steps (Phase 2 Implementation)**:
+1. Set up Firebase project + auth providers (Google, Apple, email)
+2. Configure RevenueCat products + entitlements
+3. Create login page + LoginForm component
+4. Add UpgradePrompt paywall component
+5. Test on web + mobile (iOS/Android)
+
+---
+
+## FERC Rebrand (2026-03-03) — COMPLETE ✅
+
+Rebranded the retirement planner from "FedPlan Retire" to **FERC** (Federal Employee Retirement Calculator).
+
+**Changes**:
+- AppShell.tsx: Header/footer branding updated
+- BaseLayout.astro: Page title default updated
+- capacitor.config.ts: App ID and name updated for iOS/Android
+- docs/TERMS_OF_SERVICE.md: Legal disclaimers updated
+- BRAND.md: Comprehensive brand guidelines created (moved from "FedPlan" umbrella to FERC standalone)
+- PHASE-5-*.md: App name references updated
+- TO-DO.md: Roadmap references updated
+
+**Color System**: ✅ Already aligned with FedPlan Leave (Federal Blue #1E6CB5 / #60A5FA, Federal Green #16A34A / #4ADE80)
+**Tests**: ✅ All 789 passing
+**Build**: ✅ Production build succeeds
+
+---
+
+## R.8: Leave App Navigation Alignment (2026-03-02) — COMPLETE ✅
+
+Aligned Leave app navigation with Retire app's unified visual language.
+
+**Changes**:
+- LeaveApp.tsx footer:
+  - Updated brand: "Fed Leave Tracker" → "FedPlan Leave"
+  - Updated messaging: "FedPlan Leave — Smart leave tracking for federal employees"
+
+- BottomNav.tsx styling:
+  - Applied R.7 pill style (rounded-lg, solid active state)
+  - Active: bg-primary text-text-inverse shadow-sm
+  - Inactive: text-text-secondary hover:bg-bg-elevated
+  - Transitions: transition-all duration-200
+  - Touch targets: min-h-12 (48px) for mobile accessibility
+
+**Verification**:
+✅ Header matches R.6 spec (logo, tagline, theme toggle, auth)
+✅ App name is "FedPlan Leave"
+✅ Tagline matches brand voice
+✅ Bottom nav styling unified
+✅ Leave app builds successfully
+✅ Icon sizing consistent (20px)
+
+**Commit**: 55d3976
+
+---
+
+## R.7: Tab Navigation Polish (2026-03-02) — COMPLETE ✅
+
+Upgraded form tab bar styling to match Leave app's polished design with completion indicators.
+
+**Part 1 - Styling** (commit c3db019):
+- TabsList: bg-transparent with gap-1 for pill separation
+- TabsTrigger: rounded-lg pills with smooth transitions (transition-all duration-200)
+- Active state: data-[state=active]:bg-primary data-[state=active]:text-text-inverse
+- Inactive state: text-text-secondary with hover:bg-bg-elevated
+- Mobile accessibility: min-h-12 (48px tap targets)
+
+**Part 2 - Completion Indicators** (commit f9e994e):
+- FormShell: Added required property to TabDef interface
+- Completion indicators:
+  - ✅ Green checkmark (CheckCircle2) for complete tabs
+  - 🔒 Amber lock icon for premium-locked tabs
+  - 🟢 Pulsing gray circle for incomplete required tabs
+  - ⚪ Static gray circle for incomplete optional tabs
+- Enhanced screen reader labels for better accessibility
+
+**Summary**:
+✅ Rounded pill appearance with solid active state
+✅ Smooth transitions on all states
+✅ Mobile-friendly 48px+ tap targets
+✅ Responsive text (icons only on mobile, labels on sm+)
+✅ Visual hierarchy with pulse animation for required incomplete tabs
+✅ All tests passing (789/789), build succeeds
+
+---
+
+## R.6: Retire App Header Redesign (2026-03-02) — COMPLETE ✅
+
+Polished header to match Leave app pattern with responsive design.
+
+**Changes**:
+- ✅ Added shadow-sm to header for visual depth
+- ✅ Changed title to font-bold (from font-semibold)
+- ✅ Responsive display:
+  - Desktop (sm+): Full "FedPlan Retire" + tagline
+  - Mobile: Abbreviated "FedPlan" name only
+- ✅ Improved theme toggle styling (native button, hover effects)
+- ✅ Added focus-visible ring styling for accessibility
+- ✅ Logo flex-shrink-0 to prevent squishing
+
+**Result**: Header matches Leave app pattern perfectly
+**Commit**: cabcccb
+**Tests**: All 789 passing, build succeeds
+
+---
+
+## R.4: Placeholder Logo System (2026-03-02) — COMPLETE ✅
+
+Created unified SVG logo system with shield + app-specific icon motif.
+
+**Retire App**:
+- favicon.svg, logo-light.svg, logo-dark.svg (shield + ascending bar chart)
+- logo-full-light.svg, logo-full-dark.svg (with "FedPlan Retire" wordmark)
+- Added favicon link to BaseLayout.astro
+- Updated AppShell to conditionally render logo based on dark mode
+- Dark mode tracking via MutationObserver for live theme changes
+
+**Leave App**:
+- Created logo-full-light.svg and logo-full-dark.svg (with "FedPlan Leave" wordmark)
+- Existing logos (favicon, logo-light, logo-dark) kept as-is
+
+**Colors**:
+- Light: Federal Blue #1E6CB5
+- Dark: Light Blue #60A5FA
+
+**Commits**: d9dd71d (Retire), 15df2ab (Leave)
+
+---
+
+## R.2: Color System Unification (2026-03-02) — COMPLETE ✅
+
+Unified Retire app color palette with Leave app's federal blue/green system.
+
+**Completed**:
+- ✅ Replaced OKLCH grayscale in global.css with named CSS variables (hex)
+- ✅ Light: Federal Blue #1E6CB5, Federal Green #16A34A + 10 neutrals
+- ✅ Dark: Matching overrides for all colors
+- ✅ Added @fontsource/inter + @fontsource/jetbrains-mono packages
+- ✅ Updated useChartTheme.ts: income=primary blue, expenses=fedgreen
+- ✅ Added fedgreen + textMuted properties to ChartTheme
+- ✅ Fixed hardcoded colors in MonteCarloFanChart (success badge)
+- ✅ Updated TSPFundDonut fallback color
+- ✅ All 789 tests passing, build succeeds
+- ✅ Commit: 88fbd2c
+
+---
+
 ## Phase 2: Leave App Separation (2026-02-24) — COMPLETE ✅
 
 **Standalone leave app created at app-dev/leave/app; component cleanup & import unification done**
