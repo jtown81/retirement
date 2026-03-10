@@ -46,6 +46,31 @@ function ageAt(birthDate: string, atDate: string): number {
 }
 
 /**
+ * Calculates the duration in years (with fractional months) between two dates.
+ * Accounts for actual month/day differences, not just full years.
+ *
+ * Example: Jan 15, 2010 to Nov 20, 2013 = 3.833 years (3y 10m)
+ *
+ * @param startDate - ISO date string (YYYY-MM-DD)
+ * @param endDate - ISO date string (YYYY-MM-DD)
+ * @returns Duration in years as decimal (e.g., 3.5 = 3 years 6 months)
+ */
+function yearsBetween(startDate: string, endDate: string): number {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  const years = end.getFullYear() - start.getFullYear();
+  const months = end.getMonth() - start.getMonth();
+  const days = end.getDate() - start.getDate();
+
+  // Convert to fractional years
+  let totalMonths = years * 12 + months;
+  if (days < 0) totalMonths -= 1; // Partial month
+
+  return totalMonths / 12;
+}
+
+/**
  * Projects total annual retirement income, expenses, and net surplus.
  *
  * Formula ID: simulation/income-projection
@@ -83,10 +108,10 @@ export function projectRetirementIncome(input: SimulationInput): SimulationResul
 
   // ── Step 3: military — total creditable service ──────────────────────────────
   const militaryServices = profile.militaryService ?? [];
+  // Calculate military service duration at month level for accuracy
+  // (e.g., Jan 2010 - Nov 2013 = 3.83 years, not 3 years)
   const totalMilitaryYears = militaryServices.reduce((sum, m) => {
-      const start = new Date(m.startDate).getFullYear();
-      const end = new Date(m.endDate).getFullYear();
-      return sum + (end - start);
+      return sum + yearsBetween(m.startDate, m.endDate);
     }, 0);
   const totalMilitaryBuybackCompleted = militaryServices.every(
     (m) => m.buybackDepositPaid > 0,
