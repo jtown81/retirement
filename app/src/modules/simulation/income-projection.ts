@@ -24,7 +24,7 @@
  */
 
 import type { SimulationInput, SimulationResult, AnnualProjection } from '../../models/simulation';
-import { checkFERSEligibility } from './eligibility';
+import { checkFERSEligibility, fersCOLARate } from './eligibility';
 import { computeFERSAnnuity, computeFERSSupplement, computeHigh3 } from './annuity';
 import { totalAnnualExpenses } from '../expenses/categories';
 import { applySmileCurve, defaultSmileCurveParams } from '../expenses/smile-curve';
@@ -83,9 +83,7 @@ export function projectRetirementIncome(input: SimulationInput): SimulationResul
 
   // ── Step 3: military — total creditable service ──────────────────────────────
   const militaryServices = profile.militaryService ?? [];
-  const totalMilitaryYears = militaryServices
-    .filter((m) => m.militaryRetirementWaived || !m.militaryRetirementWaived)
-    .reduce((sum, m) => {
+  const totalMilitaryYears = militaryServices.reduce((sum, m) => {
       const start = new Date(m.startDate).getFullYear();
       const end = new Date(m.endDate).getFullYear();
       return sum + (end - start);
@@ -152,17 +150,20 @@ export function projectRetirementIncome(input: SimulationInput): SimulationResul
   const projections: AnnualProjection[] = [];
   let currentTSPBalance = tspBalance;
 
+  // Apply FERS COLA cap to the assumed COLA rate
+  const actualFERSCOLA = fersCOLARate(colaRate);
+
   for (let yr = 0; yr < retirementHorizonYears; yr++) {
     const calendarYear = new Date(retirementDate).getFullYear() + yr;
     const ageThisYear = ageAtRetirement + yr;
 
-    // Annuity grows by COLA each year
-    const annuity = baseAnnuity * Math.pow(1 + colaRate, yr);
+    // Annuity grows by actual FERS COLA (capped per 5 U.S.C. § 8462)
+    const annuity = baseAnnuity * Math.pow(1 + actualFERSCOLA, yr);
 
     // FERS Supplement ends at age 62
     const fersSupplementAmount =
       supplementResult.eligible && ageThisYear < 62
-        ? supplementResult.annualAmount * Math.pow(1 + colaRate, yr)
+        ? supplementResult.annualAmount * Math.pow(1 + actualFERSCOLA, yr)
         : 0;
 
     // TSP: balance grows at growth rate, then we withdraw

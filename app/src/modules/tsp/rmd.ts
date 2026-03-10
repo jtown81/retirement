@@ -95,14 +95,17 @@ export function getDistributionPeriod(age: number): number {
 
 /**
  * Returns true if RMDs are required at the given age.
- * Under SECURE 2.0 Act, RMD begins at age 73 (for those turning 73 in 2023-2032).
- * Rises to 75 for those turning 75 in 2033+.
+ * Under SECURE 2.0 Act § 107:
+ *   - Born before 1960: RMD begins at age 73
+ *   - Born 1960 or later: RMD begins at age 75 (effective 2033)
  *
- * For simplicity, this uses age 73 as the threshold. A future update
- * should accept birth year to determine the 73 vs 75 cutoff.
+ * @param age - Owner's age in the distribution year
+ * @param birthYear - Owner's birth year (optional; defaults to age 73 if not provided)
+ * @returns True if RMD is required at this age
  */
-export function isRMDRequired(age: number): boolean {
-  return age >= 73;
+export function isRMDRequired(age: number, birthYear?: number): boolean {
+  const rmdAge = birthYear && birthYear >= 1960 ? 75 : 73;
+  return age >= rmdAge;
 }
 
 /**
@@ -110,11 +113,12 @@ export function isRMDRequired(age: number): boolean {
  *
  * @param traditionalBalance - Traditional TSP/IRA balance as of Dec 31 of prior year
  * @param age - Owner's age in the distribution year
+ * @param birthYear - Owner's birth year (optional; used to determine RMD onset age)
  * @returns The minimum amount that must be withdrawn, or 0 if not yet required
  */
-export function computeRMD(traditionalBalance: number, age: number): number {
+export function computeRMD(traditionalBalance: number, age: number, birthYear?: number): number {
   if (traditionalBalance <= 0) return 0;
-  if (!isRMDRequired(age)) return 0;
+  if (!isRMDRequired(age, birthYear)) return 0;
 
   const period = getDistributionPeriod(age);
   return traditionalBalance / period;

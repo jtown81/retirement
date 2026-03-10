@@ -77,7 +77,7 @@ export function useSimulation(input: SimulationInput | null): SimulationData | n
       if (tradBalance === 0 && rothBalance === 0) return [];
 
       const years = projectTraditionalDetailed({
-        openingBalance: tradBalance > 0 ? tradBalance * 0.1 : 0,
+        openingBalance: tradBalance,
         annualSalary: salaryHistory.length > 0 ? salaryHistory[salaryHistory.length - 1].salary : 50_000,
         employeeAnnualContribution: 5_000,
         employeeContributionPct: 0.10,

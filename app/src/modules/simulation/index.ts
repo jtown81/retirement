@@ -19,7 +19,7 @@ export type { MRAResult, EligibilityResult } from './eligibility';
 export type { FERSAnnuityResult, FERSSupplementResult } from './annuity';
 export type { ScenarioSummary, ScenarioComparisonResult } from './scenario';
 
-export { getMRA, checkFERSEligibility, mra10ReductionFactor } from './eligibility';
+export { getMRA, checkFERSEligibility, mra10ReductionFactor, fersCOLARate } from './eligibility';
 export { computeHigh3, computeFERSAnnuity, computeFERSSupplement } from './annuity';
 export { projectRetirementIncome } from './income-projection';
 export { projectRetirementSimulation } from './retirement-simulation';

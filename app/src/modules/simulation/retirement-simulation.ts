@@ -20,6 +20,7 @@ import type {
   FullSimulationResult,
 } from '../../models/simulation';
 import { computeRMD, isRMDRequired } from '../tsp/rmd';
+import { fersCOLARate } from './eligibility';
 
 /**
  * Computes the expense smile curve multiplier for GoGo/GoSlow/NoGo phases.
@@ -49,6 +50,9 @@ export function projectRetirementSimulation(
   const years: SimulationYearResult[] = [];
   const startYear = new Date().getFullYear(); // calendar year for year 0
 
+  // Apply FERS COLA cap to the assumed rate
+  const actualFERSCOLA = fersCOLARate(config.colaRate);
+
   // Initial TSP split into Traditional / Roth
   const totalTSP = config.tspBalanceAtRetirement;
   let traditionalBalance = totalTSP * config.traditionalPct;
@@ -75,12 +79,12 @@ export function projectRetirementSimulation(
     const calendarYear = startYear + yr;
 
     // ── 1. Income ────────────────────────────────────────────────────
-    const annuity = config.fersAnnuity * Math.pow(1 + config.colaRate, yr);
+    const annuity = config.fersAnnuity * Math.pow(1 + actualFERSCOLA, yr);
     const fersSupplement = age < 62
-      ? config.fersSupplement * Math.pow(1 + config.colaRate, yr)
+      ? config.fersSupplement * Math.pow(1 + actualFERSCOLA, yr)
       : 0;
     const socialSecurity = age >= 62
-      ? config.ssMonthlyAt62 * 12 * Math.pow(1 + config.colaRate, Math.max(0, yr - (62 - config.retirementAge)))
+      ? config.ssMonthlyAt62 * 12 * Math.pow(1 + actualFERSCOLA, Math.max(0, yr - (62 - config.retirementAge)))
       : 0;
 
     const otherIncome = annuity + fersSupplement + socialSecurity;
@@ -95,7 +99,7 @@ export function projectRetirementSimulation(
 
     // ── 3. TSP withdrawal needed ─────────────────────────────────────
     // Annual withdrawal grows with COLA from base amount
-    const plannedWithdrawal = baseAnnualWithdrawal * Math.pow(1 + config.colaRate, yr);
+    const plannedWithdrawal = baseAnnualWithdrawal * Math.pow(1 + actualFERSCOLA, yr);
 
     // Current total balances
     traditionalBalance = highRiskTrad + lowRiskTrad;
@@ -141,7 +145,7 @@ export function projectRetirementSimulation(
 
     // ── 7. Rebalance: high → low to maintain time-step buffer ────────
     // Target low-risk balance = timeStepYears × next year's expected withdrawal
-    const nextYearWithdrawal = baseAnnualWithdrawal * Math.pow(1 + config.colaRate, yr + 1);
+    const nextYearWithdrawal = baseAnnualWithdrawal * Math.pow(1 + actualFERSCOLA, yr + 1);
     const targetLowRisk = nextYearWithdrawal * config.timeStepYears;
     const currentLowRisk = lowRiskTrad + lowRiskRoth;
     const currentHighRisk = highRiskTrad + highRiskRoth;

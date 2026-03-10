@@ -162,3 +162,25 @@ export function mra10ReductionFactor(ageAtRetirement: number): number {
   const yearsUnder62 = Math.floor(62 - ageAtRetirement);
   return Math.max(0, 1 - yearsUnder62 * 0.05);
 }
+
+/**
+ * Computes the actual FERS COLA rate given a CPI increase.
+ *
+ * FERS COLA rules (5 U.S.C. § 8462):
+ *   - CPI increase <= 2.0%: full COLA applied
+ *   - CPI increase > 2.0% and <= 3.0%: COLA capped at 2.0%
+ *   - CPI increase > 3.0%: COLA = CPI - 1.0%
+ *
+ * Formula ID: simulation/fers-cola
+ * Source: 5 U.S.C. § 8462; OPM FERS Handbook Ch. 2
+ *
+ * @param cpiRate - Consumer Price Index annual increase as decimal (e.g., 0.025 = 2.5%)
+ * @returns Actual FERS COLA rate as decimal
+ */
+export function fersCOLARate(cpiRate: number): number {
+  if (cpiRate < 0) throw new RangeError('cpiRate must be >= 0');
+
+  if (cpiRate <= 0.02) return cpiRate;           // Full COLA if CPI <= 2%
+  if (cpiRate <= 0.03) return 0.02;              // Capped at 2% if 2% < CPI <= 3%
+  return cpiRate - 0.01;                         // CPI - 1% if CPI > 3%
+}
