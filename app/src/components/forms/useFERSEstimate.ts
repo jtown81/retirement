@@ -120,6 +120,8 @@ export function useFERSEstimate(input: FERSEstimateInput): FERSEstimateResult | 
     const high3Salary = input.high3Override ?? computedHigh3;
 
     // Annuity
+    // NOTE: Default survivorBenefitOption='none' prevents internal survivor reduction,
+    // allowing this hook to apply survivor reduction as a percentage (legacy approach).
     const annuityResult: FERSAnnuityResult = computeFERSAnnuity(
       high3Salary,
       totalCreditableService,
@@ -129,7 +131,7 @@ export function useFERSEstimate(input: FERSEstimateInput): FERSEstimateResult | 
 
     const annuityPct = annuityResult.multiplier * 100;
 
-    // Apply user-specified survivor benefit reduction
+    // Apply user-specified survivor benefit reduction (percentage-based)
     const survivorReduction = annuityResult.netAnnualAnnuity * input.annuityReductionPct;
     const netAnnuity = annuityResult.netAnnualAnnuity - survivorReduction;
     const monthlyAnnuity = netAnnuity / 12;

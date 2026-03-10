@@ -73,17 +73,24 @@ export function computeHigh3(salaryHistory: SalaryRecord[]): number {
  * MRA+10 reduction: 5% per full year the employee is under 62 at retirement.
  * Applied only if eligibilityType is 'MRA+10-reduced'.
  *
+ * Survivor Benefit reduction (5 U.S.C. § 8420):
+ *   'none': no reduction (0%)
+ *   'partial': 5% reduction (25% of annuity to surviving spouse)
+ *   'full': 10% reduction (50% of annuity to surviving spouse)
+ *
  * @param high3Salary - High-3 average salary
  * @param creditableServiceYears - Total creditable service (including sick leave + military)
  * @param ageAtRetirement - Employee's age at retirement (decimal)
  * @param eligibilityType - The eligibility basis (for MRA+10 reduction)
- * @returns Detailed annuity result
+ * @param survivorBenefitOption - Survivor benefit election ('none', 'partial', or 'full')
+ * @returns Detailed annuity result (netAnnualAnnuity includes both MRA+10 and survivor reductions)
  */
 export function computeFERSAnnuity(
   high3Salary: number,
   creditableServiceYears: number,
   ageAtRetirement: number,
   eligibilityType?: string | null,
+  survivorBenefitOption: string = 'none',
 ): FERSAnnuityResult {
   if (high3Salary < 0) throw new RangeError('high3Salary must be >= 0');
   if (creditableServiceYears < 0) throw new RangeError('creditableServiceYears must be >= 0');
@@ -94,8 +101,18 @@ export function computeFERSAnnuity(
 
   const gross = high3Salary * creditableServiceYears * multiplier;
 
-  const reductionFactor =
+  // MRA+10 reduction (5% per full year under 62)
+  const mra10Factor =
     eligibilityType === 'MRA+10-reduced' ? mra10ReductionFactor(ageAtRetirement) : 1.0;
+
+  // Survivor benefit reduction
+  const survivorFactor =
+    survivorBenefitOption === 'full' ? 0.90
+      : survivorBenefitOption === 'partial' ? 0.95
+        : 1.0; // 'none'
+
+  // Combined reduction factor
+  const reductionFactor = mra10Factor * survivorFactor;
 
   return {
     high3Salary,

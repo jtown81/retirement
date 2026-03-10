@@ -87,6 +87,7 @@ export function projectRetirementIncome(input: SimulationInput): SimulationResul
     retirementHorizonYears,
     tspWithdrawalRate = DEFAULT_TSP_WITHDRAWAL_RATE,
     estimatedSSMonthlyAt62 = 0,
+    survivorBenefitOption = 'full',
   } = assumptions;
 
   // ── Step 1: career — High-3 and creditable service ──────────────────────────
@@ -148,6 +149,7 @@ export function projectRetirementIncome(input: SimulationInput): SimulationResul
     totalCreditableService,
     ageAtRetirement,
     eligibility.type,
+    survivorBenefitOption,
   );
   const baseAnnuity = annuityResult.netAnnualAnnuity;
 

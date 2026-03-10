@@ -10,6 +10,9 @@ import type { TSPBalances, TSPContributionEvent } from './tsp';
 import type { MilitaryService } from './military';
 import type { ExpenseProfile } from './expenses';
 
+/** FERS Survivor Benefit election options */
+export type SurvivorBenefitOption = 'none' | 'partial' | 'full';
+
 /**
  * Retirement planning assumptions — user-configurable parameters
  * that drive the simulation forward.
@@ -50,6 +53,17 @@ export interface RetirementAssumptions {
    * Source: Social Security Administration; IRC § 402
    */
   ssClaimingAge?: number;
+  /**
+   * FERS Survivor Benefit election. Reduces annuity but provides spouse/family protection.
+   * DEFAULT: 'full' (most married employees elect this).
+   * OPTIONS:
+   *   'none': No reduction, no survivor benefit (single employees or waived)
+   *   'partial': 5% reduction, 25% of annuity to surviving spouse
+   *   'full': 10% reduction, 50% of annuity to surviving spouse
+   * ASSUMPTION: User choice at retirement. Spouse must sign waiver if electing 'none'.
+   * Source: 5 U.S.C. § 8420; OPM FERS Handbook Ch. 51
+   */
+  survivorBenefitOption?: SurvivorBenefitOption;
 }
 
 export interface SimulationInput {
@@ -112,6 +126,8 @@ export interface SimulationConfig {
   endAge: number;
   /** Net annual FERS annuity (after survivor benefit reduction) */
   fersAnnuity: USD;
+  /** FERS Survivor Benefit election (determines the reduction applied to annuity) */
+  survivorBenefitOption: SurvivorBenefitOption;
   /** Annual FERS Supplement (0 if not eligible; paid until age 62) */
   fersSupplement: USD;
   /** Monthly Social Security benefit at age 62 (0 if unknown) */

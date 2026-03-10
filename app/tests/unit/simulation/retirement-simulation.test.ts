@@ -4,11 +4,14 @@ import type { SimulationConfig } from '../../../src/models/simulation';
 
 function makeConfig(overrides: Partial<SimulationConfig> = {}): SimulationConfig {
   return {
+    birthYear: 1964, // Assumed birth year (age 60 in 2024)
     retirementAge: 60,
     endAge: 95,
     fersAnnuity: 30_000,
+    survivorBenefitOption: 'full',
     fersSupplement: 10_000,
     ssMonthlyAt62: 1_800,
+    ssClaimingAge: 62, // Default to age 62 for Social Security
     tspBalanceAtRetirement: 500_000,
     traditionalPct: 0.70,
     highRiskPct: 0.60,
