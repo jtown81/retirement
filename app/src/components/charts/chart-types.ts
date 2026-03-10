@@ -6,7 +6,7 @@
  * stays in the demo fixture or useSimulation hook.
  */
 
-import type { AnnualProjection } from '@models/simulation';
+import type { AnnualProjection, SimulationYearResult } from '@models/simulation';
 
 // ── Data point interfaces ────────────────────────────────────────────────────
 
@@ -63,8 +63,21 @@ export interface IncomeVsExpensesChartProps {
   data: AnnualProjection[];
 }
 
+export interface TaxAdjustedIncomeChartProps {
+  data: SimulationYearResult[];
+}
+
 export interface ExpenseSmileCurveChartProps {
   data: SmileCurveDataPoint[];
+}
+
+export interface SSClaimingComparisonChartProps {
+  monthlyBenefit62: number;
+  monthlyBenefitFRA: number;
+  monthlyBenefit70: number;
+  fullRetirementAge: number;
+  retirementAge: number;
+  maxAge?: number;
 }
 
 export interface MetricCardProps {

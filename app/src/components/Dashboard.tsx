@@ -5,12 +5,16 @@ import { SectionHeading } from './layout/SectionHeading';
 import { SummaryPanel } from './cards/SummaryPanel';
 import { MetricCardSkeleton } from './cards/MetricCardSkeleton';
 import { IncomeVsExpensesChart } from './charts/IncomeVsExpensesChart';
+import { TaxAdjustedIncomeChart } from './charts/TaxAdjustedIncomeChart';
+import { SSClaimingComparisonChart } from './charts/SSClaimingComparisonChart';
 import { PayGrowthChart } from './charts/PayGrowthChart';
 import { TSPBalancesChart } from './charts/TSPBalancesChart';
 import { LeaveBalancesChart } from './charts/LeaveBalancesChart';
 import { ExpenseSmileCurveChart } from './charts/ExpenseSmileCurveChart';
 import { ChartSkeleton } from './charts/ChartSkeleton';
 import type { SimulationData } from '@hooks/useSimulation';
+import { useFullSimulation } from '@hooks/useFullSimulation';
+import { computeSSClaimingVariants } from '@utils/ss-claiming-helper';
 
 const USD_FORMAT = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -24,6 +28,8 @@ interface DashboardProps {
 }
 
 export function Dashboard({ data, mode }: DashboardProps) {
+  const fullSimulation = useFullSimulation();
+
   if (!data) {
     return (
       <div className="space-y-6">
@@ -158,6 +164,47 @@ export function Dashboard({ data, mode }: DashboardProps) {
       </section>
 
       <Separator />
+
+      {/* Tax-Adjusted Income Waterfall (when full simulation available) */}
+      {fullSimulation && fullSimulation.years.length > 0 && (
+        <>
+          <section className="space-y-4">
+            <SectionHeading
+              title="Tax-Adjusted Income"
+              description="Gross income by source with federal tax and IRMAA impact"
+            />
+            <TaxAdjustedIncomeChart data={fullSimulation.years} />
+          </section>
+
+          <Separator />
+
+          {/* Social Security Claiming Age Comparison */}
+          {fullSimulation.config && fullSimulation.config.estimatedSocialSecurityBenefit && (
+            <>
+              <section className="space-y-4">
+                <SectionHeading
+                  title="Social Security Claiming Age Analysis"
+                  description="Cumulative lifetime benefits at different claiming ages (most impactful retirement decision)"
+                />
+                {(() => {
+                  const variants = computeSSClaimingVariants(
+                    fullSimulation.config.estimatedSocialSecurityBenefit,
+                    fullSimulation.config.birthYear ?? 1965,
+                  );
+                  return (
+                    <SSClaimingComparisonChart
+                      {...variants}
+                      retirementAge={fullSimulation.config.retirementAge}
+                    />
+                  );
+                })()}
+              </section>
+
+              <Separator />
+            </>
+          )}
+        </>
+      )}
 
       {/* Pay Growth */}
       <section className="space-y-4">
