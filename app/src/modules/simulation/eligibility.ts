@@ -184,3 +184,70 @@ export function fersCOLARate(cpiRate: number): number {
   if (cpiRate <= 0.03) return 0.02;              // Capped at 2% if 2% < CPI <= 3%
   return cpiRate - 0.01;                         // CPI - 1% if CPI > 3%
 }
+
+/**
+ * Returns the Full Retirement Age (FRA) for a given birth year.
+ *
+ * FRA table per Social Security Administration (IRC § 401):
+ *   1943–1954: 66
+ *   1955: 66 + 2 months
+ *   1956: 66 + 4 months
+ *   1957: 66 + 6 months
+ *   1958: 66 + 8 months
+ *   1959: 66 + 10 months
+ *   1960+: 67
+ *
+ * Formula ID: simulation/social-security-fra
+ * Source: Social Security Administration; 42 U.S.C. § 416(l)
+ *
+ * @param birthYear - Employee's 4-digit birth year
+ * @returns Full Retirement Age as decimal (e.g., 66.5 = 66 years 6 months)
+ */
+export function getFullRetirementAge(birthYear: number): number {
+  if (birthYear < 1943) return 66;
+  if (birthYear <= 1954) return 66;
+  if (birthYear === 1955) return 66 + 2 / 12;
+  if (birthYear === 1956) return 66 + 4 / 12;
+  if (birthYear === 1957) return 66 + 6 / 12;
+  if (birthYear === 1958) return 66 + 8 / 12;
+  if (birthYear === 1959) return 66 + 10 / 12;
+  return 67; // 1960+
+}
+
+/**
+ * Computes the Social Security benefit adjustment factor based on claiming age.
+ *
+ * Actuarial adjustments per SSA rules:
+ *   - Before FRA: 6.67% reduction per year (approximately 5/9 of 1%)
+ *   - At FRA: 100% of PIA (Primary Insurance Amount)
+ *   - After FRA: 8% credit per year (delayed retirement credits)
+ *
+ * Formula ID: simulation/social-security-adjustment
+ * Source: SSA benefit computation; 42 U.S.C. § 402(w)
+ *
+ * @param claimingAge - Age at which SS will be claimed (62–70)
+ * @param birthYear - Birth year (to calculate FRA)
+ * @returns Multiplier applied to PIA at age 62 (e.g., 0.70 = 70% of PIA)
+ */
+export function ssAdjustmentFactor(claimingAge: number, birthYear: number): number {
+  if (claimingAge < 62 || claimingAge > 70) {
+    throw new RangeError('claimingAge must be between 62 and 70');
+  }
+
+  const fra = getFullRetirementAge(birthYear);
+
+  if (claimingAge < fra) {
+    // Before FRA: 6.67% reduction per year
+    const monthsEarly = (fra - claimingAge) * 12;
+    const monthlyReduction = 0.0667 / 12;
+    return Math.max(0.70, 1 - monthlyReduction * monthsEarly); // Floor at 70%
+  }
+
+  if (claimingAge === fra) {
+    return 1.0; // Full PIA
+  }
+
+  // After FRA: 8% credit per year
+  const yearsDelayed = claimingAge - fra;
+  return Math.min(1.24, 1.0 + 0.08 * yearsDelayed); // Cap at 124%
+}

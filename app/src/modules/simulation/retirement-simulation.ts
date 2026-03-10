@@ -20,7 +20,7 @@ import type {
   FullSimulationResult,
 } from '../../models/simulation';
 import { computeRMD, isRMDRequired } from '../tsp/rmd';
-import { fersCOLARate } from './eligibility';
+import { fersCOLARate, getFullRetirementAge, ssAdjustmentFactor } from './eligibility';
 
 /**
  * Computes the expense smile curve multiplier for GoGo/GoSlow/NoGo phases.
@@ -53,6 +53,10 @@ export function projectRetirementSimulation(
   // Apply FERS COLA cap to the assumed rate
   const actualFERSCOLA = fersCOLARate(config.colaRate);
 
+  // Compute Social Security adjustment factor based on claiming age
+  const ssAdjustment = ssAdjustmentFactor(config.ssClaimingAge, config.birthYear);
+  const adjustedSSMonthly = config.ssMonthlyAt62 * ssAdjustment;
+
   // Initial TSP split into Traditional / Roth
   const totalTSP = config.tspBalanceAtRetirement;
   let traditionalBalance = totalTSP * config.traditionalPct;
@@ -83,8 +87,9 @@ export function projectRetirementSimulation(
     const fersSupplement = age < 62
       ? config.fersSupplement * Math.pow(1 + actualFERSCOLA, yr)
       : 0;
-    const socialSecurity = age >= 62
-      ? config.ssMonthlyAt62 * 12 * Math.pow(1 + actualFERSCOLA, Math.max(0, yr - (62 - config.retirementAge)))
+    // Social Security: begins at ssClaimingAge, grows by COLA from claiming year
+    const socialSecurity = age >= config.ssClaimingAge
+      ? adjustedSSMonthly * 12 * Math.pow(1 + actualFERSCOLA, Math.max(0, yr - (config.ssClaimingAge - config.retirementAge)))
       : 0;
 
     const otherIncome = annuity + fersSupplement + socialSecurity;

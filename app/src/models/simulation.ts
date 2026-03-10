@@ -34,12 +34,22 @@ export interface RetirementAssumptions {
    */
   tspWithdrawalRate?: Rate;
   /**
-   * Estimated monthly Social Security benefit at age 62 (in today's dollars).
-   * Used to compute the FERS Supplement (SRS).
+   * Estimated monthly Social Security Primary Insurance Amount (PIA) at age 62 (in today's dollars).
+   * Used to compute the FERS Supplement (SRS) and SS benefit amount.
    * ASSUMPTION: User-provided from their Social Security statement.
-   * If omitted, SRS is set to 0.
+   * If omitted, SRS is set to 0 and SS benefit is 0.
    */
   estimatedSSMonthlyAt62?: USD;
+  /**
+   * Age at which the employee will claim Social Security benefits (62–70).
+   * DEFAULT: 62 (immediate claiming).
+   * ASSUMPTION: User choice. Affects benefit amount due to actuarial adjustments:
+   *   - Before FRA: 6.67% reduction per year
+   *   - At FRA: 100% of PIA
+   *   - After FRA: 8% credit per year (delayed retirement credits)
+   * Source: Social Security Administration; IRC § 402
+   */
+  ssClaimingAge?: number;
 }
 
 export interface SimulationInput {
@@ -94,6 +104,8 @@ export interface RetirementScenario {
  */
 export interface SimulationConfig {
   // ── Core (drawn from FERS Estimate results) ──
+  /** Birth year (for calculating FRA and Social Security adjustments) */
+  birthYear: number;
   /** Age at retirement (integer) */
   retirementAge: number;
   /** End age for projection (default: 95, max: 104) */
@@ -104,6 +116,8 @@ export interface SimulationConfig {
   fersSupplement: USD;
   /** Monthly Social Security benefit at age 62 (0 if unknown) */
   ssMonthlyAt62: USD;
+  /** Age at which Social Security will be claimed (62–70, default: 62) */
+  ssClaimingAge: number;
 
   // ── TSP ──
   /** Total TSP balance at retirement */
