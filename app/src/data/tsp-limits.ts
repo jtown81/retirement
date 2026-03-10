@@ -17,43 +17,50 @@ export interface TSPLimits {
   year: number;
   /** Maximum employee elective deferral (Traditional + Roth combined), IRC § 402(g) */
   electiveDeferralLimit: number;
-  /** Additional catch-up contribution for age 50+, IRC § 414(v) */
+  /** Additional catch-up contribution for age 50-59, IRC § 414(v) */
   catchUpLimit: number;
+  /** Additional catch-up for ages 60-63 (SECURE 2.0 § 107), or 0 if not available */
+  enhancedCatchUpLimit?: number;
 }
 
 /**
  * Historical and current IRS TSP/401(k) contribution limits.
  * All dollar amounts in nominal USD.
+ *
+ * SECURE 2.0 (2022) introduced enhanced catch-up for ages 60-63:
+ *   Years 2023-2025: $7,500 (same as age 50-59 catch-up)
+ *   Years 2026+: $8,000 (increased; actual age 50-59 limit varies)
+ *
+ * ASSUMPTION: Projected beyond 2025 at +$500/year elective deferral.
+ * Update this table annually when IRS publishes new limits.
  */
 export const TSP_LIMITS_BY_YEAR: readonly TSPLimits[] = [
   { year: 2020, electiveDeferralLimit: 19500, catchUpLimit: 6500 },
   { year: 2021, electiveDeferralLimit: 19500, catchUpLimit: 6500 },
   { year: 2022, electiveDeferralLimit: 20500, catchUpLimit: 6500 },
-  { year: 2023, electiveDeferralLimit: 22500, catchUpLimit: 7500 },
-  { year: 2024, electiveDeferralLimit: 23000, catchUpLimit: 7500 },
-  { year: 2025, electiveDeferralLimit: 23500, catchUpLimit: 7500 },
-  // ASSUMPTION: Projected beyond 2025 at +$500/year elective deferral, catch-up unchanged.
-  // Update this table annually when IRS publishes new limits.
-  { year: 2026, electiveDeferralLimit: 24500, catchUpLimit: 8000 },
-  { year: 2027, electiveDeferralLimit: 25000, catchUpLimit: 8000 },
-  { year: 2028, electiveDeferralLimit: 25500, catchUpLimit: 8000 },
-  { year: 2029, electiveDeferralLimit: 26000, catchUpLimit: 8000 },
-  { year: 2030, electiveDeferralLimit: 26500, catchUpLimit: 8000 },
-  { year: 2031, electiveDeferralLimit: 27000, catchUpLimit: 8000 },
-  { year: 2032, electiveDeferralLimit: 27500, catchUpLimit: 8000 },
-  { year: 2033, electiveDeferralLimit: 28000, catchUpLimit: 8000 },
-  { year: 2034, electiveDeferralLimit: 28500, catchUpLimit: 8000 },
-  { year: 2035, electiveDeferralLimit: 29000, catchUpLimit: 8000 },
-  { year: 2036, electiveDeferralLimit: 29500, catchUpLimit: 8000 },
-  { year: 2037, electiveDeferralLimit: 30000, catchUpLimit: 8000 },
-  { year: 2038, electiveDeferralLimit: 30500, catchUpLimit: 8000 },
-  { year: 2039, electiveDeferralLimit: 31000, catchUpLimit: 8000 },
-  { year: 2040, electiveDeferralLimit: 31500, catchUpLimit: 8000 },
-  { year: 2041, electiveDeferralLimit: 32000, catchUpLimit: 8000 },
-  { year: 2042, electiveDeferralLimit: 32500, catchUpLimit: 8000 },
-  { year: 2043, electiveDeferralLimit: 33000, catchUpLimit: 8000 },
-  { year: 2044, electiveDeferralLimit: 33500, catchUpLimit: 8000 },
-  { year: 2045, electiveDeferralLimit: 34000, catchUpLimit: 8000 },
+  { year: 2023, electiveDeferralLimit: 22500, catchUpLimit: 7500, enhancedCatchUpLimit: 7500 },
+  { year: 2024, electiveDeferralLimit: 23000, catchUpLimit: 7500, enhancedCatchUpLimit: 7500 },
+  { year: 2025, electiveDeferralLimit: 23500, catchUpLimit: 7500, enhancedCatchUpLimit: 7500 },
+  { year: 2026, electiveDeferralLimit: 24500, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2027, electiveDeferralLimit: 25000, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2028, electiveDeferralLimit: 25500, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2029, electiveDeferralLimit: 26000, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2030, electiveDeferralLimit: 26500, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2031, electiveDeferralLimit: 27000, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2032, electiveDeferralLimit: 27500, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2033, electiveDeferralLimit: 28000, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2034, electiveDeferralLimit: 28500, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2035, electiveDeferralLimit: 29000, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2036, electiveDeferralLimit: 29500, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2037, electiveDeferralLimit: 30000, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2038, electiveDeferralLimit: 30500, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2039, electiveDeferralLimit: 31000, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2040, electiveDeferralLimit: 31500, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2041, electiveDeferralLimit: 32000, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2042, electiveDeferralLimit: 32500, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2043, electiveDeferralLimit: 33000, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2044, electiveDeferralLimit: 33500, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
+  { year: 2045, electiveDeferralLimit: 34000, catchUpLimit: 8000, enhancedCatchUpLimit: 8000 },
 ] as const;
 
 /**
@@ -82,18 +89,35 @@ export function getTSPLimits(year: number): TSPLimits {
  *
  * Formula ID: tsp/contribution-limit (enforcement)
  *
+ * Applies standard catch-up (IRC § 414(v)) for age 50+ or enhanced catch-up
+ * (SECURE 2.0 § 107) for ages 60-63 if available.
+ *
  * @param intendedContribution - Employee's desired annual contribution in dollars
  * @param year - Calendar year (for limit lookup)
  * @param isCatchUpEligible - True if employee is age 50+ at year-end
+ * @param ageAtYearEnd - Optional: employee's age at year-end (if 60-63, uses enhanced catch-up)
  * @returns Capped contribution amount (may be less than intended)
  */
 export function clampToContributionLimit(
   intendedContribution: number,
   year: number,
   isCatchUpEligible: boolean,
+  ageAtYearEnd?: number,
 ): number {
   if (intendedContribution < 0) throw new RangeError('intendedContribution must be >= 0');
+
   const limits = getTSPLimits(year);
-  const maxAllowed = limits.electiveDeferralLimit + (isCatchUpEligible ? limits.catchUpLimit : 0);
+  let catchUpAmount = 0;
+
+  if (isCatchUpEligible) {
+    // Check if age 60-63 (enhanced catch-up available)
+    if (ageAtYearEnd && ageAtYearEnd >= 60 && ageAtYearEnd < 64 && limits.enhancedCatchUpLimit) {
+      catchUpAmount = limits.enhancedCatchUpLimit;
+    } else {
+      catchUpAmount = limits.catchUpLimit;
+    }
+  }
+
+  const maxAllowed = limits.electiveDeferralLimit + catchUpAmount;
   return Math.min(intendedContribution, maxAllowed);
 }

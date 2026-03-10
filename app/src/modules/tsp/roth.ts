@@ -43,6 +43,8 @@ export interface RothProjectionInput {
    * Used to enforce the combined IRS elective deferral limit across both account types.
    */
   traditionalEmployeeContribution?: number;
+  /** Optional: age at year-end of start year (used to apply enhanced catch-up for ages 60-63) */
+  ageAtYearEnd?: number;
 }
 
 /**
@@ -88,6 +90,7 @@ export function projectRothDetailed(input: RothProjectionInput): RothProjectionY
     startYear,
     isCatchUpEligible,
     traditionalEmployeeContribution = 0,
+    ageAtYearEnd,
   } = input;
 
   if (years < 0) throw new RangeError('years must be >= 0');
@@ -100,10 +103,14 @@ export function projectRothDetailed(input: RothProjectionInput): RothProjectionY
     const calendarYear = startYear + i;
     const opening = balance;
 
+    // Calculate age at year-end for this iteration (if provided)
+    const currentAgeAtYearEnd = ageAtYearEnd ? ageAtYearEnd + i : undefined;
+
     // Combined Traditional + Roth must not exceed the annual elective deferral limit.
     // We apply the cap to the total and allocate proportionally if needed.
+    // SECURE 2.0 enhanced catch-up (ages 60-63) is applied if available.
     const totalIntended = employeeAnnualContribution + traditionalEmployeeContribution;
-    const totalCapped = clampToContributionLimit(totalIntended, calendarYear, isCatchUpEligible);
+    const totalCapped = clampToContributionLimit(totalIntended, calendarYear, isCatchUpEligible, currentAgeAtYearEnd);
 
     // If capping occurred, reduce Roth proportionally (traditional gets priority in this model).
     // ASSUMPTION: Traditional contributions are fulfilled first when cap is hit.

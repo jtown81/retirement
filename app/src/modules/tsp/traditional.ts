@@ -44,6 +44,8 @@ export interface TraditionalProjectionInput {
   startYear: number;
   /** True if employee is age 50+ at the start of this projection segment */
   isCatchUpEligible: boolean;
+  /** Optional: age at year-end of start year (used to apply enhanced catch-up for ages 60-63) */
+  ageAtYearEnd?: number;
 }
 
 /**
@@ -93,6 +95,7 @@ export function projectTraditionalDetailed(
     years,
     startYear,
     isCatchUpEligible,
+    ageAtYearEnd,
   } = input;
 
   if (years < 0) throw new RangeError('years must be >= 0');
@@ -105,11 +108,15 @@ export function projectTraditionalDetailed(
     const calendarYear = startYear + i;
     const opening = balance;
 
-    // IRS limit enforcement
+    // Calculate age at year-end for this iteration (if provided)
+    const currentAgeAtYearEnd = ageAtYearEnd ? ageAtYearEnd + i : undefined;
+
+    // IRS limit enforcement (with SECURE 2.0 enhanced catch-up for ages 60-63)
     const employeeContrib = clampToContributionLimit(
       employeeAnnualContribution,
       calendarYear,
       isCatchUpEligible,
+      currentAgeAtYearEnd,
     );
 
     // Agency match always goes to Traditional
