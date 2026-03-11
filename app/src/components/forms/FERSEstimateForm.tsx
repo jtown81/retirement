@@ -5,6 +5,7 @@ import { getAvailableLocalityCodes } from '@data/locality-rates';
 import { getMRA } from '@modules/simulation/eligibility';
 import { FieldGroup } from './FieldGroup';
 import { FormSection } from './FormSection';
+import { FormErrorSummary } from './FormErrorSummary';
 import { FERSEstimateResults } from './FERSEstimateResults';
 import { useFERSEstimate, type FERSEstimateInput } from './useFERSEstimate';
 import { Input } from '@components/ui/input';
@@ -49,6 +50,7 @@ interface FormState extends PersonalInfo {
   annualRaiseRate: string;
   high3Override: string;
   sickLeaveHours: string;
+  involuntarySeparation: boolean;
   annuityReductionPct: string;
   ssaBenefitAt62: string;
   annualEarnings: string;
@@ -78,6 +80,7 @@ const DEFAULTS: FormState = {
   annualRaiseRate: '2',
   high3Override: '',
   sickLeaveHours: '0',
+  involuntarySeparation: false,
   annuityReductionPct: '0',
   ssaBenefitAt62: '',
   annualEarnings: '',
@@ -149,6 +152,7 @@ function formStateFromStored(personal: PersonalInfo | null, fers: FERSEstimate |
     annualRaiseRate: fers?.annualRaiseRate != null ? String(fers.annualRaiseRate * 100) : '2',
     high3Override: fers?.high3Override != null ? String(fers.high3Override) : '',
     sickLeaveHours: fers ? String(fers.sickLeaveHours) : '0',
+    involuntarySeparation: fers?.involuntarySeparation ?? false,
     annuityReductionPct: fers ? String(fers.annuityReductionPct * 100) : '0',
     ssaBenefitAt62: fers?.ssaBenefitAt62 != null ? String(fers.ssaBenefitAt62) : '',
     annualEarnings: fers?.annualEarnings != null ? String(fers.annualEarnings) : '',
@@ -179,6 +183,7 @@ function toEstimateInput(form: FormState): FERSEstimateInput {
     annualRaiseRate: num(form.annualRaiseRate) / 100,
     high3Override: optNum(form.high3Override),
     sickLeaveHours: num(form.sickLeaveHours),
+    involuntarySeparation: form.involuntarySeparation,
     annuityReductionPct: num(form.annuityReductionPct) / 100,
     ssaBenefitAt62: optNum(form.ssaBenefitAt62),
     annualEarnings: optNum(form.annualEarnings),
@@ -228,6 +233,14 @@ export function FERSEstimateForm() {
 
   const set = (key: keyof FormState, value: string | boolean) =>
     setForm((prev) => ({ ...prev, [key]: value }));
+
+  const clearError = (field: string) => {
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   const handleBirthDateChange = useCallback((value: string) => {
     setForm((prev) => {
@@ -279,6 +292,7 @@ export function FERSEstimateForm() {
       annualRaiseRate: num(form.annualRaiseRate) / 100,
       high3Override: optNum(form.high3Override),
       sickLeaveHours: num(form.sickLeaveHours),
+      involuntarySeparation: form.involuntarySeparation,
       annuityReductionPct: num(form.annuityReductionPct) / 100,
       ssaBenefitAt62: optNum(form.ssaBenefitAt62),
       annualEarnings: optNum(form.annualEarnings),
@@ -356,6 +370,8 @@ export function FERSEstimateForm() {
       onClear={handleClear}
       onLoadDefaults={handleLoadDefaults}
     >
+      <FormErrorSummary errors={errors} />
+
       {/* Section 1: Personal & Service */}
       <Collapsible
         open={openSections.personal}
@@ -373,7 +389,10 @@ export function FERSEstimateForm() {
                 id="fe-birthDate"
                 type="date"
                 value={form.birthDate}
-                onChange={(e) => handleBirthDateChange(e.target.value)}
+                onChange={(e) => {
+                  handleBirthDateChange(e.target.value);
+                  clearError('birthDate');
+                }}
               />
             </FieldGroup>
             <FieldGroup label="SCD — Retirement" htmlFor="fe-scdRetirement" error={errors.scdRetirement}
@@ -426,7 +445,10 @@ export function FERSEstimateForm() {
                 id="fe-retirementDate"
                 type="date"
                 value={form.retirementDate}
-                onChange={(e) => set('retirementDate', e.target.value)}
+                onChange={(e) => {
+                  set('retirementDate', e.target.value);
+                  clearError('retirementDate');
+                }}
                 disabled={form.retirementAgeOption !== 'custom'}
               />
             </FieldGroup>
@@ -517,9 +539,24 @@ export function FERSEstimateForm() {
                 min="0"
                 step="1"
                 value={form.sickLeaveHours}
-                onChange={(e) => set('sickLeaveHours', e.target.value)}
+                onChange={(e) => {
+                  set('sickLeaveHours', e.target.value);
+                  clearError('sickLeaveHours');
+                }}
               />
             </FieldGroup>
+            <div className="flex items-center gap-2">
+              <input
+                id="fe-involuntarySep"
+                type="checkbox"
+                checked={form.involuntarySeparation}
+                onChange={(e) => set('involuntarySeparation', e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <label htmlFor="fe-involuntarySep" className="text-sm text-gray-700 cursor-pointer">
+                Involuntary separation (DSR — agency-directed, not for cause)
+              </label>
+            </div>
           </div>
         </CollapsibleContent>
       </Collapsible>

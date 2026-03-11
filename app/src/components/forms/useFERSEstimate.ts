@@ -15,6 +15,7 @@ export interface FERSEstimateInput {
   annualRaiseRate?: number;
   high3Override?: number;
   sickLeaveHours: number;
+  involuntarySeparation?: boolean;  // DSR eligibility
   annuityReductionPct: number;
   ssaBenefitAt62?: number;
   annualEarnings?: number;

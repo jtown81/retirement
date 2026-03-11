@@ -320,7 +320,7 @@ export function Dashboard({ data, mode }: DashboardProps) {
           >
             <HealthcareCostChart
               data={fullSimulation.years}
-              healthcareInflationRate={fullSimulation.config?.healthcareInflationRate}
+              config={fullSimulation.config}
             />
           </CollapsibleChartSection>
 
@@ -346,7 +346,7 @@ export function Dashboard({ data, mode }: DashboardProps) {
             description="Projected TSP account balance over retirement"
             defaultOpen={false}
           >
-            <TSPDepletionChart data={fullSimulation.years} />
+            <TSPDepletionChart data={fullSimulation.years} config={fullSimulation.config} />
           </CollapsibleChartSection>
         </>
       )}

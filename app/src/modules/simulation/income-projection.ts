@@ -31,6 +31,7 @@ import { applySmileCurve, defaultSmileCurveParams } from '../expenses/smile-curv
 import { adjustForInflation } from '../expenses/inflation';
 import { computeLeaveRetirementCredit } from '../leave/retirement-credit';
 import { applyMilitaryServiceCredit } from '../military/buyback';
+import { buildSalaryHistory } from '../career/projection';
 
 /** Default TSP withdrawal rate (4% of balance at retirement). */
 const DEFAULT_TSP_WITHDRAWAL_RATE = 0.04;
@@ -91,10 +92,9 @@ export function projectRetirementIncome(input: SimulationInput): SimulationResul
   } = assumptions;
 
   // ── Step 1: career — High-3 and creditable service ──────────────────────────
-  const salaryHistory: Array<{ year: number; annualSalary: number }> = profile.career.events
-    .filter((e) => e.type !== 'separation')
-    .map((e) => ({ year: new Date(e.effectiveDate).getFullYear(), annualSalary: e.annualSalary }));
-
+  // Build year-by-year salary history including automatic WGI step increases
+  const retireYear = new Date(proposedRetirementDate).getFullYear();
+  const salaryHistory = buildSalaryHistory(profile.career, retireYear, 0.02);
   const high3Salary = computeHigh3(salaryHistory);
 
   // ── Step 2: leave — sick leave service credit ────────────────────────────────
@@ -129,7 +129,8 @@ export function projectRetirementIncome(input: SimulationInput): SimulationResul
   const birthDate = profile.birthDate;
   const birthYear = new Date(birthDate).getFullYear();
   const ageAtRetirement = ageAt(birthDate, retirementDate);
-  const eligibility = checkFERSEligibility(ageAtRetirement, totalCreditableService, birthYear);
+  const involuntarySeparation = assumptions.involuntarySeparation ?? false;
+  const eligibility = checkFERSEligibility(ageAtRetirement, totalCreditableService, birthYear, involuntarySeparation);
 
   if (!eligibility.eligible) {
     return {

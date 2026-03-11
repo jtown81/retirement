@@ -46,19 +46,44 @@ function HealthcareCostTooltip({
 
 export function HealthcareCostChart({
   data,
-  healthcareInflationRate = 0.045,
+  config,
 }: HealthcareCostChartProps) {
   const theme = useChartTheme();
 
-  // For now, we estimate healthcare as a percentage of total expenses
-  // In the future, this should come from the config/simulation data directly
-  const estimatedHealthcarePercentage = 0.15; // ~15% of typical retirement expenses
+  // Use actual healthcare config values if configured
+  const hcBase = config.healthcareAnnualExpenses ?? 0;
+  const hcInflation = config.healthcareInflationRate ?? config.inflationRate;
 
-  const chartData = data.map((year) => ({
-    ...year,
-    healthcareExpenses: (year.totalExpenses ?? 0) * estimatedHealthcarePercentage,
-    nonHealthcareExpenses: (year.totalExpenses ?? 0) * (1 - estimatedHealthcarePercentage),
-  }));
+  // If healthcare not configured, show a fallback card
+  if (hcBase === 0) {
+    return (
+      <ChartContainer
+        title="Healthcare Cost Breakdown"
+        subtitle="Healthcare vs other expenses over retirement"
+      >
+        <div className="p-6 bg-blue-50 border border-blue-200 rounded text-center">
+          <p className="text-blue-900 font-medium">
+            Healthcare expense data not configured
+          </p>
+          <p className="text-blue-700 text-sm mt-2">
+            Add healthcare annual expenses in the Expenses form to see this breakdown.
+          </p>
+        </div>
+      </ChartContainer>
+    );
+  }
+
+  // Compute healthcare expenses per year using smile curve multiplier
+  const chartData = data.map((year, idx) => {
+    const yearsRetired = idx;
+    const smileMultiplier = year.smileMultiplier ?? 1;
+    const healthcareExpenses = hcBase * Math.pow(1 + hcInflation, yearsRetired) * smileMultiplier;
+    return {
+      ...year,
+      healthcareExpenses: Math.round(healthcareExpenses),
+      nonHealthcareExpenses: Math.max(0, Math.round((year.totalExpenses ?? 0) - healthcareExpenses)),
+    };
+  });
 
   return (
     <ChartContainer

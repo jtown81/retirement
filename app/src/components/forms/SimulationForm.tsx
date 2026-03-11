@@ -113,7 +113,12 @@ function removeDraft(): void {
 
 // ── Convert form → SimulationConfig ──────────────────────────────────────────
 
-function toConfig(f: FormState): SimulationConfig {
+function toConfig(
+  f: FormState,
+  birthYear: number = 1960,
+  ssClaimingAge: number = 62,
+  survivorBenefitOption: 'none' | 'partial' | 'full' = 'full',
+): SimulationConfig {
   const n = (s: string) => (s === '' ? 0 : Number(s));
   return {
     retirementAge: Math.round(n(f.retirementAge)),
@@ -138,31 +143,34 @@ function toConfig(f: FormState): SimulationConfig {
     inflationRate: n(f.inflationRate) / 100,
     healthcareInflationRate: n(f.healthcareInflationRate) / 100,
     healthcareAnnualExpenses: n(f.healthcareAnnualExpenses),
+    birthYear,
+    ssClaimingAge,
+    survivorBenefitOption,
   };
 }
 
-function configToFormState(config: SimulationConfig): FormState {
+function configToFormState(config: Partial<SimulationConfig>): FormState {
   return {
-    retirementAge: String(config.retirementAge),
-    endAge: String(config.endAge),
-    fersAnnuity: String(config.fersAnnuity),
-    fersSupplement: String(config.fersSupplement),
-    ssMonthlyAt62: String(config.ssMonthlyAt62),
-    tspBalanceAtRetirement: String(config.tspBalanceAtRetirement),
-    traditionalPct: String(config.traditionalPct * 100),
-    highRiskPct: String(config.highRiskPct * 100),
-    highRiskROI: String(config.highRiskROI * 100),
-    lowRiskROI: String(config.lowRiskROI * 100),
-    withdrawalRate: String(config.withdrawalRate * 100),
-    timeStepYears: String(config.timeStepYears),
-    baseAnnualExpenses: String(config.baseAnnualExpenses),
-    goGoEndAge: String(config.goGoEndAge),
-    goGoRate: String(config.goGoRate * 100),
-    goSlowEndAge: String(config.goSlowEndAge),
-    goSlowRate: String(config.goSlowRate * 100),
-    noGoRate: String(config.noGoRate * 100),
-    colaRate: String(config.colaRate * 100),
-    inflationRate: String(config.inflationRate * 100),
+    retirementAge: String(config.retirementAge ?? 62),
+    endAge: String(config.endAge ?? 95),
+    fersAnnuity: String(config.fersAnnuity ?? 30000),
+    fersSupplement: String(config.fersSupplement ?? 0),
+    ssMonthlyAt62: String(config.ssMonthlyAt62 ?? 1800),
+    tspBalanceAtRetirement: String(config.tspBalanceAtRetirement ?? 500000),
+    traditionalPct: String((config.traditionalPct ?? 0.7) * 100),
+    highRiskPct: String((config.highRiskPct ?? 0.6) * 100),
+    highRiskROI: String((config.highRiskROI ?? 0.08) * 100),
+    lowRiskROI: String((config.lowRiskROI ?? 0.03) * 100),
+    withdrawalRate: String((config.withdrawalRate ?? 0.04) * 100),
+    timeStepYears: String(config.timeStepYears ?? 2),
+    baseAnnualExpenses: String(config.baseAnnualExpenses ?? 60000),
+    goGoEndAge: String(config.goGoEndAge ?? 72),
+    goGoRate: String((config.goGoRate ?? 1.0) * 100),
+    goSlowEndAge: String(config.goSlowEndAge ?? 82),
+    goSlowRate: String((config.goSlowRate ?? 0.85) * 100),
+    noGoRate: String((config.noGoRate ?? 0.75) * 100),
+    colaRate: String((config.colaRate ?? 0.02) * 100),
+    inflationRate: String((config.inflationRate ?? 0.025) * 100),
     healthcareInflationRate: String((config.healthcareInflationRate ?? 0.055) * 100),
     healthcareAnnualExpenses: String(config.healthcareAnnualExpenses ?? 8000),
   };
@@ -319,14 +327,20 @@ export function SimulationForm() {
   // ── Live simulation ──────────────────────────────────────────────────────
   const simulation = useMemo<FullSimulationResult | null>(() => {
     try {
-      const config = toConfig(form);
+      const birthYear = storedPersonal?.birthDate
+        ? new Date(storedPersonal.birthDate).getFullYear()
+        : 1960;
+      // Default to age 62 SS claiming and full survivor benefit
+      const ssClaimingAge = 62;
+      const survivorBenefitOption: 'none' | 'partial' | 'full' = 'full';
+      const config = toConfig(form, birthYear, ssClaimingAge, survivorBenefitOption);
       const result = SimulationConfigSchema.safeParse(config);
       if (!result.success) return null;
       return projectRetirementSimulation(config);
     } catch {
       return null;
     }
-  }, [form]);
+  }, [form, storedPersonal]);
 
   // ── Save / Clear ─────────────────────────────────────────────────────────
   const handleSave = () => {

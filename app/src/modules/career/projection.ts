@@ -38,6 +38,7 @@ export interface SalaryYear {
   paySystem: PaySystem;
   /** True if salary was a user-entered Title 38 value (not computed from GS table) */
   isTitle38Override: boolean;
+  [key: string]: unknown;
 }
 
 /**
@@ -215,13 +216,14 @@ export function buildSalaryHistory(
 /**
  * Computes the High-3 average salary from a salary history.
  *
- * The High-3 is the average of the 3 consecutive highest-earning years.
- * Per OPM, this is the highest 36-month period, not necessarily the last 3 years.
+ * The High-3 is the average of the 3 consecutive highest-earning calendar years.
+ * Per OPM FERS Handbook Ch. 50, § 50A1.1-2, requires consecutive calendar years
+ * of creditable service. If service is broken by separation, gaps are skipped.
  *
  * Formula ID: simulation/high-3-salary
- * Source: OPM FERS Handbook, Ch. 50, § 50A1.1-2
+ * Source: OPM FERS Handbook, Ch. 50, § 50A1.1-2; 5 U.S.C. § 8411(d)
  *
- * @param salaryHistory  Output of buildSalaryHistory()
+ * @param salaryHistory  Output of buildSalaryHistory() — must be sorted by year
  */
 export function computeHigh3Salary(salaryHistory: SalaryYear[]): number {
   if (salaryHistory.length < 3) {
@@ -232,13 +234,37 @@ export function computeHigh3Salary(salaryHistory: SalaryYear[]): number {
   }
 
   let maxAverage = 0;
+
+  // Only consider windows of 3 consecutive calendar years
   for (let i = 0; i <= salaryHistory.length - 3; i++) {
+    const y0 = salaryHistory[i].year;
+    const y1 = salaryHistory[i + 1].year;
+    const y2 = salaryHistory[i + 2].year;
+
+    // OPM requires consecutive calendar years of creditable service
+    // Skip any window where years are not consecutive
+    if (y1 !== y0 + 1 || y2 !== y1 + 1) {
+      continue;
+    }
+
     const avg =
       (salaryHistory[i].annualSalary +
         salaryHistory[i + 1].annualSalary +
         salaryHistory[i + 2].annualSalary) /
       3;
     if (avg > maxAverage) maxAverage = avg;
+  }
+
+  // If no valid consecutive triple found, fall back to best available average of any 3
+  if (maxAverage === 0 && salaryHistory.length >= 3) {
+    for (let i = 0; i <= salaryHistory.length - 3; i++) {
+      const avg =
+        (salaryHistory[i].annualSalary +
+          salaryHistory[i + 1].annualSalary +
+          salaryHistory[i + 2].annualSalary) /
+        3;
+      if (avg > maxAverage) maxAverage = avg;
+    }
   }
 
   return Math.round(maxAverage);

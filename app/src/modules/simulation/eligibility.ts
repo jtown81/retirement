@@ -49,6 +49,7 @@ export interface EligibilityResult {
     | 'MRA+30'
     | 'Age60+20'
     | 'Age62+5'
+    | 'DSR'
     | 'MRA+10-reduced'
     | null;
   /** True if the 1.1% annuity multiplier applies (age 62+ with 20+ years) */
@@ -106,15 +107,24 @@ export function getMRA(birthYear: number): MRAResult {
  * Uses decimal age comparisons (age >= mra.decimalAge).
  * Years of service should be the total creditable service (civilian + military buyback + sick leave credit).
  *
+ * Includes DSR (Discontinued Service Retirement) eligibility:
+ * Involuntary separations under 5 U.S.C. § 8414(b)(1)(A) qualify immediately if:
+ *   - Age 50+ with 20+ years of service, OR
+ *   - Any age with 25+ years of service
+ *
+ * Source: 5 U.S.C. § 8414(b); OPM FERS Handbook Ch. 50, § 50B2.1-2
+ *
  * @param age - Employee's age at proposed retirement date (decimal, e.g., 57.5)
  * @param yearsOfService - Total creditable service years (fractional)
  * @param birthYear - Employee's birth year (for MRA lookup)
+ * @param involuntarySeparation - Whether the employee was involuntarily separated (DSR eligibility)
  * @returns Eligibility result with type and multiplier flag
  */
 export function checkFERSEligibility(
   age: number,
   yearsOfService: number,
   birthYear: number,
+  involuntarySeparation = false,
 ): EligibilityResult {
   if (age < 0) throw new RangeError('age must be >= 0');
   if (yearsOfService < 0) throw new RangeError('yearsOfService must be >= 0');
@@ -138,6 +148,11 @@ export function checkFERSEligibility(
   // Unreduced: MRA + 30 years
   if (age >= mra.decimalAge && yearsOfService >= 30) {
     return { eligible: true, type: 'MRA+30', enhancedMultiplier: false };
+  }
+
+  // DSR: Involuntary separation — immediate unreduced (5 U.S.C. § 8414(b)(1)(A))
+  if (involuntarySeparation && ((age >= 50 && yearsOfService >= 20) || yearsOfService >= 25)) {
+    return { eligible: true, type: 'DSR', enhancedMultiplier: false };
   }
 
   // Reduced: MRA + 10 years (5% reduction per year under 62)

@@ -154,7 +154,8 @@ export function computeFERSSupplement(
   if (estimatedSSAt62 < 0) throw new RangeError('estimatedSSAt62 must be >= 0');
 
   // Only available for immediate unreduced annuity before age 62
-  const eligibleTypes = new Set(['MRA+30', 'Age60+20']);
+  // DSR (Discontinued Service Retirement) qualifies: 5 U.S.C. § 8414(b); OPM FERS Handbook § 50B2.1-2
+  const eligibleTypes = new Set(['MRA+30', 'Age60+20', 'DSR']);
   const eligible =
     ageAtRetirement < 62 &&
     eligibilityType !== null &&

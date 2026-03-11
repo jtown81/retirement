@@ -18,6 +18,7 @@ export type { SimulationInput, SimulationResult, RetirementScenario, AnnualProje
 export type { MRAResult, EligibilityResult } from './eligibility';
 export type { FERSAnnuityResult, FERSSupplementResult } from './annuity';
 export type { ScenarioSummary, ScenarioComparisonResult } from './scenario';
+export type { FilingStatus, TaxInput, TaxYearResult } from '../../models/tax';
 
 export { getMRA, checkFERSEligibility, mra10ReductionFactor, fersCOLARate, getFullRetirementAge, ssAdjustmentFactor } from './eligibility';
 export { computeHigh3, computeFERSAnnuity, computeFERSSupplement } from './annuity';
@@ -25,3 +26,10 @@ export { projectRetirementIncome } from './income-projection';
 export { projectRetirementSimulation } from './retirement-simulation';
 export type { SimulationConfig, SimulationYearResult, FullSimulationResult } from '../../models/simulation';
 export { runScenario, compareScenarios } from './scenario';
+export { computeAnnualTax, computeFederalTax, computeStandardDeduction } from '../tax';
+
+/**
+ * CANONICAL UNIFIED ENGINE
+ * Use this for all new simulation code. Replaces both income-projection and retirement-simulation.
+ */
+export { unifiedRetirementSimulation } from './unified-engine';

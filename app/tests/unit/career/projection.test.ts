@@ -220,4 +220,29 @@ describe('computeHigh3Salary', () => {
     // Best window is [100k, 110k, 120k] = 110k
     expect(computeHigh3Salary(history)).toBe(110_000);
   });
+
+  it('requires consecutive calendar years (OPM high-3 rule with service gaps)', () => {
+    // Scenario: Employee with a break in service (separation gap)
+    // 2018-2020: GS-11 years
+    // 2021-2022: GAP (no salary data due to separation)
+    // 2023-2025: Rehired as GS-12
+    // OPM rule: High-3 must be consecutive calendar years, cannot span a gap
+    const history = [
+      { year: 2018, annualSalary: 100_000, grade: 11 as const, step: 1 as const, localityCode: 'RUS', paySystem: 'GS' as const, isTitle38Override: false },
+      { year: 2019, annualSalary: 110_000, grade: 11 as const, step: 5 as const, localityCode: 'RUS', paySystem: 'GS' as const, isTitle38Override: false },
+      { year: 2020, annualSalary: 120_000, grade: 11 as const, step: 9 as const, localityCode: 'RUS', paySystem: 'GS' as const, isTitle38Override: false },
+      // GAP: 2021, 2022
+      { year: 2023, annualSalary: 130_000, grade: 12 as const, step: 1 as const, localityCode: 'RUS', paySystem: 'GS' as const, isTitle38Override: false },
+      { year: 2024, annualSalary: 140_000, grade: 12 as const, step: 3 as const, localityCode: 'RUS', paySystem: 'GS' as const, isTitle38Override: false },
+      { year: 2025, annualSalary: 150_000, grade: 12 as const, step: 5 as const, localityCode: 'RUS', paySystem: 'GS' as const, isTitle38Override: false },
+    ];
+    // Valid consecutive windows:
+    //   [2018, 2019, 2020] = avg 110k ✓
+    //   [2023, 2024, 2025] = avg 140k ✓
+    // Invalid (spans gap):
+    //   [2020, 2021, 2022] — 2021 & 2022 not in history
+    //   [2022, 2023, 2024] — 2022 not in history
+    // Best valid window is [2023, 2024, 2025] = 140k
+    expect(computeHigh3Salary(history)).toBe(140_000);
+  });
 });

@@ -9,6 +9,7 @@ import type { LeaveBalance } from './leave';
 import type { TSPBalances, TSPContributionEvent } from './tsp';
 import type { MilitaryService } from './military';
 import type { ExpenseProfile } from './expenses';
+import type { FilingStatus } from './tax';
 
 /** FERS Survivor Benefit election options */
 export type SurvivorBenefitOption = 'none' | 'partial' | 'full';
@@ -64,6 +65,13 @@ export interface RetirementAssumptions {
    * Source: 5 U.S.C. § 8420; OPM FERS Handbook Ch. 51
    */
   survivorBenefitOption?: SurvivorBenefitOption;
+  /**
+   * Whether the employee was involuntarily separated (DSR eligibility).
+   * Discontinued Service Retirement under 5 U.S.C. § 8414(b) affects eligibility rules.
+   * DEFAULT: false (normal voluntary separation).
+   * Source: 5 U.S.C. § 8414(b); OPM FERS Handbook Ch. 50, § 50B2.1-2
+   */
+  involuntarySeparation?: boolean;
 }
 
 export interface SimulationInput {
@@ -177,6 +185,12 @@ export interface SimulationConfig {
   healthcareInflationRate?: Rate;
   /** Annual healthcare expense amount (split from baseAnnualExpenses for separate inflation) */
   healthcareAnnualExpenses?: USD;
+
+  // ── Tax Configuration ──
+  /** Filing status for federal income tax computation. Default: 'single' */
+  filingStatus?: FilingStatus;
+  /** Whether to apply IRMAA surcharges at Medicare eligibility (age 65+). Default: true */
+  applyIRMAA?: boolean;
 }
 
 /**
@@ -189,8 +203,16 @@ export interface SimulationYearResult {
   annuity: USD;
   fersSupplement: USD;
   socialSecurity: USD;
+  tradTspWithdrawal: USD;
+  rothTspWithdrawal: USD;
   tspWithdrawal: USD;
   totalIncome: USD;
+  // Tax
+  federalTax?: USD;
+  irmaaSurcharge?: USD;
+  stateTax?: USD;
+  totalTax?: USD;
+  effectiveTaxRate?: Rate;
   // Expenses
   smileMultiplier: number;
   totalExpenses: USD;
@@ -205,6 +227,7 @@ export interface SimulationYearResult {
   rmdSatisfied: boolean;
   // Net
   surplus: USD;
+  afterTaxSurplus?: USD;
 }
 
 /**

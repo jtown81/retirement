@@ -6,7 +6,7 @@
  * stays in the demo fixture or useSimulation hook.
  */
 
-import type { AnnualProjection, SimulationYearResult } from '@models/simulation';
+import type { AnnualProjection, SimulationYearResult, SimulationConfig } from '@models/simulation';
 
 // ── Data point interfaces ────────────────────────────────────────────────────
 
@@ -123,7 +123,7 @@ export interface ReplacementRatioChartProps {
 
 export interface HealthcareCostChartProps {
   data: SimulationYearResult[];
-  healthcareInflationRate?: number;
+  config: SimulationConfig;
 }
 
 export interface AnnuitySensitivityChartProps {
@@ -135,4 +135,5 @@ export interface AnnuitySensitivityChartProps {
 
 export interface TSPDepletionChartProps {
   data: SimulationYearResult[];
+  config: SimulationConfig;
 }

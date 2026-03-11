@@ -240,6 +240,8 @@ export const FERSEstimateSchema = z.object({
   annualRaiseRate: RateSchema.min(0).max(0.1).optional(),
   high3Override: USDSchema.optional(),
   sickLeaveHours: z.number().finite().nonnegative(),
+  // Eligibility
+  involuntarySeparation: z.boolean().optional(),
   // Annuity
   annuityReductionPct: RateSchema.min(0).max(1),
   // Social Security
@@ -266,37 +268,62 @@ export const FERSEstimateSchema = z.object({
 
 export const TimeStepYearsSchema = z.union([z.literal(1), z.literal(2), z.literal(3)]);
 
-export const SimulationConfigSchema = z.object({
-  // Core
-  retirementAge: z.number().int().min(50).max(90),
-  endAge: z.number().int().min(70).max(104),
-  fersAnnuity: USDSchema,
-  fersSupplement: USDSchema,
-  ssMonthlyAt62: USDSchema,
-  // TSP
-  tspBalanceAtRetirement: USDSchema,
-  traditionalPct: RateSchema.min(0).max(1),
-  highRiskPct: RateSchema.min(0).max(1),
-  highRiskROI: RateSchema.min(-0.5).max(0.5),
-  lowRiskROI: RateSchema.min(-0.5).max(0.5),
-  withdrawalRate: RateSchema.min(0).max(1),
-  timeStepYears: TimeStepYearsSchema,
-  // Expenses
-  baseAnnualExpenses: USDSchema,
-  goGoEndAge: z.number().int().min(50).max(104),
-  goGoRate: RateSchema.min(0).max(2),
-  goSlowEndAge: z.number().int().min(50).max(104),
-  goSlowRate: RateSchema.min(0).max(2),
-  noGoRate: RateSchema.min(0).max(2),
-  // Rates
-  colaRate: RateSchema.min(0).max(0.1),
-  inflationRate: RateSchema.min(0).max(0.2),
-  healthcareInflationRate: RateSchema.min(0).max(0.2).optional(),
-  healthcareAnnualExpenses: USDSchema.optional(),
-  // Tax
-  filingStatus: FilingStatusSchema.optional(),
-  applyIRMAA: z.boolean().optional(),
-});
+export const SimulationConfigSchema = z
+  .object({
+    // Core
+    retirementAge: z.number().int().min(50).max(90),
+    endAge: z.number().int().min(70).max(104),
+    fersAnnuity: USDSchema,
+    fersSupplement: USDSchema,
+    ssMonthlyAt62: USDSchema,
+    // TSP
+    tspBalanceAtRetirement: USDSchema,
+    traditionalPct: RateSchema.min(0).max(1),
+    highRiskPct: RateSchema.min(0).max(1),
+    highRiskROI: RateSchema.min(-0.5).max(0.5),
+    lowRiskROI: RateSchema.min(-0.5).max(0.5),
+    withdrawalRate: RateSchema.min(0).max(1),
+    timeStepYears: TimeStepYearsSchema,
+    // Expenses
+    baseAnnualExpenses: USDSchema,
+    goGoEndAge: z.number().int().min(50).max(104),
+    goGoRate: RateSchema.min(0).max(2),
+    goSlowEndAge: z.number().int().min(50).max(104),
+    goSlowRate: RateSchema.min(0).max(2),
+    noGoRate: RateSchema.min(0).max(2),
+    // Rates
+    colaRate: RateSchema.min(0).max(0.1),
+    inflationRate: RateSchema.min(0).max(0.2),
+    healthcareInflationRate: RateSchema.min(0).max(0.2).optional(),
+    healthcareAnnualExpenses: USDSchema.optional(),
+    // Tax
+    filingStatus: FilingStatusSchema.optional(),
+    applyIRMAA: z.boolean().optional(),
+  })
+  .superRefine((data, ctx) => {
+    // Cross-field validation: expense smile curve phases must be in order
+    if (data.goGoEndAge >= data.goSlowEndAge) {
+      ctx.addIssue({
+        path: ['goGoEndAge'],
+        code: z.ZodIssueCode.custom,
+        message: 'Go-Go phase must end before Go-Slow phase',
+      });
+    }
+    if (data.goSlowEndAge >= data.endAge) {
+      ctx.addIssue({
+        path: ['goSlowEndAge'],
+        code: z.ZodIssueCode.custom,
+        message: 'Go-Slow phase must end before end age',
+      });
+    }
+    if (data.retirementAge >= data.endAge) {
+      ctx.addIssue({
+        path: ['retirementAge'],
+        code: z.ZodIssueCode.custom,
+        message: 'Retirement age must be less than end age',
+      });
+    }
+  });
 
 // ---------------------------------------------------------------------------
 // Scenarios (stored as an array)

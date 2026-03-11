@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   AreaChart,
   Area,
@@ -11,6 +12,7 @@ import { useChartTheme } from '@hooks/useChartTheme';
 import { ChartContainer } from './ChartContainer';
 import { ChartTooltip } from './ChartTooltip';
 import type { TSPDepletionChartProps } from './chart-types';
+import { runMonteCarlo } from '@modules/simulation/monte-carlo';
 
 const USD_FORMAT = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -34,11 +36,17 @@ function TSPDepletionTooltip({
   return (
     <ChartTooltip>
       <p className="font-medium">{d.year} (Age {d.age})</p>
-      <p style={{ color: '#3b82f6' }}>
-        TSP Balance: {USD_FORMAT.format(d.tspBalance || 0)}
+      <p style={{ color: '#93c5fd' }}>
+        p10 (Pessimistic): {USD_FORMAT.format(d.p10 || 0)}
       </p>
-      {d.tspBalance === 0 && (
-        <p className="text-xs text-red-600 font-medium">TSP Depleted</p>
+      <p style={{ color: '#1e40af' }}>
+        p50 (Median): {USD_FORMAT.format(d.p50 || 0)}
+      </p>
+      <p style={{ color: '#93c5fd' }}>
+        p90 (Optimistic): {USD_FORMAT.format(d.p90 || 0)}
+      </p>
+      {d.p50 === 0 && (
+        <p className="text-xs text-red-600 font-medium">TSP Depleted (median)</p>
       )}
     </ChartTooltip>
   );
@@ -47,21 +55,28 @@ function TSPDepletionTooltip({
 /**
  * TSP Depletion Chart
  *
- * Shows projected TSP balance trajectory and when funds may be depleted.
- * Current implementation uses deterministic projection from fullSimulation.
- * Future: integrate with Monte Carlo for confidence intervals (p10/p50/p90).
+ * Shows projected TSP balance trajectory with Monte Carlo confidence bands (p10/p50/p90).
+ * Runs N=200 stochastic simulations sampling returns from a normal distribution.
  */
-export function TSPDepletionChart({ data }: TSPDepletionChartProps) {
+export function TSPDepletionChart({ data, config }: TSPDepletionChartProps) {
   const theme = useChartTheme();
 
-  // Find the year TSP depletes (if ever)
-  const depletionYear = data.find((year) => (year.totalTSPBalance ?? 0) <= 0);
+  // Run Monte Carlo to get confidence bands
+  const mcResults = useMemo(() => {
+    return runMonteCarlo(config, 200);
+  }, [config]);
+
+  // Find the year TSP depletes (if ever) using p50 (median)
+  const depletionYear = mcResults.find((year) => (year.p50 ?? 0) <= 0);
   const depletionAge = depletionYear?.age;
 
-  // Prepare chart data
-  const chartData = data.map((year) => ({
-    ...year,
-    tspBalance: Math.max(0, year.totalTSPBalance ?? 0),
+  // Prepare chart data: merge deterministic data with MC percentiles
+  const chartData = data.map((year, idx) => ({
+    year: year.year,
+    age: year.age,
+    p10: mcResults[idx]?.p10 ?? 0,
+    p50: mcResults[idx]?.p50 ?? 0,
+    p90: mcResults[idx]?.p90 ?? 0,
   }));
 
   return (
@@ -78,13 +93,35 @@ export function TSPDepletionChart({ data }: TSPDepletionChartProps) {
         />
         <Tooltip content={<TSPDepletionTooltip theme={theme} />} />
         <Legend wrapperStyle={{ fontSize: 12 }} />
+        {/* Confidence bands: p10–p50 fill */}
         <Area
           type="monotone"
-          dataKey="tspBalance"
-          fill="#3b82f6"
+          dataKey="p10"
+          fill="#93c5fd"
+          stroke="none"
+          fillOpacity={0.3}
+          name="p10 (Pessimistic)"
+          isAnimationActive={false}
+        />
+        {/* p50–p90 fill (actually p50 to p90 should be above) */}
+        <Area
+          type="monotone"
+          dataKey="p90"
+          fill="#93c5fd"
+          stroke="none"
+          fillOpacity={0.3}
+          name="p90 (Optimistic)"
+          isAnimationActive={false}
+        />
+        {/* Median line */}
+        <Area
+          type="monotone"
+          dataKey="p50"
+          fill="none"
           stroke="#1e40af"
-          fillOpacity={0.6}
-          name="TSP Balance"
+          strokeWidth={2}
+          fillOpacity={0}
+          name="p50 (Median)"
           isAnimationActive={false}
         />
       </AreaChart>

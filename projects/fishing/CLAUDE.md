@@ -249,13 +249,53 @@ formatNumber(1000)      // "1,000"
 formatPercent(0.75)     // "75%"
 ```
 
-## Phase 3+ Roadmap
+## Development Utilities
 
-- **Cloud Sync**: Firebase/Supabase integration for multi-device sync
-- **Historical Data Import**: XLSM parser to import 2022-2024 tournament data
-- **Multi-Year Analytics**: Cross-tournament statistics and trends
-- **Mobile Optimization**: Responsive UI improvements for tablets
-- **Subscription Tiers**: Premium features (advanced analytics, export formats)
-- **Offline Sync Queue**: Queue updates when offline, sync when reconnected
+### Historical Test Data Seeding
+
+**Location**: `src/db/seed/history-seeder.ts` and `src/utils/dev-seed.ts`
+
+In **development mode only**, historical tournament data (2016-2022) can be loaded for testing via browser console:
+
+```javascript
+// In browser DevTools console (development mode only):
+window.__seedHistoricalData()    // Load 7 years of realistic test data
+window.__clearHistoricalData()   // Clear all historical tournaments
+```
+
+**Seed Data Includes**:
+- 7 tournaments (2016-2022) with "HPA Annual Tournament" naming
+- 2-6 teams per tournament with realistic catches
+- Day 1 and Day 2 weigh-in records (fish count, weight, released, big fish)
+- All calculated fields (day totals, grand totals)
+- Records marked as "seeded" to distinguish from real tournament data
+
+**Use Case**: Testing statistics, reports, multi-year analytics, and verifying calculations work correctly with historical data.
+
+**Note**: XLSM import was removed as a user-facing feature. CSV import/export is the standard format. This seeding utility is development-only.
+
+## Phase 4+ Roadmap
+
+**Phase 4: Cloud Sync & Multi-Device** (Weeks 11-16)
+- [ ] Supabase backend (PostgreSQL, auth, realtime)
+- [ ] Offline-first sync engine (local-first with background cloud sync)
+- [ ] Multi-device weigh-in stations syncing to single tournament
+- [ ] Spectator mode with public read-only link
+
+**Phase 5: Subscription & Multi-Tenant** (Weeks 17-24)
+- [ ] User authentication and subscription billing (Stripe)
+- [ ] Free tier (1 tournament local), Pro tier (cloud sync), Organization tier (multi-user)
+- [ ] White-label branding support
+- [ ] Native iOS/Android apps (Capacitor wrapper)
+
+**Phase 6: Advanced Features** (Ongoing)
+- [ ] Photo capture for weigh-in records
+- [ ] GPS integration for fishing location tracking
+- [ ] Angler profiles with multi-tournament statistics
+- [ ] Species-specific tournament support
+- [ ] Social media sharing
+- [ ] Push notifications
+- [ ] AI-powered predictions and weather correlation
+- [ ] Sponsor management
 
 Each phase will be handled with explicit planning before implementation.

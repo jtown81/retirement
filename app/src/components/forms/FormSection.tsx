@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@components/ui/card';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
@@ -17,12 +17,24 @@ interface FormSectionProps {
 export function FormSection({ title, description, onSave, onClear, onLoadDefaults, children }: FormSectionProps) {
   const [showSaved, setShowSaved] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     onSave();
     setShowSaved(true);
     // Auto-hide after 2 seconds
     setTimeout(() => setShowSaved(false), 2000);
-  };
+  }, [onSave]);
+
+  // Ctrl+S keyboard shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleSave]);
 
   return (
     <Card>

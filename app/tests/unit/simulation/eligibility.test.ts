@@ -119,6 +119,42 @@ describe('checkFERSEligibility', () => {
   it('throws for negative age', () => {
     expect(() => checkFERSEligibility(-1, 30, BIRTH_1970)).toThrow(RangeError);
   });
+
+  it('DSR: eligible at age 50+ with 20+ years service (involuntary separation)', () => {
+    // 5 U.S.C. § 8414(b)(1)(A): Age 50 + 20 years qualifies for immediate DSR
+    const r = checkFERSEligibility(50, 20, BIRTH_1970, true);
+    expect(r.eligible).toBe(true);
+    expect(r.type).toBe('DSR');
+    expect(r.enhancedMultiplier).toBe(false);
+  });
+
+  it('DSR: eligible at any age with 25+ years service (involuntary separation)', () => {
+    // 5 U.S.C. § 8414(b)(1)(A): Any age + 25 years qualifies for immediate DSR
+    const r = checkFERSEligibility(40, 25, BIRTH_1970, true);
+    expect(r.eligible).toBe(true);
+    expect(r.type).toBe('DSR');
+    expect(r.enhancedMultiplier).toBe(false);
+  });
+
+  it('DSR: not eligible if age < 50 AND service < 25 (involuntary separation)', () => {
+    // Does not meet age 50+20 or 25-year threshold
+    const r = checkFERSEligibility(45, 20, BIRTH_1970, true);
+    expect(r.eligible).toBe(false);
+    expect(r.type).toBe(null);
+  });
+
+  it('DSR: does not apply without involuntary separation flag', () => {
+    // Same parameters but involuntarySeparation = false
+    const r = checkFERSEligibility(50, 20, BIRTH_1970, false);
+    expect(r.eligible).toBe(false);
+    expect(r.type).toBe(null);
+  });
+
+  it('DSR takes priority in eligibility chain (age 50+20 involuntary)', () => {
+    // When DSR applies (age 50+20 involuntary), should return DSR
+    const r = checkFERSEligibility(50, 20, BIRTH_1970, true);
+    expect(r.type).toBe('DSR');
+  });
 });
 
 describe('mra10ReductionFactor', () => {
