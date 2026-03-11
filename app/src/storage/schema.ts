@@ -31,4 +31,5 @@ export const STORAGE_KEYS = {
   SCENARIOS: 'retire:scenarios',
   LEAVE_CALENDAR: 'retire:leave-calendar',
   SIMULATION_CONFIG: 'retire:simulation-config',
+  CHART_VISIBILITY: 'retire:chart-visibility',
 } as const;

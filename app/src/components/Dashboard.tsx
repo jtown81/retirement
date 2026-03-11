@@ -11,6 +11,15 @@ import { PayGrowthChart } from './charts/PayGrowthChart';
 import { TSPBalancesChart } from './charts/TSPBalancesChart';
 import { LeaveBalancesChart } from './charts/LeaveBalancesChart';
 import { ExpenseSmileCurveChart } from './charts/ExpenseSmileCurveChart';
+import { CollapsibleChartSection } from './charts/CollapsibleChartSection';
+import { FERSSupplementGapChart } from './charts/FERSSupplementGapChart';
+import { NetCashFlowChart } from './charts/NetCashFlowChart';
+import { RothVsTraditionalChart } from './charts/RothVsTraditionalChart';
+import { ReplacementRatioChart } from './charts/ReplacementRatioChart';
+import { PurchasingPowerChart } from './charts/PurchasingPowerChart';
+import { HealthcareCostChart } from './charts/HealthcareCostChart';
+import { AnnuitySensitivityChart } from './charts/AnnuitySensitivityChart';
+import { TSPDepletionChart } from './charts/TSPDepletionChart';
 import { ChartSkeleton } from './charts/ChartSkeleton';
 import type { SimulationData } from '@hooks/useSimulation';
 import { useFullSimulation } from '@hooks/useFullSimulation';
@@ -155,98 +164,192 @@ export function Dashboard({ data, mode }: DashboardProps) {
       <Separator />
 
       {/* Hero Chart: Income vs Expenses */}
-      <section className="space-y-4">
-        <SectionHeading
-          title="Income vs. Expenses Projection"
-          description="30-year retirement income and spending forecast"
-        />
+      <CollapsibleChartSection
+        id="income-vs-expenses"
+        title="Income vs. Expenses Projection"
+        description="30-year retirement income and spending forecast"
+        defaultOpen={true}
+      >
         <IncomeVsExpensesChart data={result.projections} />
-      </section>
-
-      <Separator />
+      </CollapsibleChartSection>
 
       {/* Tax-Adjusted Income Waterfall (when full simulation available) */}
       {fullSimulation && fullSimulation.years.length > 0 && (
-        <>
-          <section className="space-y-4">
-            <SectionHeading
-              title="Tax-Adjusted Income"
-              description="Gross income by source with federal tax and IRMAA impact"
-            />
-            <TaxAdjustedIncomeChart data={fullSimulation.years} />
-          </section>
+        <CollapsibleChartSection
+          id="tax-adjusted-income"
+          title="Tax-Adjusted Income"
+          description="Gross income by source with federal tax and IRMAA impact"
+          defaultOpen={true}
+        >
+          <TaxAdjustedIncomeChart data={fullSimulation.years} />
+        </CollapsibleChartSection>
+      )}
 
-          <Separator />
-
-          {/* Social Security Claiming Age Comparison */}
-          {fullSimulation.config && fullSimulation.config.estimatedSocialSecurityBenefit && (
-            <>
-              <section className="space-y-4">
-                <SectionHeading
-                  title="Social Security Claiming Age Analysis"
-                  description="Cumulative lifetime benefits at different claiming ages (most impactful retirement decision)"
-                />
-                {(() => {
-                  const variants = computeSSClaimingVariants(
-                    fullSimulation.config.estimatedSocialSecurityBenefit,
-                    fullSimulation.config.birthYear ?? 1965,
-                  );
-                  return (
-                    <SSClaimingComparisonChart
-                      {...variants}
-                      retirementAge={fullSimulation.config.retirementAge}
-                    />
-                  );
-                })()}
-              </section>
-
-              <Separator />
-            </>
-          )}
-        </>
+      {/* Social Security Claiming Age Comparison */}
+      {fullSimulation && fullSimulation.years.length > 0 && fullSimulation.config && fullSimulation.config.ssMonthlyAt62 && (
+        <CollapsibleChartSection
+          id="ss-claiming"
+          title="Social Security Claiming Age Analysis"
+          description="Cumulative lifetime benefits at different claiming ages (most impactful retirement decision)"
+          defaultOpen={true}
+        >
+          {(() => {
+            const variants = computeSSClaimingVariants(
+              fullSimulation.config!.ssMonthlyAt62 * 12,
+              fullSimulation.config!.birthYear,
+            );
+            return (
+              <SSClaimingComparisonChart
+                {...variants}
+                retirementAge={fullSimulation.config.retirementAge}
+              />
+            );
+          })()}
+        </CollapsibleChartSection>
       )}
 
       {/* Pay Growth */}
-      <section className="space-y-4">
-        <SectionHeading
-          title="Career Pay Growth"
-          description="Salary progression from hire to retirement"
-        />
+      <CollapsibleChartSection
+        id="pay-growth"
+        title="Career Pay Growth"
+        description="Salary progression from hire to retirement"
+        defaultOpen={true}
+      >
         <PayGrowthChart data={salaryHistory} retirementYear={retireYear} />
-      </section>
-
-      <Separator />
+      </CollapsibleChartSection>
 
       {/* TSP Balances */}
-      <section className="space-y-4">
-        <SectionHeading
-          title="TSP Balance Growth"
-          description="Thrift Savings Plan projected accumulation"
-        />
+      <CollapsibleChartSection
+        id="tsp-balances"
+        title="TSP Balance Growth"
+        description="Thrift Savings Plan projected accumulation"
+        defaultOpen={true}
+      >
         <TSPBalancesChart data={tspBalances} />
-      </section>
-
-      <Separator />
+      </CollapsibleChartSection>
 
       {/* Leave Balances */}
-      <section className="space-y-4">
-        <SectionHeading
-          title="Leave Balances"
-          description="Annual and sick leave accrual over career"
-        />
+      <CollapsibleChartSection
+        id="leave-balances"
+        title="Leave Balances"
+        description="Annual and sick leave accrual over career"
+        defaultOpen={true}
+      >
         <LeaveBalancesChart data={leaveBalances} />
-      </section>
-
-      <Separator />
+      </CollapsibleChartSection>
 
       {/* Expense Smile Curve */}
-      <section className="space-y-4">
-        <SectionHeading
-          title="Expense Smile Curve"
-          description="Expected spending pattern in retirement (Blanchett 2014)"
-        />
+      <CollapsibleChartSection
+        id="expense-smile-curve"
+        title="Expense Smile Curve"
+        description="Expected spending pattern in retirement (Blanchett 2014)"
+        defaultOpen={false}
+      >
         <ExpenseSmileCurveChart data={smileCurve} />
-      </section>
+      </CollapsibleChartSection>
+
+      {/* ──────────────────────────────────────────────────────────────────
+          New Charts (C-3 through C-10) — require full simulation data
+          ────────────────────────────────────────────────────────────────── */}
+
+      {fullSimulation && fullSimulation.years.length > 0 && (
+        <>
+          {/* C-7: FERS Supplement Gap */}
+          <CollapsibleChartSection
+            id="supplement-gap"
+            title="Income Sources Over Time"
+            description="Shows when FERS supplement ends and when Social Security begins"
+            defaultOpen={false}
+          >
+            <FERSSupplementGapChart data={fullSimulation.years} />
+          </CollapsibleChartSection>
+
+          {/* C-10: Net Cash Flow */}
+          <CollapsibleChartSection
+            id="net-cash-flow"
+            title="Net Cash Flow"
+            description="Annual surplus or deficit (income minus expenses)"
+            defaultOpen={false}
+          >
+            <NetCashFlowChart data={fullSimulation.years} />
+          </CollapsibleChartSection>
+
+          {/* C-5: Roth vs Traditional */}
+          <CollapsibleChartSection
+            id="roth-vs-traditional"
+            title="Roth vs Traditional TSP Balance"
+            description="Growth of Roth and Traditional TSP accounts with RMD pressure indicator"
+            defaultOpen={false}
+          >
+            <RothVsTraditionalChart data={fullSimulation.years} />
+          </CollapsibleChartSection>
+
+          {/* C-3: Replacement Ratio */}
+          <CollapsibleChartSection
+            id="replacement-ratio"
+            title="Income Replacement Ratio"
+            description="Retirement income as % of pre-retirement salary (80% is typical target)"
+            defaultOpen={false}
+          >
+            <ReplacementRatioChart
+              data={fullSimulation.years}
+              preRetirementSalary={result.high3Salary}
+            />
+          </CollapsibleChartSection>
+
+          {/* C-4: Purchasing Power */}
+          <CollapsibleChartSection
+            id="purchasing-power"
+            title="Purchasing Power Analysis"
+            description="Annuity growth (COLA-adjusted) vs general inflation erosion"
+            defaultOpen={false}
+          >
+            <PurchasingPowerChart
+              inflationRate={fullSimulation.config?.inflationRate ?? 0.03}
+              colaRate={fullSimulation.config?.colaRate ?? 0.025}
+              years={fullSimulation.config?.endAge ?? 95 - (fullSimulation.config?.retirementAge ?? 62)}
+            />
+          </CollapsibleChartSection>
+
+          {/* C-6: Healthcare Costs */}
+          <CollapsibleChartSection
+            id="healthcare-costs"
+            title="Healthcare Cost Breakdown"
+            description="Healthcare vs other expenses over retirement"
+            defaultOpen={false}
+          >
+            <HealthcareCostChart
+              data={fullSimulation.years}
+              healthcareInflationRate={fullSimulation.config?.healthcareInflationRate}
+            />
+          </CollapsibleChartSection>
+
+          {/* C-8: Annuity Sensitivity */}
+          <CollapsibleChartSection
+            id="annuity-sensitivity"
+            title="Annuity Sensitivity Analysis"
+            description="How annuity changes with different retirement ages"
+            defaultOpen={false}
+          >
+            <AnnuitySensitivityChart
+              high3Salary={result.high3Salary}
+              creditableServiceAtCurrentAge={result.creditableServiceYears}
+              currentAge={Math.floor((new Date().getTime() - new Date(result.inputSummary.profile.birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))}
+              survivorBenefitOption={result.inputSummary.assumptions.survivorBenefitOption ?? 'none'}
+            />
+          </CollapsibleChartSection>
+
+          {/* C-9: TSP Depletion */}
+          <CollapsibleChartSection
+            id="tsp-depletion"
+            title="TSP Balance Depletion"
+            description="Projected TSP account balance over retirement"
+            defaultOpen={false}
+          >
+            <TSPDepletionChart data={fullSimulation.years} />
+          </CollapsibleChartSection>
+        </>
+      )}
     </div>
   );
 }

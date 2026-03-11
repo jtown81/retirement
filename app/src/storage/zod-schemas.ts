@@ -30,6 +30,8 @@ export const GSStepSchema = z.number().int().min(1).max(10);
 
 export const PaySystemSchema = z.enum(['GS', 'LEO', 'Title38']);
 
+export const FilingStatusSchema = z.enum(['single', 'married_joint', 'married_separate', 'head_of_household']);
+
 // ---------------------------------------------------------------------------
 // Career
 // ---------------------------------------------------------------------------
@@ -291,6 +293,9 @@ export const SimulationConfigSchema = z.object({
   inflationRate: RateSchema.min(0).max(0.2),
   healthcareInflationRate: RateSchema.min(0).max(0.2).optional(),
   healthcareAnnualExpenses: USDSchema.optional(),
+  // Tax
+  filingStatus: FilingStatusSchema.optional(),
+  applyIRMAA: z.boolean().optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -323,6 +328,12 @@ export const ScenariosSchema = z.array(RetirementScenarioStoredSchema);
 // ---------------------------------------------------------------------------
 // StoredRecord wrapper
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Chart Visibility
+// ---------------------------------------------------------------------------
+
+export const ChartVisibilitySchema = z.record(z.string(), z.boolean());
 
 export const StoredRecordSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
   z.object({

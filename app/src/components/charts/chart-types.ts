@@ -95,3 +95,44 @@ export interface SummaryPanelProps {
   year1Surplus: string;
   year1SurplusVariant: MetricCardProps['variant'];
 }
+
+// ── New Chart Props (C-3 through C-10) ────────────────────────────────────
+
+export interface NetCashFlowChartProps {
+  data: SimulationYearResult[];
+}
+
+export interface FERSSupplementGapChartProps {
+  data: SimulationYearResult[];
+}
+
+export interface RothVsTraditionalChartProps {
+  data: SimulationYearResult[];
+}
+
+export interface PurchasingPowerChartProps {
+  inflationRate: number;
+  colaRate: number;
+  years: number;
+}
+
+export interface ReplacementRatioChartProps {
+  data: SimulationYearResult[];
+  preRetirementSalary: number;
+}
+
+export interface HealthcareCostChartProps {
+  data: SimulationYearResult[];
+  healthcareInflationRate?: number;
+}
+
+export interface AnnuitySensitivityChartProps {
+  high3Salary: number;
+  creditableServiceAtCurrentAge: number;
+  currentAge: number;
+  survivorBenefitOption: 'none' | 'partial' | 'full';
+}
+
+export interface TSPDepletionChartProps {
+  data: SimulationYearResult[];
+}
