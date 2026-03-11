@@ -1170,3 +1170,50 @@ Existing scenario tests now function as integration tests for key retirement sce
 - Tests remain fully functional
 - Project now focuses on regulatory correctness (OPM FERS Handbook, federal statute) rather than spreadsheet parity
 - Cleaner project documentation without legacy baseline references
+
+## Documentation Phase Complete (2026-03-11) ✅
+
+### Formula Registry Updates
+Added three new formulas to `docs/formula-registry.md`:
+1. **career/high-3-gap-aware** - High-3 calculation with service gap detection
+   - Validates consecutive calendar years
+   - Skips non-consecutive periods (service gaps)
+   - Fallback to average of available years if no triple exists
+   - Source: OPM FERS Handbook Ch. 50, § 50A1.1-2
+
+2. **simulation/dsr-eligibility** - DSR eligibility rules
+   - Age 50+20 OR any age+25 years of service
+   - Involuntary separation requirement
+   - Immediate unreduced annuity benefit
+   - Source: 5 U.S.C. § 8414(b)(1)(A); OPM FERS Handbook § 50B2.1-2
+
+3. **simulation/monte-carlo-tsp** - Monte Carlo TSP projection
+   - N=200 stochastic simulations with varied market returns
+   - Generates p10, p50, p90 confidence bands
+   - Deterministic seeded PRNG (Mulberry32)
+   - Box-Muller normal distribution sampling
+
+### Regulatory Mapping Updates
+- Added DSR eligibility rules to regulatory reference table
+- Added High-3 gap detection requirement
+- Updated version from 0.2.0 to 0.3.0
+- Maintains authoritative mapping of all rules to sources
+
+### Architecture Documentation
+- Updated Career module description (added gap detection detail)
+- Updated Simulation module description (added DSR and Monte Carlo)
+- Enhanced chart components documentation:
+  - TSPDepletionChart: Monte Carlo confidence bands
+  - HealthcareCostChart: Config-based calculation
+- Updated test scenario descriptions to reflect new tests
+
+### Human-Readable Formula Index
+- Updated content/formulas/index.md with new formulas
+- Organized by module with E-10/E-13/C-9 tags
+- Cross-references to formula registry
+
+### Verification
+✅ Production build succeeds
+✅ All 531 tests passing
+✅ Zero TypeScript errors
+✅ Documentation comprehensive and maintainable
