@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A retirement planning simulation app for U.S. federal employees. Runs locally only (no backend). Architected for eventual mobile deployment. `Retire-original.xlsx` is the authoritative baseline for all formulas and features — app outputs must match it within defined tolerance.
+A retirement planning simulation app for U.S. federal employees. Runs locally only (no backend). Architected for eventual mobile deployment.
 
 ## Current Status
 
@@ -26,7 +26,6 @@ pnpm preview                              # preview production build
 pnpm test                                 # run all tests once
 pnpm test tests/unit/tsp/rmd.test.ts      # run a single test file
 pnpm test:watch                           # run tests in watch mode
-pnpm test:scenarios                       # run spreadsheet parity scenarios
 pnpm typecheck                            # TypeScript type check (no emit)
 ```
 
@@ -109,7 +108,6 @@ Always import from barrel exports (`@modules/career`) — never import sub-files
 
 - Flag all regulatory ambiguities explicitly rather than silently assuming.
 - Never skip documentation updates when adding or changing logic.
-- Spreadsheet parity is a success criterion — track which cells map to which formulas.
 
 ## Structure
 
@@ -156,12 +154,8 @@ docs/                  — Architecture, formula registry, regulatory mapping, s
 - `docs/regulatory-mapping.md` — Full regulatory reference table mapping every rule and assumption to its authoritative source (OPM, IRC, federal statute). Includes update monitoring strategy.
 - `content/regulations/fers-handbook.md` — OPM FERS Handbook chapter index with MRA table and annuity formula reference.
 
-### Spreadsheet Parity
-- `docs/spreadsheet-parity.md` — Tolerance policy, sheet map, cell-level mapping, and discrepancy log for `Retire-original.xlsx` parity verification.
-- `app/tests/scenarios/fixtures/baseline.json` — Canonical expected values extracted from the spreadsheet (populated phase-by-phase).
-
 ### Test Scenarios
-- `app/tests/scenarios/` — Four canonical parity scenarios: straight-through GS, LEO early retirement, military buyback, Roth vs Traditional TSP.
+- `app/tests/scenarios/` — Integration tests covering key retirement scenarios: straight-through GS career, LEO early retirement, military buyback, Roth vs Traditional TSP, High-3 gap handling, and DSR eligibility.
 
 ### Application Content
 - `content/docs/overview.md` — App feature summary and data sources for end-user documentation.

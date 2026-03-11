@@ -230,7 +230,8 @@ Schema version: `CURRENT_SCHEMA_VERSION = 1`.
 | `leo-early-retirement.test.ts`| LEO 20-year early retirement              |
 | `military-buyback.test.ts`    | FERS + military buyback credit            |
 | `tsp-roth-vs-traditional.test.ts` | Roth vs Traditional TSP paths        |
-| `fixtures/baseline.json`      | Canonical expected values from spreadsheet |
+| `high3-service-gap.test.ts`   | High-3 calculation with service gaps      |
+| `dsr-involuntary-separation.test.ts` | DSR eligibility scenarios        |
 
 ### Unit Tests (`tests/unit/`)
 

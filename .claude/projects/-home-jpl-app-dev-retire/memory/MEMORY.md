@@ -1137,3 +1137,36 @@ Remaining work items:
 2. Regulatory mapping updates for DSR rules
 3. Architecture documentation updates
 4. Spreadsheet parity verification for edge cases
+
+## Spreadsheet Parity Removal (2026-03-11) ✅
+
+### Rationale
+The app has evolved significantly beyond the original spreadsheet baseline. The app now implements complex features (DSR eligibility, High-3 gap handling, Monte Carlo simulation, cross-field validation) that go beyond the original spreadsheet scope.
+
+### Changes Made
+1. **CLAUDE.md** - Removed all references to:
+   - `Retire-original.xlsx` as authoritative baseline
+   - `pnpm test:scenarios` command (kept for functional testing)
+   - Spreadsheet parity success criterion
+   - Spreadsheet Parity section from Further Reading
+
+2. **docs/spreadsheet-parity.md** - Deleted entirely
+
+3. **docs/architecture.md** - Updated:
+   - Removed `fixtures/baseline.json` reference
+   - Updated scenario test descriptions (added High-3 gap and DSR tests)
+
+### Test Scenarios Repurposed
+Existing scenario tests now function as integration tests for key retirement scenarios:
+- `gs-straight-through.test.ts` - Standard GS career path
+- `leo-early-retirement.test.ts` - LEO early retirement  
+- `military-buyback.test.ts` - Military service credit buyback
+- `tsp-roth-vs-traditional.test.ts` - TSP account type comparison
+- `high3-service-gap.test.ts` - High-3 with career breaks (NEW)
+- `dsr-involuntary-separation.test.ts` - DSR eligibility rules (NEW)
+
+### Impact
+- No functional changes to code
+- Tests remain fully functional
+- Project now focuses on regulatory correctness (OPM FERS Handbook, federal statute) rather than spreadsheet parity
+- Cleaner project documentation without legacy baseline references
