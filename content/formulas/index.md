@@ -19,6 +19,7 @@ The authoritative registry is in `docs/formula-registry.md`.
 - `career/pay-calculator` — Annual pay = base + locality (GS/LEO/Title 38)
 - `career/creditable-service` — Total years/months/days from SCD to a target date
 - `career/salary-history` — Year-by-year salary record from career events with WGI projections
+- `career/high-3-gap-aware` — High-3 salary from consecutive calendar years only (skips service gaps) — E-10
 
 ### Leave Planning
 
@@ -51,8 +52,10 @@ The authoritative registry is in `docs/formula-registry.md`.
 ### Retirement Simulation
 
 - `simulation/fers-eligibility` — MRA+30, 60+20, 62+5, MRA+10-reduced checks
+- `simulation/dsr-eligibility` — DSR (Discontinued Service Retirement) for involuntary separation (age 50+20 or any age+25) — E-13
 - `simulation/high-3-salary` — Highest 3 consecutive salary years average
 - `simulation/fers-basic-annuity` — High-3 x multiplier (1.0% or 1.1%) x service years, with reduction factor
-- `simulation/fers-supplement` — FERS Special Retirement Supplement (SRS) until age 62
+- `simulation/fers-supplement` — FERS Special Retirement Supplement (SRS) until age 62 (includes DSR eligibility)
+- `simulation/monte-carlo-tsp` — TSP balance projection with stochastic Monte Carlo (p10/p50/p90 confidence bands) — C-9
 - `simulation/income-projection` — Year-by-year annuity + supplement + TSP withdrawal vs expenses
 - `simulation/scenario-comparison` — Side-by-side scenario runner with delta analysis

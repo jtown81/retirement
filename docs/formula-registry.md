@@ -769,6 +769,148 @@ deltaLifetimeSurplus = Σ scenario[1].surplus[yr] − Σ scenario[0].surplus[yr]
 
 ---
 
+### FORMULA_ID: career/high-3-gap-aware
+
+| Field         | Value                                                                 |
+|---------------|-----------------------------------------------------------------------|
+| Name          | High-3 Salary with Service Gap Detection                              |
+| Module        | career                                                                |
+| Purpose       | Computes High-3 average from consecutive calendar years only, excluding service gaps |
+| Inputs        | `salaryHistory: { year: number; annualSalary: number }[]` (year-by-year salary data) |
+| Outputs       | `highThreeAverage: USD` (highest 36-month average)                    |
+| Dependencies  | none                                                                  |
+| Source        | OPM FERS Handbook Ch. 50, § 50A1.1-2; 5 U.S.C. § 8411(d)             |
+| Classification| Hard regulatory requirement                                           |
+| Version       | 1.1.0                                                                 |
+| Changelog     | 2026-03-11 — E-10 implementation; added gap detection for service breaks |
+
+**Formula:**
+```
+// Validate consecutive years (no gaps across separations)
+maxAverage = 0
+for i = 0 to length(salaryHistory) - 3:
+  y0 = salaryHistory[i].year
+  y1 = salaryHistory[i+1].year
+  y2 = salaryHistory[i+2].year
+
+  // Skip window if any year pair is non-consecutive
+  if (y1 ≠ y0 + 1) OR (y2 ≠ y1 + 1):
+    continue
+
+  // Valid consecutive window found
+  average = (salaryHistory[i].annualSalary + salaryHistory[i+1].annualSalary + salaryHistory[i+2].annualSalary) / 3
+  maxAverage = max(maxAverage, average)
+
+// Fallback: if no consecutive triple exists, use best available average
+if (maxAverage = 0) AND (length(salaryHistory) > 0):
+  maxAverage = sum(salaryHistory[*].annualSalary) / length(salaryHistory)
+
+return maxAverage
+```
+
+**Notes:**
+- Requires year-by-year salary data from `buildSalaryHistory()` (includes WGI step increases)
+- Service gaps (non-consecutive years) are automatically skipped
+- FERS Handbook requires 3 consecutive calendar years of creditable service
+- Fallback for careers < 3 years is average of all available years
+
+---
+
+### FORMULA_ID: simulation/dsr-eligibility
+
+| Field         | Value                                                                 |
+|---------------|-----------------------------------------------------------------------|
+| Name          | DSR (Discontinued Service Retirement) Eligibility Check               |
+| Module        | simulation                                                            |
+| Purpose       | Determines if an employee qualifies for immediate unreduced FERS annuity under involuntary separation |
+| Inputs        | `age: integer (18–99)`, `yearsOfService: number (0–60)`, `involuntarySeparation: boolean` |
+| Outputs       | `eligible: boolean`, `type: 'DSR' \| null`                            |
+| Dependencies  | none                                                                  |
+| Source        | 5 U.S.C. § 8414(b)(1)(A); OPM FERS Handbook Ch. 50, § 50B2.1-2       |
+| Classification| Hard regulatory requirement                                           |
+| Version       | 1.0.0                                                                 |
+| Changelog     | 2026-03-11 — E-13 implementation; DSR eligibility rules               |
+
+**Formula:**
+```
+if involuntarySeparation = true:
+  if (age ≥ 50 AND yearsOfService ≥ 20) OR (yearsOfService ≥ 25):
+    return { eligible: true, type: 'DSR' }
+  else:
+    return { eligible: false, type: null }
+else:
+  return { eligible: false, type: null }
+```
+
+**Notes:**
+- DSR applies only to involuntary separations (agency-directed, not for cause)
+- Two pathways: (1) Age 50+ with 20+ years, OR (2) Any age with 25+ years of service
+- DSR retirees receive immediate unreduced annuity
+- DSR retirees ARE eligible for FERS supplement (OPM FERS Handbook § 50B2.1-2)
+- Service includes sick leave credit and military buyback
+- DSR takes priority over other eligibility types (MRA+10-reduced, etc.)
+
+---
+
+### FORMULA_ID: simulation/monte-carlo-tsp
+
+| Field         | Value                                                                 |
+|---------------|-----------------------------------------------------------------------|
+| Name          | Monte Carlo TSP Balance Projection with Confidence Bands              |
+| Module        | simulation                                                            |
+| Purpose       | Runs N stochastic simulations of TSP balance with varied market returns to generate confidence bands (p10, p50, p90) |
+| Inputs        | `config: SimulationConfig`, `n: integer (default 200)`                |
+| Outputs       | `MonteCarloResult[]` with fields: `{ year, age, p10, p50, p90 }`      |
+| Dependencies  | simulation/retirement-simulation (unified engine)                     |
+| Source        | docs/architecture.md; standard Monte Carlo approach                   |
+| Classification| User-configurable analysis                                           |
+| Version       | 1.0.0                                                                 |
+| Changelog     | 2026-03-11 — C-9 implementation; deterministic seeded PRNG for reproducibility |
+
+**Formula:**
+```
+// Use seeded PRNG for determinism (Mulberry32 algorithm)
+results = []
+balancesByYear = [] // 2D array: [simulation_i][year_j] → balance
+
+for sim = 1 to n:
+  // Sample market variance from Normal distribution
+  // μ = config.highRiskROI, σ = 0.06
+  sampledROI = config.highRiskROI + sampleNormal(μ=0, σ=0.06, seed=sim)
+
+  // Create variant config with adjusted return
+  variantConfig = config with highRiskROI = sampledROI
+
+  // Run deterministic simulation
+  simResult = unifiedRetirementSimulation(variantConfig)
+
+  // Extract TSP balance per year
+  balancesByYear[sim] = simResult.yearlyResults[*].totalTSPBalance
+
+// Compute percentiles per year
+for year = 1 to maxYear:
+  balances = [balancesByYear[*][year]]
+  results.push({
+    year: year,
+    age: retirementAge + year,
+    p10: percentile(balances, 0.10),
+    p50: percentile(balances, 0.50),
+    p90: percentile(balances, 0.90)
+  })
+
+return results
+```
+
+**Notes:**
+- Uses seeded PRNG for reproducible randomness (no external RNG dependency)
+- Box-Muller transform for Normal distribution sampling
+- Default n=200 simulations balances statistical robustness vs. performance
+- p50 (median) used as primary depletion age for alerts
+- p10/p90 bands show pessimistic/optimistic outcomes
+- Chart displays as fan: p10→p50 fill, p50→p90 fill, p50 line
+
+---
+
 ## Spreadsheet Cell Cross-Reference
 
 | Spreadsheet Cell | Formula ID                        | Notes                |

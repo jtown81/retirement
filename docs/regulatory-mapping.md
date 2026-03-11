@@ -22,6 +22,8 @@ Maps every formula, eligibility rule, and assumption to its governing authority.
 | High-3 average salary                 | simulation   | ◆    | OPM FERS Handbook, Ch. 50                          | Highest 3 consecutive years           |
 | MRA (Minimum Retirement Age)          | simulation   | ◆    | OPM FERS Handbook, Ch. 40                          | Varies by birth year (55–57)          |
 | FERS immediate unreduced annuity      | simulation   | ◆    | OPM FERS Handbook, Ch. 40                          | MRA+30 / 60+20 / 62+5                 |
+| DSR (involuntary separation)           | simulation   | ◆    | 5 U.S.C. § 8414(b)(1)(A); OPM FERS Handbook § 50B2.1-2 | Age 50+20 or any age+25; immediate unreduced |
+| High-3 with service gaps               | career       | ◆    | OPM FERS Handbook, Ch. 50, § 50A1.1-2; 5 U.S.C. § 8411(d) | Consecutive calendar years only       |
 | Annual leave accrual rates            | leave        | ◆    | 5 U.S.C. § 6303; OPM Leave Guidance                | 4/6/8 hrs/pp by years of service      |
 | Annual leave rollover cap             | leave        | ◆    | 5 U.S.C. § 6304                                    | 240 hrs for most employees            |
 | Sick leave service credit             | leave        | ◆    | OPM FERS Handbook, Ch. 50, § 50A2.1-1              | Post-2014: 100% credit                |
@@ -68,3 +70,4 @@ When the app relies on an assumption (◇) rather than a hard rule, the user mus
 |---------|------------|--------|----------------------------------------|
 | 0.1.0   | 2026-02-10 |        | Initial regulatory mapping scaffold    |
 | 0.2.0   | 2026-02-11 |        | Added RMD (Required Minimum Distribution) per SECURE 2.0 Act |
+| 0.3.0   | 2026-03-11 |        | E-10: High-3 gap detection; E-13: DSR eligibility rules |

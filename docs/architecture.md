@@ -55,12 +55,12 @@ Managed by `useFormSections.ts`. Each tab tracks completion via its storage key.
 
 | Module                          | Directory               | Responsibility                                              |
 |---------------------------------|-------------------------|-------------------------------------------------------------|
-| Career & Pay Progression Engine | `modules/career/`       | GS/LEO/Title 38, grade/step/locality, SCD, salary history, High-3 |
+| Career & Pay Progression Engine | `modules/career/`       | GS/LEO/Title 38 pay; grade/step/locality; SCD tracking; salary history with WGI; High-3 calculation with service gap detection (E-10) |
 | Leave Planning & Tracking       | `modules/leave/`        | Annual + sick leave, rollover, LS/DE breakdown, calendar bridge, retirement credit |
 | TSP Modeling                    | `modules/tsp/`          | Traditional & Roth balances; agency match; future value; RMD compliance |
 | Military Service Buyback        | `modules/military/`     | Buyback deposit & service credit (module retained; UI disconnected) |
 | Expense Modeling                | `modules/expenses/`     | Categories, expense smile curve, inflation, healthcare inflation |
-| Retirement Simulation Engine    | `modules/simulation/`   | Eligibility, annuity, supplement, dual-pot TSP, income projection, scenario comparison |
+| Retirement Simulation Engine    | `modules/simulation/`   | Eligibility (including DSR per E-13), annuity, supplement, dual-pot TSP, Monte Carlo confidence bands (C-9), income projection, scenario comparison |
 | Visualization Layer             | `components/charts/`    | Zero business logic; 5 chart components, summary cards      |
 | Validation                      | `modules/validation/`   | Input validation, assumption warnings                       |
 
@@ -104,9 +104,11 @@ Managed by `useFormSections.ts`. Each tab tracks completion via its storage key.
 | `PayGrowthChart`         | `components/charts/`  | Salary over career                          |
 | `LeaveBalancesChart`     | `components/charts/`  | Annual & sick leave trajectory              |
 | `TSPBalancesChart`       | `components/charts/`  | Traditional & Roth balance growth           |
+| `TSPDepletionChart`      | `components/charts/`  | TSP depletion with Monte Carlo confidence bands (p10/p50/p90) — C-9 |
+| `HealthcareCostChart`    | `components/charts/`  | Projected healthcare expenses using config values — C-6 |
 | `IncomeVsExpensesChart`  | `components/charts/`  | Income vs expenses in retirement            |
 | `ExpenseSmileCurveChart` | `components/charts/`  | Spending trajectory with smile multiplier   |
-| `ChartContainer`         | `components/charts/`  | Wrapper with title/subtitle                 |
+| `ChartContainer`         | `components/charts/`  | Wrapper with title/subtitle and collapsible section |
 
 ### Orphaned Components (retained but not rendered)
 
