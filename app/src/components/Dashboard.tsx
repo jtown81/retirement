@@ -345,6 +345,7 @@ export function Dashboard({ data, mode }: DashboardProps) {
             title="TSP Balance Depletion"
             description="Projected TSP account balance over retirement"
             defaultOpen={false}
+            lazyMount
           >
             <TSPDepletionChart data={fullSimulation.years} config={fullSimulation.config} />
           </CollapsibleChartSection>

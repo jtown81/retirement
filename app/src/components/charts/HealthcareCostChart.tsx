@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   LineChart,
   Line,
@@ -74,16 +75,18 @@ export function HealthcareCostChart({
   }
 
   // Compute healthcare expenses per year using smile curve multiplier
-  const chartData = data.map((year, idx) => {
-    const yearsRetired = idx;
-    const smileMultiplier = year.smileMultiplier ?? 1;
-    const healthcareExpenses = hcBase * Math.pow(1 + hcInflation, yearsRetired) * smileMultiplier;
-    return {
-      ...year,
-      healthcareExpenses: Math.round(healthcareExpenses),
-      nonHealthcareExpenses: Math.max(0, Math.round((year.totalExpenses ?? 0) - healthcareExpenses)),
-    };
-  });
+  const chartData = useMemo(() => {
+    return data.map((year, idx) => {
+      const yearsRetired = idx;
+      const smileMultiplier = year.smileMultiplier ?? 1;
+      const healthcareExpenses = hcBase * Math.pow(1 + hcInflation, yearsRetired) * smileMultiplier;
+      return {
+        ...year,
+        healthcareExpenses: Math.round(healthcareExpenses),
+        nonHealthcareExpenses: Math.max(0, Math.round((year.totalExpenses ?? 0) - healthcareExpenses)),
+      };
+    });
+  }, [data, hcBase, hcInflation]);
 
   return (
     <ChartContainer
@@ -92,7 +95,7 @@ export function HealthcareCostChart({
     >
       <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 20 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={theme.gridColor} />
-        <XAxis dataKey="year" tick={{ fontSize: 12, fill: theme.textColor }} />
+        <XAxis dataKey="year" tick={{ fontSize: 11, fill: theme.textColor }} interval="preserveStartEnd" />
         <YAxis
           tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
           tick={{ fontSize: 12, fill: theme.textColor }}

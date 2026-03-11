@@ -61,7 +61,7 @@ export function AppShell({
           <Tabs value={view} onValueChange={(value) => onViewChange(value as View)} className="mt-4">
             <TabsList className="grid w-full grid-cols-3">
               {NAV_ITEMS.map((item) => (
-                <TabsTrigger key={item.id} value={item.id} className="flex items-center gap-2">
+                <TabsTrigger key={item.id} value={item.id} className="flex items-center gap-2" aria-label={item.label}>
                   {item.icon}
                   <span className="hidden sm:inline">{item.label}</span>
                 </TabsTrigger>

@@ -27,7 +27,7 @@ export function FormShell({ tabs, children }: FormShellProps) {
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-6">
         {tabs.map((tab) => (
-          <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
+          <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2" aria-label={tab.label}>
             {TAB_ICONS[tab.id] || <Circle className="w-4 h-4" />}
             <span className="hidden sm:inline">{tab.label}</span>
             {tab.complete ? (

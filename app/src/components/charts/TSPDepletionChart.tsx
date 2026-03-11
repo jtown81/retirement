@@ -86,7 +86,7 @@ export function TSPDepletionChart({ data, config }: TSPDepletionChartProps) {
     >
       <AreaChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 20 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={theme.gridColor} />
-        <XAxis dataKey="year" tick={{ fontSize: 12, fill: theme.textColor }} />
+        <XAxis dataKey="year" tick={{ fontSize: 11, fill: theme.textColor }} interval="preserveStartEnd" />
         <YAxis
           tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
           tick={{ fontSize: 12, fill: theme.textColor }}
