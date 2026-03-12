@@ -51,7 +51,7 @@ interface FormState extends PersonalInfo {
   high3Override: string;
   sickLeaveHours: string;
   involuntarySeparation: boolean;
-  annuityReductionPct: string;
+  survivorBenefitOption: string;
   ssaBenefitAt62: string;
   annualEarnings: string;
   currentTspBalance: string;
@@ -81,7 +81,7 @@ const DEFAULTS: FormState = {
   high3Override: '',
   sickLeaveHours: '0',
   involuntarySeparation: false,
-  annuityReductionPct: '0',
+  survivorBenefitOption: 'none',
   ssaBenefitAt62: '',
   annualEarnings: '',
   currentTspBalance: '0',
@@ -153,7 +153,10 @@ function formStateFromStored(personal: PersonalInfo | null, fers: FERSEstimate |
     high3Override: fers?.high3Override != null ? String(fers.high3Override) : '',
     sickLeaveHours: fers ? String(fers.sickLeaveHours) : '0',
     involuntarySeparation: fers?.involuntarySeparation ?? false,
-    annuityReductionPct: fers ? String(fers.annuityReductionPct * 100) : '0',
+    survivorBenefitOption: fers?.survivorBenefitOption
+      ?? (fers?.annuityReductionPct === 0.10 ? 'full'
+        : fers?.annuityReductionPct === 0.05 ? 'partial'
+        : 'none'),
     ssaBenefitAt62: fers?.ssaBenefitAt62 != null ? String(fers.ssaBenefitAt62) : '',
     annualEarnings: fers?.annualEarnings != null ? String(fers.annualEarnings) : '',
     currentTspBalance: fers ? String(fers.currentTspBalance) : '0',
@@ -184,7 +187,7 @@ function toEstimateInput(form: FormState): FERSEstimateInput {
     high3Override: optNum(form.high3Override),
     sickLeaveHours: num(form.sickLeaveHours),
     involuntarySeparation: form.involuntarySeparation,
-    annuityReductionPct: num(form.annuityReductionPct) / 100,
+    survivorBenefitOption: form.survivorBenefitOption as 'none' | 'partial' | 'full',
     ssaBenefitAt62: optNum(form.ssaBenefitAt62),
     annualEarnings: optNum(form.annualEarnings),
     currentTspBalance: num(form.currentTspBalance),
@@ -293,7 +296,9 @@ export function FERSEstimateForm() {
       high3Override: optNum(form.high3Override),
       sickLeaveHours: num(form.sickLeaveHours),
       involuntarySeparation: form.involuntarySeparation,
-      annuityReductionPct: num(form.annuityReductionPct) / 100,
+      survivorBenefitOption: form.survivorBenefitOption as 'none' | 'partial' | 'full',
+      annuityReductionPct: form.survivorBenefitOption === 'full' ? 0.1
+        : form.survivorBenefitOption === 'partial' ? 0.05 : 0,
       ssaBenefitAt62: optNum(form.ssaBenefitAt62),
       annualEarnings: optNum(form.annualEarnings),
       currentTspBalance: num(form.currentTspBalance),
@@ -573,17 +578,17 @@ export function FERSEstimateForm() {
         </CollapsibleTrigger>
         <CollapsibleContent className="pt-4 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FieldGroup label="Survivor Benefit Reduction (%)" htmlFor="fe-reduction" error={errors.annuityReductionPct}
-              hint="Typical: 0%, 5%, or 10%">
-              <Input
-                id="fe-reduction"
-                type="number"
-                min="0"
-                max="100"
-                step="0.1"
-                value={form.annuityReductionPct}
-                onChange={(e) => set('annuityReductionPct', e.target.value)}
-              />
+            <FieldGroup label="Survivor Benefit" htmlFor="fe-survivorBenefit" error={errors.survivorBenefitOption}
+              hint="FERS election at retirement (5 U.S.C. § 8420)">
+              <Select value={form.survivorBenefitOption}
+                onValueChange={(v) => set('survivorBenefitOption', v)}>
+                <SelectTrigger id="fe-survivorBenefit"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None (0% reduction)</SelectItem>
+                  <SelectItem value="partial">Partial (5% reduction — 25% to spouse)</SelectItem>
+                  <SelectItem value="full">Full (10% reduction — 50% to spouse)</SelectItem>
+                </SelectContent>
+              </Select>
             </FieldGroup>
           </div>
         </CollapsibleContent>

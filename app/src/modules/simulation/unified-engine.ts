@@ -116,7 +116,7 @@ export function unifiedRetirementSimulation(config: SimulationConfig): FullSimul
 
     // ── 2. Expenses ──────────────────────────────────────────────────────
     const smile = smileMultiplier(age, config);
-    const hcExpenses = config.healthcareAnnualExpenses ?? 0;
+    const hcExpenses = (config.healthcareAnnualExpenses ?? 0) + (config.fehbPremiumAnnual ?? 0);
     const nonHcExpenses = config.baseAnnualExpenses - hcExpenses;
     const hcInflation = config.healthcareInflationRate ?? config.inflationRate;
     const totalExpenses =

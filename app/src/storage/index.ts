@@ -63,6 +63,11 @@ export {
   RetirementAssumptionsFullSchema,
   RetirementScenarioStoredSchema,
   ScenariosSchema,
+  // Simulation Scenarios
+  SimScenarioSchema,
+  SimScenariosListSchema,
   // Envelope
   StoredRecordSchema,
 } from './zod-schemas';
+
+export type { SimScenario } from './zod-schemas';

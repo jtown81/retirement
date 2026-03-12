@@ -1,6 +1,13 @@
 /**
- * Retirement Income Projection
+ * Retirement Income Projection — Profile-Assembly Engine
  * Formula: simulation/income-projection
+ *
+ * PROFILE-ASSEMBLY ENGINE (simple scenario projection)
+ * Takes raw career/leave/TSP profile data and derives High-3, creditable service,
+ * annuity, and basic income vs expense projection.
+ *
+ * For post-retirement simulation from pre-computed values, use unifiedRetirementSimulation()
+ * from unified-engine.ts instead.
  *
  * Projects total annual retirement income vs expenses over the retirement horizon.
  *

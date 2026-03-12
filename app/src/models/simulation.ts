@@ -185,6 +185,8 @@ export interface SimulationConfig {
   healthcareInflationRate?: Rate;
   /** Annual healthcare expense amount (split from baseAnnualExpenses for separate inflation) */
   healthcareAnnualExpenses?: USD;
+  /** Employee annual FEHB premium (after ~72% government subsidy). Inflated at healthcareInflationRate. */
+  fehbPremiumAnnual?: USD;
 
   // ── Tax Configuration ──
   /** Filing status for federal income tax computation. Default: 'single' */

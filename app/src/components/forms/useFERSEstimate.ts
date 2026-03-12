@@ -16,7 +16,7 @@ export interface FERSEstimateInput {
   high3Override?: number;
   sickLeaveHours: number;
   involuntarySeparation?: boolean;  // DSR eligibility
-  annuityReductionPct: number;
+  survivorBenefitOption?: 'none' | 'partial' | 'full';
   ssaBenefitAt62?: number;
   annualEarnings?: number;
   currentTspBalance: number;
@@ -46,6 +46,7 @@ export interface FERSEstimateResult {
   reductionAmount: number;
   netAnnuity: number;
   monthlyAnnuity: number;
+  survivorBenefitOption: 'none' | 'partial' | 'full';
   // Supplement
   supplementEligible: boolean;
   supplementMonthly: number;
@@ -121,20 +122,17 @@ export function useFERSEstimate(input: FERSEstimateInput): FERSEstimateResult | 
     const high3Salary = input.high3Override ?? computedHigh3;
 
     // Annuity
-    // NOTE: Default survivorBenefitOption='none' prevents internal survivor reduction,
-    // allowing this hook to apply survivor reduction as a percentage (legacy approach).
     const annuityResult: FERSAnnuityResult = computeFERSAnnuity(
       high3Salary,
       totalCreditableService,
       ageAtRetirement,
       eligibility.type,
+      input.survivorBenefitOption ?? 'none',
     );
 
     const annuityPct = annuityResult.multiplier * 100;
 
-    // Apply user-specified survivor benefit reduction (percentage-based)
-    const survivorReduction = annuityResult.netAnnualAnnuity * input.annuityReductionPct;
-    const netAnnuity = annuityResult.netAnnualAnnuity - survivorReduction;
+    const netAnnuity = annuityResult.netAnnualAnnuity;
     const monthlyAnnuity = netAnnuity / 12;
 
     // FERS Supplement
@@ -187,9 +185,10 @@ export function useFERSEstimate(input: FERSEstimateInput): FERSEstimateResult | 
       high3Source,
       computedHigh3,
       grossAnnuity: annuityResult.grossAnnualAnnuity,
-      reductionAmount: survivorReduction + (annuityResult.grossAnnualAnnuity - annuityResult.netAnnualAnnuity),
+      reductionAmount: annuityResult.grossAnnualAnnuity - annuityResult.netAnnualAnnuity,
       netAnnuity,
       monthlyAnnuity,
+      survivorBenefitOption: input.survivorBenefitOption ?? 'none',
       supplementEligible: supplementResult.eligible,
       supplementMonthly: supplementResult.annualAmount / 12,
       supplementAnnual: supplementResult.annualAmount,
@@ -212,7 +211,7 @@ export function useFERSEstimate(input: FERSEstimateInput): FERSEstimateResult | 
     input.annualRaiseRate,
     input.high3Override,
     input.sickLeaveHours,
-    input.annuityReductionPct,
+    input.survivorBenefitOption,
     input.ssaBenefitAt62,
     input.annualEarnings,
     input.currentTspBalance,

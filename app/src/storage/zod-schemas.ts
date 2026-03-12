@@ -243,7 +243,8 @@ export const FERSEstimateSchema = z.object({
   // Eligibility
   involuntarySeparation: z.boolean().optional(),
   // Annuity
-  annuityReductionPct: RateSchema.min(0).max(1),
+  annuityReductionPct: RateSchema.min(0).max(1).optional(),
+  survivorBenefitOption: z.enum(['none', 'partial', 'full']).optional(),
   // Social Security
   ssaBenefitAt62: USDSchema.optional(),
   annualEarnings: USDSchema.optional(),
@@ -271,11 +272,14 @@ export const TimeStepYearsSchema = z.union([z.literal(1), z.literal(2), z.litera
 export const SimulationConfigSchema = z
   .object({
     // Core
+    birthYear: z.number().int().min(1900).max(2100),
     retirementAge: z.number().int().min(50).max(90),
     endAge: z.number().int().min(70).max(104),
     fersAnnuity: USDSchema,
     fersSupplement: USDSchema,
     ssMonthlyAt62: USDSchema,
+    ssClaimingAge: z.number().int().min(62).max(70),
+    survivorBenefitOption: z.enum(['none', 'partial', 'full']),
     // TSP
     tspBalanceAtRetirement: USDSchema,
     traditionalPct: RateSchema.min(0).max(1),
@@ -296,6 +300,7 @@ export const SimulationConfigSchema = z
     inflationRate: RateSchema.min(0).max(0.2),
     healthcareInflationRate: RateSchema.min(0).max(0.2).optional(),
     healthcareAnnualExpenses: USDSchema.optional(),
+    fehbPremiumAnnual: USDSchema.optional(),
     // Tax
     filingStatus: FilingStatusSchema.optional(),
     applyIRMAA: z.boolean().optional(),
@@ -351,6 +356,21 @@ export const RetirementScenarioStoredSchema = z.object({
 });
 
 export const ScenariosSchema = z.array(RetirementScenarioStoredSchema);
+
+// ---------------------------------------------------------------------------
+// Simulation Scenarios (SimulationConfig-based)
+// ---------------------------------------------------------------------------
+
+export const SimScenarioSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  savedAt: z.string(),
+  config: SimulationConfigSchema,
+});
+
+export const SimScenariosListSchema = z.array(SimScenarioSchema);
+
+export type SimScenario = z.infer<typeof SimScenarioSchema>;
 
 // ---------------------------------------------------------------------------
 // StoredRecord wrapper

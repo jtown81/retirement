@@ -73,6 +73,13 @@ export function FERSEstimateResults({ result }: { result: FERSEstimateResult | n
           <Row label="Reductions" value={result.reductionAmount > 0 ? `-${fmt(result.reductionAmount)}` : '$0'} />
           <Row label="Net annual" value={fmt(result.netAnnuity)} bold />
           <Row label="Net monthly" value={fmt(result.monthlyAnnuity)} bold />
+          {result.survivorBenefitOption !== 'none' && (
+            <Row
+              label="Survivor election"
+              value={result.survivorBenefitOption === 'full'
+                ? 'Full (50% to spouse)' : 'Partial (25% to spouse)'}
+            />
+          )}
         </ResultCard>
 
         <ResultCard title="FERS Supplement">

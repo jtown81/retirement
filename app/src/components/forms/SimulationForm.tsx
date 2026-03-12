@@ -8,18 +8,21 @@ import {
   PersonalInfoSchema,
   RetirementAssumptionsFullSchema,
 } from '@storage/index';
-import { projectRetirementSimulation } from '@modules/simulation/retirement-simulation';
+import { unifiedRetirementSimulation } from '@modules/simulation';
 import type { SimulationConfig, FullSimulationResult } from '@models/simulation';
+import type { FilingStatus } from '@models/tax';
 import { useFERSEstimate, type FERSEstimateInput } from './useFERSEstimate';
+import { ScenarioComparison } from './ScenarioComparison';
 import { FieldGroup } from './FieldGroup';
 import { FormSection } from './FormSection';
 import { Input } from '@components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@components/ui/select';
 import { Button } from '@components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@components/ui/collapsible';
+import { Checkbox } from '@components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@components/ui/table';
 import { Alert, AlertDescription } from '@components/ui/alert';
-import { ChevronDown, TrendingUp, Target, DollarSign, Percent } from 'lucide-react';
+import { ChevronDown, TrendingUp, Target, DollarSign, Percent, Receipt } from 'lucide-react';
 import { cn } from '@lib/utils';
 import type { z } from 'zod';
 
@@ -42,6 +45,7 @@ interface FormState {
   fersAnnuity: string;
   fersSupplement: string;
   ssMonthlyAt62: string;
+  survivorBenefitOption: string;
   tspBalanceAtRetirement: string;
   traditionalPct: string;
   highRiskPct: string;
@@ -59,6 +63,9 @@ interface FormState {
   inflationRate: string;
   healthcareInflationRate: string;
   healthcareAnnualExpenses: string;
+  fehbPremiumAnnual: string;
+  filingStatus: string;
+  applyIRMAA: string;
 }
 
 const DEFAULTS: FormState = {
@@ -67,6 +74,7 @@ const DEFAULTS: FormState = {
   fersAnnuity: '30000',
   fersSupplement: '0',
   ssMonthlyAt62: '1800',
+  survivorBenefitOption: 'none',
   tspBalanceAtRetirement: '500000',
   traditionalPct: '70',
   highRiskPct: '60',
@@ -84,6 +92,9 @@ const DEFAULTS: FormState = {
   inflationRate: '2.5',
   healthcareInflationRate: '5.5',
   healthcareAnnualExpenses: '8000',
+  fehbPremiumAnnual: '',
+  filingStatus: '',
+  applyIRMAA: 'true',
 };
 
 const DRAFT_KEY = 'retire:simulation-form-draft';
@@ -117,7 +128,6 @@ function toConfig(
   f: FormState,
   birthYear: number = 1960,
   ssClaimingAge: number = 62,
-  survivorBenefitOption: 'none' | 'partial' | 'full' = 'full',
 ): SimulationConfig {
   const n = (s: string) => (s === '' ? 0 : Number(s));
   return {
@@ -143,9 +153,12 @@ function toConfig(
     inflationRate: n(f.inflationRate) / 100,
     healthcareInflationRate: n(f.healthcareInflationRate) / 100,
     healthcareAnnualExpenses: n(f.healthcareAnnualExpenses),
+    fehbPremiumAnnual: f.fehbPremiumAnnual !== '' ? n(f.fehbPremiumAnnual) : undefined,
+    filingStatus: f.filingStatus !== '' ? (f.filingStatus as FilingStatus) : undefined,
+    applyIRMAA: f.applyIRMAA === 'true',
     birthYear,
     ssClaimingAge,
-    survivorBenefitOption,
+    survivorBenefitOption: f.survivorBenefitOption as 'none' | 'partial' | 'full',
   };
 }
 
@@ -156,6 +169,7 @@ function configToFormState(config: Partial<SimulationConfig>): FormState {
     fersAnnuity: String(config.fersAnnuity ?? 30000),
     fersSupplement: String(config.fersSupplement ?? 0),
     ssMonthlyAt62: String(config.ssMonthlyAt62 ?? 1800),
+    survivorBenefitOption: config.survivorBenefitOption ?? 'none',
     tspBalanceAtRetirement: String(config.tspBalanceAtRetirement ?? 500000),
     traditionalPct: String((config.traditionalPct ?? 0.7) * 100),
     highRiskPct: String((config.highRiskPct ?? 0.6) * 100),
@@ -173,6 +187,9 @@ function configToFormState(config: Partial<SimulationConfig>): FormState {
     inflationRate: String((config.inflationRate ?? 0.025) * 100),
     healthcareInflationRate: String((config.healthcareInflationRate ?? 0.055) * 100),
     healthcareAnnualExpenses: String(config.healthcareAnnualExpenses ?? 8000),
+    fehbPremiumAnnual: String(config.fehbPremiumAnnual ?? ''),
+    filingStatus: config.filingStatus ?? '',
+    applyIRMAA: String(config.applyIRMAA ?? true),
   };
 }
 
@@ -216,6 +233,10 @@ function buildFromSavedData(
     if (fers.ssaBenefitAt62 != null) {
       patch.ssMonthlyAt62 = String(fers.ssaBenefitAt62);
       sourceFields.add('ssMonthlyAt62');
+    }
+    if (fers.survivorBenefitOption) {
+      patch.survivorBenefitOption = fers.survivorBenefitOption;
+      sourceFields.add('survivorBenefitOption');
     }
     if (fers.withdrawalRate > 0) {
       patch.withdrawalRate = String(fers.withdrawalRate * 100);
@@ -261,7 +282,7 @@ function buildFERSEstimateInput(personal: PersonalInfo | null, fers: FERSEstimat
     annualRaiseRate: fers.annualRaiseRate,
     high3Override: fers.high3Override,
     sickLeaveHours: fers.sickLeaveHours,
-    annuityReductionPct: fers.annuityReductionPct,
+    survivorBenefitOption: fers.survivorBenefitOption ?? 'none',
     ssaBenefitAt62: fers.ssaBenefitAt62,
     annualEarnings: fers.annualEarnings,
     currentTspBalance: fers.currentTspBalance,
@@ -309,6 +330,7 @@ export function SimulationForm() {
     tsp: true,
     expenses: false,
     rates: false,
+    tax: false,
   });
   const isFirstRender = useRef(true);
 
@@ -324,27 +346,27 @@ export function SimulationForm() {
   const set = (key: keyof FormState, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
+  // ── Derive age/SS from stored personal info ──────────────────────────────
+  const birthYear = storedPersonal?.birthDate
+    ? new Date(storedPersonal.birthDate).getFullYear()
+    : 1960;
+  const ssClaimingAge = 62; // Default to age 62 SS claiming
+
   // ── Live simulation ──────────────────────────────────────────────────────
   const simulation = useMemo<FullSimulationResult | null>(() => {
     try {
-      const birthYear = storedPersonal?.birthDate
-        ? new Date(storedPersonal.birthDate).getFullYear()
-        : 1960;
-      // Default to age 62 SS claiming and full survivor benefit
-      const ssClaimingAge = 62;
-      const survivorBenefitOption: 'none' | 'partial' | 'full' = 'full';
-      const config = toConfig(form, birthYear, ssClaimingAge, survivorBenefitOption);
+      const config = toConfig(form, birthYear, ssClaimingAge);
       const result = SimulationConfigSchema.safeParse(config);
       if (!result.success) return null;
-      return projectRetirementSimulation(config);
+      return unifiedRetirementSimulation(config);
     } catch {
       return null;
     }
-  }, [form, storedPersonal]);
+  }, [form, birthYear, ssClaimingAge]);
 
   // ── Save / Clear ─────────────────────────────────────────────────────────
   const handleSave = () => {
-    const config = toConfig(form);
+    const config = toConfig(form, birthYear, ssClaimingAge);
     const result = SimulationConfigSchema.safeParse(config);
     if (!result.success) {
       const flat = result.error.flatten().fieldErrors;
@@ -476,6 +498,18 @@ export function SimulationForm() {
                 value={form.ssMonthlyAt62}
                 onChange={(e) => set('ssMonthlyAt62', e.target.value)}
               />
+            </FieldGroup>
+            <FieldGroup label="Survivor Benefit" htmlFor="sim-survivorBenefit" error={errors.survivorBenefitOption}
+              hint="Reduces annuity; provides spouse income at death">
+              <Select value={form.survivorBenefitOption}
+                onValueChange={(v) => set('survivorBenefitOption', v)}>
+                <SelectTrigger id="sim-survivorBenefit"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None (0% reduction)</SelectItem>
+                  <SelectItem value="partial">Partial (5% reduction)</SelectItem>
+                  <SelectItem value="full">Full (10% reduction)</SelectItem>
+                </SelectContent>
+              </Select>
             </FieldGroup>
           </div>
         </CollapsibleContent>
@@ -709,7 +743,7 @@ export function SimulationForm() {
               />
             </FieldGroup>
             <FieldGroup label="Healthcare Expense ($/yr)" htmlFor="sim-hcExpense" error={errors.healthcareAnnualExpenses}
-              hint="Portion of base expenses that is healthcare">
+              hint="Out-of-pocket costs, copays, dental, vision — exclude FEHB (enter below)">
               <Input
                 id="sim-hcExpense"
                 type="number"
@@ -719,7 +753,73 @@ export function SimulationForm() {
                 onChange={(e) => set('healthcareAnnualExpenses', e.target.value)}
               />
             </FieldGroup>
+            <FieldGroup
+              label="FEHB Premium ($/yr)"
+              htmlFor="sim-fehb"
+              error={errors.fehbPremiumAnnual}
+              hint="Your ~28% share after government subsidy. Self Only ≈ $2,400 · Self+1 ≈ $5,500 · Family ≈ $6,500"
+            >
+              <Input
+                id="sim-fehb"
+                type="number"
+                min="0"
+                step="100"
+                placeholder="e.g. 2400"
+                value={form.fehbPremiumAnnual}
+                onChange={(e) => set('fehbPremiumAnnual', e.target.value)}
+              />
+            </FieldGroup>
           </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* ── Tax Configuration ────────────────────────────────── */}
+      <Collapsible
+        open={openSections.tax}
+        onOpenChange={(open) => setOpenSections((prev) => ({ ...prev, tax: open }))}
+      >
+        <CollapsibleTrigger className="flex items-center gap-2 text-sm font-semibold hover:text-primary">
+          <ChevronDown className={`w-4 h-4 transition-transform ${openSections.tax ? 'rotate-180' : ''}`} />
+          <Receipt className="w-4 h-4" />
+          Tax Configuration
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FieldGroup label="Filing Status" htmlFor="sim-filingStatus" hint="Required to enable tax calculations">
+              <Select value={form.filingStatus} onValueChange={(value) => set('filingStatus', value)}>
+                <SelectTrigger id="sim-filingStatus">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Not configured</SelectItem>
+                  <SelectItem value="single">Single</SelectItem>
+                  <SelectItem value="married_joint">Married Filing Jointly</SelectItem>
+                  <SelectItem value="married_separate">Married Filing Separately</SelectItem>
+                  <SelectItem value="head_of_household">Head of Household</SelectItem>
+                </SelectContent>
+              </Select>
+            </FieldGroup>
+            {form.filingStatus !== '' && (
+              <div className="flex items-end gap-3">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="sim-applyIRMAA"
+                    checked={form.applyIRMAA === 'true'}
+                    onCheckedChange={(checked) => set('applyIRMAA', checked ? 'true' : 'false')}
+                  />
+                  <label htmlFor="sim-applyIRMAA" className="text-sm font-medium cursor-pointer">
+                    Apply IRMAA Surcharges
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
+          {form.filingStatus !== '' && (
+            <div className="text-xs text-muted-foreground p-3 bg-muted rounded">
+              Enables annual federal income tax, Social Security taxation (IRC § 86), and Medicare IRMAA surcharges for beneficiaries age 65+.
+              Results appear in the Simulation Results table below.
+            </div>
+          )}
         </CollapsibleContent>
       </Collapsible>
 
@@ -727,6 +827,17 @@ export function SimulationForm() {
       <div className="mt-2">
         <h3 className="text-sm font-semibold text-foreground mb-2">Simulation Results</h3>
         <SimulationResults result={simulation} />
+      </div>
+
+      {/* ── Scenario Comparison ────────────────────────────── */}
+      <div className="mt-6 border-t border-border pt-4">
+        <h3 className="text-sm font-semibold text-foreground mb-3">Scenario Comparison</h3>
+        <ScenarioComparison
+          currentConfig={toConfig(form, birthYear, ssClaimingAge)}
+          birthYear={birthYear}
+          ssClaimingAge={ssClaimingAge}
+          survivorBenefitOption={form.survivorBenefitOption as 'none' | 'partial' | 'full'}
+        />
       </div>
     </FormSection>
   );
@@ -745,10 +856,18 @@ function SimulationResults({ result }: { result: FullSimulationResult | null }) 
     );
   }
 
+  const taxConfigured = result.years.some((y) => y.federalTax !== undefined);
+  const lifetimeTax = taxConfigured
+    ? result.years.reduce((sum, y) => sum + (y.totalTax ?? 0), 0)
+    : 0;
+  const afterTaxNet = taxConfigured
+    ? result.years.reduce((sum, y) => sum + (y.afterTaxSurplus ?? 0), 0)
+    : 0;
+
   return (
     <div className="space-y-4">
       {/* Key Metrics Banner */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-muted rounded-lg">
+      <div className={`grid ${taxConfigured ? 'grid-cols-2 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-4'} gap-4 p-4 bg-muted rounded-lg`}>
         <MetricBox
           label="TSP Depletes"
           value={result.depletionAge === null ? 'NEVER' : `Age ${result.depletionAge}`}
@@ -767,6 +886,16 @@ function SimulationResults({ result }: { result: FullSimulationResult | null }) 
           label="Lifetime Expenses"
           value={fmtK(result.totalLifetimeExpenses)}
         />
+        {taxConfigured && (
+          <>
+            <MetricBox label="Lifetime Tax" value={fmtK(lifetimeTax)} />
+            <MetricBox
+              label="After-Tax Net"
+              value={fmtK(afterTaxNet)}
+              good={afterTaxNet > 0}
+            />
+          </>
+        )}
       </div>
 
       {/* Year-by-Year Table */}
@@ -784,6 +913,14 @@ function SimulationResults({ result }: { result: FullSimulationResult | null }) 
                 <TableHead className="text-xs text-right">Income</TableHead>
                 <TableHead className="text-xs text-right">Expenses</TableHead>
                 <TableHead className="text-xs text-right">Surplus</TableHead>
+                {taxConfigured && (
+                  <>
+                    <TableHead className="text-xs text-right">Fed Tax</TableHead>
+                    <TableHead className="text-xs text-right">IRMAA</TableHead>
+                    <TableHead className="text-xs text-right">Total Tax</TableHead>
+                    <TableHead className="text-xs text-right">After-Tax Net</TableHead>
+                  </>
+                )}
                 <TableHead className="text-xs text-right">TSP Bal.</TableHead>
                 <TableHead className="text-xs text-right">Trad.</TableHead>
                 <TableHead className="text-xs text-right">Roth</TableHead>
@@ -825,6 +962,22 @@ function SimulationResults({ result }: { result: FullSimulationResult | null }) 
                     <TableCell className={`text-xs text-right font-medium ${yr.surplus >= 0 ? 'text-green-700 dark:text-green-400' : 'text-destructive'}`}>
                       {fmtK(yr.surplus)}
                     </TableCell>
+                    {taxConfigured && (
+                      <>
+                        <TableCell className="text-xs text-right">{yr.federalTax !== undefined ? fmtK(yr.federalTax) : '—'}</TableCell>
+                        <TableCell className="text-xs text-right">{yr.irmaaSurcharge && yr.irmaaSurcharge > 0 ? fmtK(yr.irmaaSurcharge) : '—'}</TableCell>
+                        <TableCell className="text-xs text-right font-medium">{yr.totalTax !== undefined ? fmtK(yr.totalTax) : '—'}</TableCell>
+                        <TableCell className={`text-xs text-right font-medium ${
+                          yr.afterTaxSurplus !== undefined
+                            ? yr.afterTaxSurplus >= 0
+                              ? 'text-green-700 dark:text-green-400'
+                              : 'text-destructive'
+                            : ''
+                        }`}>
+                          {yr.afterTaxSurplus !== undefined ? fmtK(yr.afterTaxSurplus) : '—'}
+                        </TableCell>
+                      </>
+                    )}
                     <TableCell className={`text-xs text-right font-medium ${depleted ? 'text-destructive' : ''}`}>
                       {fmtK(yr.totalTSPBalance)}
                     </TableCell>

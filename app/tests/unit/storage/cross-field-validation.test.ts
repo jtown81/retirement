@@ -12,11 +12,14 @@ import { SimulationConfigSchema } from '@storage/zod-schemas';
  */
 function baseConfig() {
   return {
+    birthYear: 1960,
     retirementAge: 60,
     endAge: 90,
     fersAnnuity: 30000,
     fersSupplement: 5000,
     ssMonthlyAt62: 2000,
+    ssClaimingAge: 62,
+    survivorBenefitOption: 'full' as const,
     tspBalanceAtRetirement: 500000,
     traditionalPct: 0.7,
     highRiskPct: 0.4,
