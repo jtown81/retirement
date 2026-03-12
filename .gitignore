@@ -50,3 +50,10 @@ test-results/
 *~
 *.swp
 *.swo
+
+# Sub-project workspaces (each has its own git repo)
+/fishing/
+/3peaks/
+/cabin/
+/brand/
+/_archive/
