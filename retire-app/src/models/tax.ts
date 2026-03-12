@@ -59,3 +59,63 @@ export interface TaxYearResult {
   /** Gross income minus all taxes */
   afterTaxIncome: USD;
 }
+
+/**
+ * Federal tax bracket definition
+ */
+export interface FederalBracket {
+  /** Calendar year this bracket applies to */
+  year: number;
+  /** Filing status: single, married_joint, etc. */
+  filingStatus: FilingStatus;
+  /** Lower bound of bracket (inclusive) in USD */
+  minIncome: USD;
+  /** Upper bound of bracket (exclusive) in USD; Infinity for top bracket */
+  maxIncome: USD;
+  /** Marginal tax rate for this bracket */
+  rate: Rate;
+}
+
+/**
+ * Standard deduction by filing status and year
+ */
+export interface StandardDeduction {
+  /** Calendar year */
+  year: number;
+  /** Filing status */
+  filingStatus: FilingStatus;
+  /** Standard deduction amount in USD */
+  amount: USD;
+  /** Additional standard deduction for age 65+ (if applicable) */
+  age65Plus?: USD;
+}
+
+/**
+ * State tax configuration and computation
+ * MVP: Flat-rate approximations for top states; state tax is not included in app projections yet
+ */
+
+export type StateCode =
+  | 'AK' | 'AL' | 'AZ' | 'AR' | 'CA' | 'CO' | 'CT' | 'DE' | 'FL' | 'GA'
+  | 'HI' | 'ID' | 'IL' | 'IN' | 'IA' | 'KS' | 'KY' | 'LA' | 'ME' | 'MD'
+  | 'MA' | 'MI' | 'MN' | 'MS' | 'MO' | 'MT' | 'NE' | 'NV' | 'NH' | 'NJ'
+  | 'NM' | 'NY' | 'NC' | 'ND' | 'OH' | 'OK' | 'OR' | 'PA' | 'RI' | 'SC'
+  | 'SD' | 'TN' | 'TX' | 'UT' | 'VT' | 'VA' | 'WA' | 'WV' | 'WI' | 'WY'
+  | 'DC' | 'null';
+
+export interface StateTaxRule {
+  /** State abbreviation */
+  stateCode: StateCode;
+  /** Year this rule applies to */
+  year: number;
+  /** Whether state has no income tax */
+  noIncomeTax?: boolean;
+  /** Whether FERS annuity is exempt from state tax */
+  exemptsFersAnnuity?: boolean;
+  /** Whether TSP withdrawals are exempt from state tax */
+  exemptsTspWithdrawals?: boolean;
+  /** Social Security exemption */
+  exemptsSocialSecurity?: boolean;
+  /** Flat tax rate (MVP only; full brackets TBD) */
+  approximateFlatRate?: Rate;
+}

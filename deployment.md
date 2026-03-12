@@ -35,7 +35,7 @@ This app is a **local-only, client-side application**:
 ### Step 1: Install Dependencies
 
 ```bash
-cd app
+cd retire-app
 pnpm install
 ```
 
@@ -278,7 +278,7 @@ This serves the production build locally for testing.
 - [ ] Git working tree clean: `git status`
 - [ ] Code reviewed or approved by team
 - [ ] CHANGELOG updated with release notes
-- [ ] Version bumped in `app/package.json` if applicable
+- [ ] Version bumped in `retire-app/package.json` if applicable
 
 ### Deployment Target Options
 
@@ -427,8 +427,8 @@ pnpm typecheck
    - Check specific error messages carefully
 
 3. **Inspect source code:**
-   - Look in `app/src/` for implementation
-   - Check `app/tests/` for test examples
+   - Look in `retire-app/src/` for implementation
+   - Check `retire-app/tests/` for test examples
 
 ---
 

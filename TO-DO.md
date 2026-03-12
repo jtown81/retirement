@@ -213,7 +213,7 @@ The app now includes all critical calculations and visualizations. Only cosmetic
 
 - All regulatory sources documented in `docs/regulatory-mapping.md`
 - Formula registry at `docs/formula-registry.md`
-- Test scenarios in `app/tests/scenarios/`
+- Test scenarios in `retire-app/tests/scenarios/`
 - Production build succeeds: `pnpm build`
 - All 531 tests passing: `pnpm test`
 - Zero TypeScript errors: `pnpm typecheck`
