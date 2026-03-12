@@ -49,17 +49,17 @@ export function CollapsibleChartSection({
 
   return (
     <>
-      <section className="space-y-4">
+      <section className="space-y-3 sm:space-y-4">
         <Collapsible open={isOpen} onOpenChange={handleOpenChange}>
           <CollapsibleTrigger asChild>
             <button
-              className="flex w-full items-start justify-between gap-4 text-left cursor-pointer hover:bg-muted/50 rounded-lg transition-colors p-1 -mx-1"
+              className="flex w-full items-start justify-between gap-2 sm:gap-3 text-left cursor-pointer hover:bg-muted/50 rounded-lg transition-colors p-1 -mx-1"
               aria-label={isOpen ? 'Collapse section' : 'Expand section'}
             >
-              <div className="flex-1 mt-1">
-                <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+              <div className="flex-1 mt-1 min-w-0">
+                <h2 className="text-base sm:text-lg font-semibold text-foreground">{title}</h2>
                 {description && (
-                  <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+                  <p className="mt-1 text-xs sm:text-sm text-muted-foreground">{description}</p>
                 )}
               </div>
               <ChevronDown

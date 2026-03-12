@@ -12,7 +12,7 @@ export function SummaryPanel({
 }: SummaryPanelProps) {
   return (
     <div
-      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
+      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4"
       data-testid="summary-panel"
     >
       <MetricCard label="Annual Annuity" value={annuity} />

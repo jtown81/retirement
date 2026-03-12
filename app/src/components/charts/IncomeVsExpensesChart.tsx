@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   ComposedChart,
   Line,
@@ -34,7 +35,7 @@ function IncExpTooltip({ active, payload, theme }: { active?: boolean; payload?:
   );
 }
 
-export function IncomeVsExpensesChart({ data }: IncomeVsExpensesChartProps) {
+function IncomeVsExpensesChartComponent({ data }: IncomeVsExpensesChartProps) {
   const theme = useChartTheme();
 
   return (
@@ -78,3 +79,5 @@ export function IncomeVsExpensesChart({ data }: IncomeVsExpensesChartProps) {
     </ChartContainer>
   );
 }
+
+export const IncomeVsExpensesChart = memo(IncomeVsExpensesChartComponent);

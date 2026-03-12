@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   AreaChart,
   Area,
@@ -24,7 +25,7 @@ function LeaveTooltip({ active, payload, theme }: { active?: boolean; payload?: 
   );
 }
 
-export function LeaveBalancesChart({ data }: LeaveBalancesChartProps) {
+function LeaveBalancesChartComponent({ data }: LeaveBalancesChartProps) {
   const theme = useChartTheme();
 
   return (
@@ -66,3 +67,5 @@ export function LeaveBalancesChart({ data }: LeaveBalancesChartProps) {
     </ChartContainer>
   );
 }
+
+export const LeaveBalancesChart = memo(LeaveBalancesChartComponent);

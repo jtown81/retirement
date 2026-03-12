@@ -180,6 +180,7 @@ export function Dashboard({ data, mode }: DashboardProps) {
           title="Tax-Adjusted Income"
           description="Gross income by source with federal tax and IRMAA impact"
           defaultOpen={true}
+          lazyMount
         >
           <TaxAdjustedIncomeChart data={fullSimulation.years} />
         </CollapsibleChartSection>
@@ -192,6 +193,7 @@ export function Dashboard({ data, mode }: DashboardProps) {
           title="Social Security Claiming Age Analysis"
           description="Cumulative lifetime benefits at different claiming ages (most impactful retirement decision)"
           defaultOpen={true}
+          lazyMount
         >
           {(() => {
             const variants = computeSSClaimingVariants(
@@ -280,6 +282,7 @@ export function Dashboard({ data, mode }: DashboardProps) {
             title="Roth vs Traditional TSP Balance"
             description="Growth of Roth and Traditional TSP accounts with RMD pressure indicator"
             defaultOpen={false}
+            lazyMount
           >
             <RothVsTraditionalChart data={fullSimulation.years} />
           </CollapsibleChartSection>
@@ -330,6 +333,7 @@ export function Dashboard({ data, mode }: DashboardProps) {
             title="Annuity Sensitivity Analysis"
             description="How annuity changes with different retirement ages"
             defaultOpen={false}
+            lazyMount
           >
             <AnnuitySensitivityChart
               high3Salary={result.high3Salary}

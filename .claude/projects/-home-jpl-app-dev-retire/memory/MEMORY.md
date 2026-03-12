@@ -1,5 +1,114 @@
 # app-dev/retire Project Memory
 
+## Option A: Performance & Responsiveness (2026-03-12) — COMPLETE ✅
+
+### Implemented Optimizations:
+
+**1. Fixed Critical Bug: useFullSimulation Dependency**
+- ❌ Was: Empty dependency array `[]` → never re-computed when config changes
+- ✅ Now: Uses `[config]` dependency → updates whenever simulation config changes
+- Impact: Dashboard no longer shows stale data when user updates forms
+
+**2. Extended Lazy Mounting**
+- ✅ Added `lazyMount` to 4 heavy charts:
+  - `TaxAdjustedIncomeChart` (tax calculations)
+  - `SSClaimingComparisonChart` (variant computations)
+  - `RothVsTraditionalChart` (multi-year projections)
+  - `AnnuitySensitivityChart` (sensitivity analysis)
+- Impact: ~5 fewer charts render on initial dashboard load (8 → 3 eager renders)
+
+**3. Memoized Chart Components**
+- ✅ Wrapped 5 major charts in `React.memo`:
+  - `IncomeVsExpensesChart`
+  - `PayGrowthChart`
+  - `TSPBalancesChart`
+  - `LeaveBalancesChart`
+  - `ExpenseSmileCurveChart`
+  - `TaxAdjustedIncomeChart`
+- Impact: Charts skip re-renders when parent updates but props unchanged
+
+**4. Mobile Responsiveness Improvements**
+- ✅ **AppShell**: Responsive padding (px-3 sm:px-4 md:px-6), font sizes (text-sm sm:text-base), spacing
+- ✅ **ChartContainer**: Responsive heights (h-[200px] sm:h-[280px] md:h-[320px] lg:h-[380px])
+- ✅ **CollapsibleChartSection**: Responsive gaps, font sizes for section titles/descriptions
+- ✅ **MetricCard**: Responsive padding, font sizes (text-xs sm:text-sm for labels)
+- ✅ **SummaryPanel**: Responsive grid gaps (gap-2 sm:gap-3 md:gap-4)
+- Impact: Better UX on mobile (< 768px), tablets, and desktop
+
+**Test Results:** 531 tests passing, 0 TypeScript errors
+
+---
+
+## TO-DO Status Verification (2026-03-11) — MAJOR UPDATE ✅
+
+### Key Finding: 95% Feature Complete
+The TO-DO.md was severely outdated. Upon verification, **virtually all "remaining" items were already implemented**:
+
+**Items Verified Complete:**
+- ✅ E-1-E-6: All critical accuracy fixes
+- ✅ E-7: Military years calculated at month precision (via yearsBetween)
+- ✅ E-8: Tautological filter removed/not present
+- ✅ E-9: TSP chart balance issue fixed (uses full balance, not 10%)
+- ✅ E-11: Survivor benefit reduction (10%, 5%, 0%) fully working
+- ✅ C-1: Tax waterfall chart (TaxAdjustedIncomeChart.tsx)
+- ✅ C-2: SS claiming comparison (SSClaimingComparisonChart.tsx)
+- ✅ C-3-C-10: All additional charts implemented and in Dashboard
+
+**True Remaining (5%):**
+- Dashboard responsive design (mobile optimization)
+- Performance optimization (memoization, code-splitting)
+- State income tax UI (calculations done; needs state dropdown)
+- E-13 special provisions (LEO/firefighter — low priority)
+- PDF/CSV export (stretch feature)
+
+**Updated both TO-DO.md files** to reflect accurate status.
+
+---
+
+## E-12 & E-14 Implementation (2026-03-11) — COMPLETE ✅
+
+### E-12: Engine Cleanup - Deprecated Wrapper Removal
+Removed thin pass-through wrapper that was confusing dual engine pattern.
+
+**Changes:**
+- ✅ Deleted `src/modules/simulation/retirement-simulation.ts` (deprecated wrapper)
+- ✅ Removed `projectRetirementSimulation` export from barrel (`src/modules/simulation/index.ts`)
+- ✅ Updated `src/components/forms/SimulationForm.tsx` to import & use `unifiedRetirementSimulation` directly
+- ✅ Updated `src/components/forms/ScenarioComparison.tsx` to use `unifiedRetirementSimulation`
+- ✅ Updated all test usages in `tests/unit/simulation/retirement-simulation.test.ts`
+- ✅ Added JSDoc clarification to `src/modules/simulation/income-projection.ts` explaining profile-assembly vs post-retirement engines
+
+**Result:** Single canonical engine `unifiedRetirementSimulation` now clearly the sole projection engine.
+
+### E-14: FEHB Premium Modeling
+Added dedicated field for Federal Employee Health Benefits premium to address largest fixed healthcare cost for FERS retirees.
+
+**Changes:**
+1. **Schema updates:**
+   - Added `fehbPremiumAnnual?: USD` to `SimulationConfig` in `src/models/simulation.ts`
+   - Added `fehbPremiumAnnual: USDSchema.optional()` to `SimulationConfigSchema` in `src/storage/zod-schemas.ts`
+
+2. **Engine integration:**
+   - Updated `src/modules/simulation/unified-engine.ts` to include FEHB in healthcare expense calculation
+   - FEHB premiums inflated at `healthcareInflationRate` (appropriate for OPM annual adjustments)
+
+3. **Form updates (`src/components/forms/SimulationForm.tsx`):**
+   - Added `fehbPremiumAnnual` to FormState interface
+   - Added to DEFAULTS (blank/optional)
+   - Updated `configToFormState()` & `toConfig()` converters
+   - Added new UI field in Expenses section with helpful hints:
+     - Self Only ≈ $2,400 · Self+1 ≈ $5,500 · Family ≈ $6,500
+   - Updated `healthcareAnnualExpenses` hint to clarify it excludes FEHB
+
+**Result:** Users can now model ~72% government subsidy healthcare benefits alongside out-of-pocket expenses.
+
+**Verification:**
+- ✅ pnpm typecheck: PASS (0 errors)
+- ✅ pnpm test: PASS (531 tests)
+- ✅ pnpm build: PASS (production build succeeds)
+
+---
+
 ## Form Polish Completion (2026-03-11) — COMPLETE ✅
 
 ### Error Clearing & FormErrorSummary Integration

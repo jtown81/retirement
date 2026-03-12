@@ -28,10 +28,14 @@ function getSimulationConfig(): SimulationConfig | null {
 /**
  * Compute the full retirement simulation with tax calculations.
  * Returns null if SimulationConfig is not configured.
+ *
+ * IMPORTANT: Re-computes whenever config changes (especially after form updates).
+ * Without proper dependencies, Dashboard would show stale data.
  */
 export function useFullSimulation(): FullSimulationResult | null {
+  const config = getSimulationConfig();
+
   return useMemo(() => {
-    const config = getSimulationConfig();
     if (!config) return null;
 
     try {
@@ -40,5 +44,5 @@ export function useFullSimulation(): FullSimulationResult | null {
       console.error('Error computing full simulation:', error);
       return null;
     }
-  }, []);
+  }, [config]);
 }

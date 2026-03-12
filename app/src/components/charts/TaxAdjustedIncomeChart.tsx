@@ -1,3 +1,4 @@
+import { memo } from 'react';
 /**
  * Tax-Adjusted Income Waterfall Chart
  *
@@ -112,7 +113,7 @@ function prepareChartData(years: SimulationYearResult[]): TaxAdjustedIncomeChart
     }));
 }
 
-export function TaxAdjustedIncomeChart({ data }: TaxAdjustedIncomeChartProps) {
+function TaxAdjustedIncomeChartComponent({ data }: TaxAdjustedIncomeChartProps) {
   const theme = useChartTheme();
   const chartData = prepareChartData(data);
 
@@ -174,3 +175,5 @@ export function TaxAdjustedIncomeChart({ data }: TaxAdjustedIncomeChartProps) {
     </ChartContainer>
   );
 }
+
+export const TaxAdjustedIncomeChart = memo(TaxAdjustedIncomeChartComponent);

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   AreaChart,
   Area,
@@ -30,7 +31,7 @@ function TSPTooltip({ active, payload, theme }: { active?: boolean; payload?: Ar
   );
 }
 
-export function TSPBalancesChart({ data }: TSPBalancesChartProps) {
+function TSPBalancesChartComponent({ data }: TSPBalancesChartProps) {
   const theme = useChartTheme();
 
   return (
@@ -68,3 +69,5 @@ export function TSPBalancesChart({ data }: TSPBalancesChartProps) {
     </ChartContainer>
   );
 }
+
+export const TSPBalancesChart = memo(TSPBalancesChartComponent);

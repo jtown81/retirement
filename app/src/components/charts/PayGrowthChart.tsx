@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   LineChart,
   Line,
@@ -32,7 +33,7 @@ function PayTooltip({ active, payload, theme }: { active?: boolean; payload?: Ar
   );
 }
 
-export function PayGrowthChart({ data, retirementYear }: PayGrowthChartProps) {
+function PayGrowthChartComponent({ data, retirementYear }: PayGrowthChartProps) {
   const theme = useChartTheme();
 
   return (
@@ -67,3 +68,5 @@ export function PayGrowthChart({ data, retirementYear }: PayGrowthChartProps) {
     </ChartContainer>
   );
 }
+
+export const PayGrowthChart = memo(PayGrowthChartComponent);

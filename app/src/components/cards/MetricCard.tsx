@@ -15,9 +15,9 @@ export function MetricCard({ label, value, variant = 'default' }: MetricCardProp
       data-testid="metric-card"
       className="transition-shadow hover:shadow-md"
     >
-      <CardContent className="pt-4">
-        <p className="text-sm text-muted-foreground truncate">{label}</p>
-        <p className={cn('mt-1 text-lg font-semibold', VARIANT_STYLES[variant])}>
+      <CardContent className="pt-2 sm:pt-4 px-3 sm:px-4">
+        <p className="text-xs sm:text-sm text-muted-foreground truncate">{label}</p>
+        <p className={cn('mt-1 text-base sm:text-lg font-semibold truncate', VARIANT_STYLES[variant])}>
           {value}
         </p>
       </CardContent>

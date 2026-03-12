@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   LineChart,
   Line,
@@ -30,7 +31,7 @@ function SmileTooltip({ active, payload, theme }: { active?: boolean; payload?: 
   );
 }
 
-export function ExpenseSmileCurveChart({ data }: ExpenseSmileCurveChartProps) {
+function ExpenseSmileCurveChartComponent({ data }: ExpenseSmileCurveChartProps) {
   const theme = useChartTheme();
 
   return (
@@ -80,3 +81,5 @@ export function ExpenseSmileCurveChart({ data }: ExpenseSmileCurveChartProps) {
     </ChartContainer>
   );
 }
+
+export const ExpenseSmileCurveChart = memo(ExpenseSmileCurveChartComponent);

@@ -37,9 +37,9 @@ export function AppShell({
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-foreground">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-foreground truncate">
               Federal Retirement Planner
             </h1>
             {onThemeChange && (
@@ -71,12 +71,12 @@ export function AppShell({
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
         {children}
       </main>
 
-      <footer className="border-t border-border mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 text-sm text-muted-foreground">
+      <footer className="border-t border-border mt-8 sm:mt-12">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 text-xs sm:text-sm text-muted-foreground">
           Federal Retirement Planner — {mode === 'demo' ? 'Demo Mode' : 'Your Plan'}
         </div>
       </footer>
